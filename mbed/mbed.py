@@ -23,7 +23,7 @@ import os
 import re
 import sys
 import json
-import optparse
+import argparse
 import pkg_resources
 from time import sleep, time
 from Queue import Queue, Empty
@@ -351,35 +351,35 @@ class MbedTestFramework_GreenTea(MbedTestFramework):
 
 
 def main():
-    parser = optparse.OptionParser()
+    parser =  argparse.ArgumentParser()
 
-    parser.add_option('-l', '--link-build',
+    parser.add_argument('-l', '--link-build',
                       dest='link_build',
                       help="Point to build directory with target specific yotta build")
 
-    parser.add_option('', '--list',
+    parser.add_argument('-ls', '--list',
                       dest='list',
                       default=False,
                       action="store_true",
                       help='Prints information about detected mbed enabled platforms')
 
-    parser.add_option('-r', '--run',
+    parser.add_argument('-r', '--run',
                       dest='target_id',
                       help='Executes test suite automation on given mbed platfrom (by target id)')
 
-    parser.add_option('', '--tests',
+    parser.add_argument('-t', '--tests',
                       dest='tests',
                       default=False,
                       action="store_true",
                       help='Prints information about found tests')
 
-    parser.add_option('', '--loops',
+    parser.add_argument( '--loops',
                       metavar="NUMBER",
-                      type="int",
+                      type=int,
                       dest='loops',
                       help='Set no. of loops per test')
 
-    parser.add_option('-v', '--verbose',
+    parser.add_argument('-v', '--verbose',
                       dest='verbose',
                       default=False,
                       action="store_true",
