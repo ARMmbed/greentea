@@ -49,6 +49,82 @@ TEST_RESULT_MAPPING = {"success" : TEST_RESULT_OK,
 
 RE_DETECT_TESTCASE_RESULT = re.compile("\\{(" + "|".join(TEST_RESULT_MAPPING.keys()) + ")\\}")
 
+def get_char_from_queue(obs):
+    """ Get character from queue safe way
+    """
+    try:
+        c = obs.queue.get(block=True, timeout=0.5)
+    except Empty, _:
+        c = None
+    return c
+
+def filter_queue_char(c):
+    """ Filters out non ASCII characters from serial port
+    """
+    if ord(c) not in range(128):
+        c = ' '
+    return c
+
+def get_test_result(output):
+    """ Parse test 'output' data
+    """
+    result = TEST_RESULT_TIMEOUT
+    for line in "".join(output).splitlines():
+        search_result = RE_DETECT_TESTCASE_RESULT.search(line)
+        if search_result and len(search_result.groups()):
+            result = TEST_RESULT_MAPPING[search_result.groups(0)[0]]
+            break
+    return result
+
+def get_auto_property_value(property_name, line):
+    """ Scans auto detection line from MUT and returns scanned parameter 'property_name'
+        Returns string or None if property search failed
+    """
+    result = None
+    if re.search("HOST: Property '%s'"% property_name, line) is not None:
+        property = re.search("HOST: Property '%s' = '([\w\d _]+)'"% property_name, line)
+        if property is not None and len(property.groups()) == 1:
+            result = property.groups()[0]
+    return result
+
+def process_output(getchar, timeout=0, verbose=False):
+    update_once_flag = {}   # Stores flags checking if some auto-parameter was already set
+    line = ''
+    output = []
+    start_time = time()
+    while (time() - start_time) < timeout:
+        c = getchar()
+        sys.stdout.flush()
+        if c:
+            if verbose:
+                sys.stdout.write(c)
+            c = filter_queue_char(c)
+            output.append(c)
+            # Give the mbed under test a way to communicate the end of the test
+            if c in ['\n', '\r']:
+
+                # Checking for auto-detection information from the test about MUT reset moment
+                if 'reset_target' not in update_once_flag and "HOST: Reset target..." in line:
+                    # We will update this marker only once to prevent multiple time resets
+                    update_once_flag['reset_target'] = True
+                    start_time = time()
+
+                # Checking for auto-detection information from the test about timeout
+                auto_timeout_val = get_auto_property_value('timeout', line)
+                if 'timeout' not in update_once_flag and auto_timeout_val is not None:
+                    # We will update this marker only once to prevent multiple time resets
+                    update_once_flag['timeout'] = True
+                    duration = int(auto_timeout_val)
+
+                # Check for test end
+                if '{end}' in line:
+                    break
+                line = ''
+            else:
+                line += c
+    return output
+
+
 def run_host_test(image_path, disk, port, duration,
                   micro=None, reset=None, reset_tout=None,
                   verbose=False, copy_method=None, program_cycle_s=None):
@@ -77,43 +153,6 @@ def run_host_test(image_path, disk, port, duration,
             except Exception, _:
                 pass
 
-    def get_char_from_queue(obs):
-        """ Get character from queue safe way
-        """
-        try:
-            c = obs.queue.get(block=True, timeout=0.5)
-        except Empty, _:
-            c = None
-        return c
-
-    def filter_queue_char(c):
-        """ Filters out non ASCII characters from serial port
-        """
-        if ord(c) not in range(128):
-            c = ' '
-        return c
-
-    def get_test_result(output):
-        """ Parse test 'output' data
-        """
-        result = TEST_RESULT_TIMEOUT
-        for line in "".join(output).splitlines():
-            search_result = RE_DETECT_TESTCASE_RESULT.search(line)
-            if search_result and len(search_result.groups()):
-                result = TEST_RESULT_MAPPING[search_result.groups(0)[0]]
-                break
-        return result
-
-    def get_auto_property_value(property_name, line):
-        """ Scans auto detection line from MUT and returns scanned parameter 'property_name'
-            Returns string or None if property search failed
-        """
-        result = None
-        if re.search("HOST: Property '%s'"% property_name, line) is not None:
-            property = re.search("HOST: Property '%s' = '([\w\d _]+)'"% property_name, line)
-            if property is not None and len(property.groups()) == 1:
-                result = property.groups()[0]
-        return result
 
     # Command executing CLI for host test supervisor (in detect-mode)
     cmd = ["mbedhtrun",
@@ -138,39 +177,13 @@ def run_host_test(image_path, disk, port, duration,
 
     proc = Popen(cmd, stdout=PIPE)
     obs = ProcessObserver(proc)
-    update_once_flag = {}   # Stores flags checking if some auto-parameter was already set
-    line = ''
-    output = []
+
     start_time = time()
-    while (time() - start_time) < (2 * duration):
-        c = get_char_from_queue(obs)
-        if c:
-            if verbose:
-                sys.stdout.write(c)
-            c = filter_queue_char(c)
-            output.append(c)
-            # Give the mbed under test a way to communicate the end of the test
-            if c in ['\n', '\r']:
-
-                # Checking for auto-detection information from the test about MUT reset moment
-                if 'reset_target' not in update_once_flag and "HOST: Reset target..." in line:
-                    # We will update this marker only once to prevent multiple time resets
-                    update_once_flag['reset_target'] = True
-                    start_time = time()
-
-                # Checking for auto-detection information from the test about timeout
-                auto_timeout_val = get_auto_property_value('timeout', line)
-                if 'timeout' not in update_once_flag and auto_timeout_val is not None:
-                    # We will update this marker only once to prevent multiple time resets
-                    update_once_flag['timeout'] = True
-                    duration = int(auto_timeout_val)
-
-                # Check for test end
-                if '{end}' in line:
-                    break
-                line = ''
-            else:
-                line += c
+    output = process_output(
+        getchar = lambda:get_char_from_queue(obs),
+        timeout = 2*duration,
+        verbose = verbose
+    )
     end_time = time()
     testcase_duration = end_time - start_time   # Test case duration from reset to {end}
 
@@ -204,3 +217,27 @@ def run_cli_command(cmd, shell=True, verbose=False):
             print "mbed-ls: [ret=%d] Command: %s"% (int(ret), cmd)
             print str(e)
     return result
+
+
+def process_stdin(duration, verbose):
+
+    def getchar():
+        return sys.stdin.read(1)
+
+    output = process_output(
+        getchar = getchar,
+        timeout = 2*duration,
+        verbose = verbose
+    )
+
+    result = get_test_result(output)
+    
+    if verbose:
+        sys.stdout.write('result: ' + result + '\n')
+        sys.stdout.flush()
+
+    if result == TEST_RESULT_OK:
+        return 0
+    else:
+        return 1
+
