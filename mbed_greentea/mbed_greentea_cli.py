@@ -26,6 +26,7 @@ import json
 import optparse
 
 from mbed_test_api import run_host_test
+from mbed_test_api import process_stdin
 from mbed_test_api import run_cli_command
 from cmake_handlers import load_ctest_testsuite
 from mbed_target_info import get_mbed_clasic_target_info
@@ -107,10 +108,22 @@ def main():
                     action="store_true",
                     help='Verbose mode (prints some extra information)')
 
+    parser.add_option('-r', '--read-stdin',
+                    dest='read_stdin',
+                    default=False,
+                    action="store_true",
+                    help='Process output from stdin, instead of from connected microcontrollers.')
+
     parser.description = """This automated test script is used to test mbed SDK 3.0 on mbed-enabled deviecs with support from yotta build tool"""
     parser.epilog = """Example: mbedgt --auto --target frdm-k64f-gcc"""
 
     (opts, args) = parser.parse_args()
+
+    if opts.read_stdin:
+        # if we're being piped test output, process a single test then return
+        # its exit status
+        status = process_stdin(duration=10, verbose=opts.verbose)
+        sys.exit(status)
 
     # mbed-enabled devices auto-detection procedures
     mbeds = mbed_lstools.create()
