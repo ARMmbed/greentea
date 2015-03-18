@@ -1,0 +1,426 @@
+<p><div class="toc">
+<ul>
+<li><a href="#introduction">Introduction</a><ul>
+<li><a href="#supported-mbed-platforms">Supported mbed platforms</a></li>
+<li><a href="#supported-yotta-targets">Supported yotta targets</a></li>
+</ul>
+</li>
+<li><a href="#getting-started">Getting Started</a><ul>
+<li><a href="#dependencies">Dependencies</a></li>
+<li><a href="#installation">Installation</a></li>
+<li><a href="#uninstall">Uninstall</a></li>
+</ul>
+</li>
+<li><a href="#environment-precheck">Environment precheck</a></li>
+<li><a href="#digesting-alien-goo">Digesting alien goo</a><ul>
+<li><a href="#example-1-digest-mbed-default-host-test-runner">Example 1 - Digest mbed default host test runner</a></li>
+<li><a href="#example-2-digest-directly-from-file">Example 2 - digest directly from file</a></li>
+<li><a href="#example-3-pipe-testtxt-file-content-as-in-example-2">Example 3 - pipe test.txt file content (as in example 2)</a></li>
+</ul>
+</li>
+<li><a href="#testing">Testing</a></li>
+<li><a href="#common-issues">Common Issues</a></li>
+</ul>
+</div>
+</p>
+
+<h1 id="introduction">Introduction</h1>
+
+<p>Hello and welcome to the mbed SDK test suite, codename ‘greentea’.  <br>
+The mbed test suite is a collection of tools that enable automated testing on mbed platforms. <br>
+The mbed test suite imports and uses following modules:</p>
+
+<ul>
+<li><a href="https://github.com/ARMmbed/mbed-ls">mbed-ls</a></li>
+<li><a href="https://github.com/ARMmbed/mbed-host-tests">mbed-host-tests</a></li>
+</ul>
+
+<p>Make sure you’ve installed above Python modules. You can check it by typing:</p>
+
+
+
+<pre class="prettyprint"><code class=" hljs lasso">pip freeze <span class="hljs-subst">|</span> grep mbed
+mbed<span class="hljs-attribute">-greentea</span><span class="hljs-subst">==</span><span class="hljs-number">0.0</span><span class="hljs-number">.5</span>
+mbed<span class="hljs-attribute">-host</span><span class="hljs-attribute">-tests</span><span class="hljs-subst">==</span><span class="hljs-number">0.1</span><span class="hljs-number">.4</span>
+mbed<span class="hljs-attribute">-ls</span><span class="hljs-subst">==</span><span class="hljs-number">0.1</span><span class="hljs-number">.5</span></code></pre>
+
+<p>Note: <strong>At this current time, the test framework is targeted to run on Windows OS.</strong></p>
+
+
+
+<h2 id="supported-mbed-platforms">Supported mbed platforms</h2>
+
+<ul>
+<li><a href="http://developer.mbed.org/platforms/FRDM-K64F/">FRDM-K64F</a>.</li>
+<li><a href="http://developer.mbed.org/platforms/ST-Nucleo-F401RE/">NUCLEO_F401RE</a>.</li>
+</ul>
+
+
+
+<h2 id="supported-yotta-targets">Supported yotta targets</h2>
+
+<ul>
+<li><code>frdm-k64f-gcc</code>.</li>
+<li><code>frdm-k64f-armcc</code>.</li>
+<li><code>st-nucleo-f401re-gcc</code>.</li>
+</ul>
+
+<p>Note: More platforms and yotta targets will be added. In most cases only meta-data must be updated for each platform and target.</p>
+
+
+
+<h1 id="getting-started">Getting Started</h1>
+
+<p>To use the mbed test suite you must: <br>
+* Install the dependencies. <br>
+* Download and install the mbed test suite. <br>
+* Download mbed SDk sources.</p>
+
+
+
+<h2 id="dependencies">Dependencies</h2>
+
+<ul>
+<li><a href="https://www.python.org/download/releases/2.7/">Python2.7</a> - all host side scripts are written in python.</li>
+<li>Python <a href="https://pythonhosted.org/an_example_pypi_project/setuptools.html">setuptools</a> to install dependencies.</li>
+<li><a href="https://github.com/ARMmbed/yotta">yotta</a> - used to build tests from the mbed SDK.</li>
+<li><a href="https://github.com/ARMmbed/mbed-ls">mbed-ls</a>.</li>
+<li><a href="https://github.com/ARMmbed/mbed-host-tests">mbed-host-tests</a>.</li>
+<li>Some Nucleo boards like F401RE can be correctly flashed only with <code>cp</code> or <code>copy</code> command line command. make sure in your system there is a <code>cp</code> shell command installed. It can be available by default (LInux OS) or provided by environments such as <code>git</code>. We will assume you’ve installed <code>git</code> command line tools for Windows and <code>cp</code> command is available.</li>
+</ul>
+
+
+
+<h2 id="installation">Installation</h2>
+
+<p>To install the mbed test suite download the repo and run the setup.py script with the install option.</p>
+
+
+
+<pre class="prettyprint"><code class=" hljs ruby"><span class="hljs-variable">$ </span>git clone <span class="hljs-symbol">https:</span>/<span class="hljs-regexp">/github.com/</span><span class="hljs-constant">ARMmbed</span>/mbed-greentea.git
+<span class="hljs-variable">$ </span>cd mbed-greentea
+<span class="hljs-variable">$ </span>python setup.py install</code></pre>
+
+<p>Use the same procedure to install dependencies <code>mbed-ls</code> and <code>mbed-host-tests</code>.</p>
+
+<p>To check that the installer was successful try running the <code>mbedgt --help</code> command. You should get feedback like below. You may need to restart your terminal first.</p>
+
+
+
+<pre class="prettyprint"><code class=" hljs applescript">$ mbedgt <span class="hljs-comment">--help</span>
+Usage: mbedgt-<span class="hljs-keyword">script</span>.py [options]
+
+This automated test <span class="hljs-keyword">script</span> <span class="hljs-keyword">is</span> used <span class="hljs-keyword">to</span> test mbed SDK <span class="hljs-number">3.0</span> <span class="hljs-function_start"><span class="hljs-keyword">on</span></span> mbed-enabled
+deviecs <span class="hljs-keyword">with</span> support <span class="hljs-keyword">from</span> yotta build tool
+
+Options:
+  -h, <span class="hljs-comment">--help            show this help message and exit</span>
+.
+.</code></pre>
+
+
+
+<h2 id="uninstall">Uninstall</h2>
+
+<p>You can unstall test suite package using <code>pip</code>. List installed packages and filter for test suite package name:</p>
+
+
+
+<pre class="prettyprint"><code class=" hljs lasso">$ pip freeze <span class="hljs-subst">|</span> grep mbed<span class="hljs-attribute">-greentea</span>
+mbed<span class="hljs-attribute">-greentea</span><span class="hljs-subst">==</span><span class="hljs-number">0.0</span><span class="hljs-number">.5</span></code></pre>
+
+<p>Uninstall test suite package:</p>
+
+
+
+<pre class="prettyprint"><code class=" hljs tex"><span class="hljs-formula">$ pip uninstall mbed-greentea
+Uninstalling mbed-greentea:
+  c:<span class="hljs-command">\python</span>27<span class="hljs-command">\lib</span><span class="hljs-command">\site</span>-packages<span class="hljs-command">\greentea</span>-0.0.5-py2.7.egg
+  c:<span class="hljs-command">\python</span>27<span class="hljs-command">\scripts</span><span class="hljs-command">\mbedgt</span>-script.py
+  c:<span class="hljs-command">\python</span>27<span class="hljs-command">\scripts</span><span class="hljs-command">\mbedgt</span>.exe
+  c:<span class="hljs-command">\python</span>27<span class="hljs-command">\scripts</span><span class="hljs-command">\mbedgt</span>.exe.manifest
+Proceed (y/n)? Y
+  Successfully uninstalled mbed-greentea</span></code></pre>
+
+
+
+<h1 id="environment-precheck">Environment precheck</h1>
+
+<p>At this point you should install all dependencies and be ready to build mbed SDK and perform automated testing. <br>
+In current configuration mbed test suite can automatically detect most of popular mbed-enabled platforms connected to host via USB interface.</p>
+
+<p>Test suite is using <code>mbed-ls</code> module to check connected devices and. Separate module called <code>mbed-host –tests</code> is used to flash and supervise each platforms test. This decoupling allows us to make better software and maintain each or the functionalities as separate domain. Previously mbed SDK test suite consisted of mentioned modules which is not good for maintainability and stopped us from building more efficient tools.</p>
+
+<p>Make sure you have all tools installed. For example you can list all mbed devices connected to your host computer:</p>
+
+
+
+<pre class="prettyprint"><code class=" hljs asciidoc"><span class="hljs-header">$ mbedls
++---------------------+-------------------+-------------------+--------------------------------+</span>
+<span class="hljs-header">|platform_name        |mount_point        |serial_port        |target_id                       |
++---------------------+-------------------+-------------------+--------------------------------+</span>
+|K64F                 |E:                 |COM61              |02400203D94B0E7724B7F3CF        |
+<span class="hljs-header">|NUCLEO_F401RE        |F:                 |COM52              |07200200073E650A385BF317        |
++---------------------+-------------------+-------------------+--------------------------------+</span></code></pre>
+
+
+
+<h1 id="digesting-alien-goo">Digesting alien goo</h1>
+
+<p>Test suite has now new feature of input digesting activated with <code>--digest</code> command line switch. Now you can pipe your proprietary test runner’s console output to test suite or just <code>cat</code> file with test runner’s console output. You can also just specify file name which will be digested as test runner console input.</p>
+
+<p>This option allows you to write your own automation where you execute test runner or just feed test suite with test runner’s console output and test suite returns to environment if this console output indicated success or test failure. <br>
+Note: <br>
+* <code>--digest=stdin</code> will force <code>stdin</code> to be default test suite input. <br>
+* <code>--digest=filename.txt</code> will force <code>filename.txt</code> file content to be default test suite input.</p>
+
+<p>Below examples will explain better <code>--digest</code> option existence. Let’s for example assume you are having your own written in <code>bash</code> test runner or just collected bunch of test results in database and test console output is in your disposal. <br>
+You would like to scan console output from tests to get mbed test suite predefined test result. Note: test suit results and tags are encoded between double curly braces. <br>
+For example typical success code looks like this: <code>{{success}}{{end}}</code>.</p>
+
+
+
+<h2 id="example-1-digest-mbed-default-host-test-runner">Example 1 - Digest mbed default host test runner</h2>
+
+<p>You can just run installed with <code>mbed-host-tests</code> <code>mbedhtrun</code> to evaluate test case test result (Test result is returned to environment as <code>mbedgt</code> return code, success code is <code>0</code>).</p>
+
+
+
+<pre class="prettyprint"><code class=" hljs lasso">$ mbedhtrun <span class="hljs-attribute">-d</span> E: <span class="hljs-attribute">-f</span> <span class="hljs-string">".\build\frdm-k64f-gcc\test\mbed-test-hello.bin"</span> <span class="hljs-attribute">-p</span> COM61 <span class="hljs-attribute">-C</span> <span class="hljs-number">4</span> <span class="hljs-attribute">-c</span> default <span class="hljs-attribute">-m</span> K64F <span class="hljs-subst">|</span> mbedgt <span class="hljs-subst">--</span>digest<span class="hljs-subst">=</span>stdin <span class="hljs-attribute">-V</span>
+
+MBED: Instrumentation: <span class="hljs-string">"COM61"</span> <span class="hljs-literal">and</span> disk: <span class="hljs-string">"E:"</span>
+HOST: Copy image onto target<span class="hljs-attribute">...</span>
+HOST: Initialize serial port<span class="hljs-attribute">...</span>
+HOST: Reset target<span class="hljs-attribute">...</span>
+HOST: Property <span class="hljs-string">'timeout'</span> <span class="hljs-subst">=</span> <span class="hljs-string">'5'</span>
+HOST: Property <span class="hljs-string">'host_test_name'</span> <span class="hljs-subst">=</span> <span class="hljs-string">'hello_auto'</span>
+HOST: Property <span class="hljs-string">'description'</span> <span class="hljs-subst">=</span> <span class="hljs-string">'Hello World'</span>
+HOST: Property <span class="hljs-string">'test_id'</span> <span class="hljs-subst">=</span> <span class="hljs-string">'MBED_10'</span>
+HOST: Start test<span class="hljs-attribute">...</span>
+Read <span class="hljs-number">13</span> <span class="hljs-built_in">bytes</span>:
+Hello World
+
+{{success}}
+{{end}}</code></pre>
+
+
+
+<pre class="prettyprint"><code class=" hljs vbnet">$ echo <span class="hljs-keyword">error</span> level <span class="hljs-keyword">is</span> %ERRORLEVEL%
+<span class="hljs-keyword">error</span> level <span class="hljs-keyword">is</span> <span class="hljs-number">0</span></code></pre>
+
+<p>Note; test suite detected strings <code>{{success}}</code> and <code>{{end}}</code> and concluded test result was a success.</p>
+
+
+
+<h2 id="example-2-digest-directly-from-file">Example 2 - digest directly from file</h2>
+
+<p>File <code>test.txt</code> content:</p>
+
+
+
+<pre class="prettyprint"><code class=" hljs mathematica">$ cat test.txt
+MBED: Instrumentation: <span class="hljs-string">"COM61"</span> and disk: <span class="hljs-string">"E:"</span>
+HOST: Copy image onto target...
+HOST: Initialize serial port...
+HOST: Reset target...
+HOST: <span class="hljs-keyword">Property</span> <span class="hljs-string">'timeout'</span> = <span class="hljs-string">'5'</span>
+HOST: <span class="hljs-keyword">Property</span> <span class="hljs-string">'host_test_name'</span> = <span class="hljs-string">'hello_auto'</span>
+HOST: <span class="hljs-keyword">Property</span> <span class="hljs-string">'description'</span> = <span class="hljs-string">'Hello World'</span>
+HOST: <span class="hljs-keyword">Property</span> <span class="hljs-string">'test_id'</span> = <span class="hljs-string">'MBED_10'</span>
+HOST: Start test...
+<span class="hljs-keyword">Read</span> <span class="hljs-number">13</span> bytes:
+Hello World
+
+<span class="hljs-list">{{ioerr_disk}</span>}
+<span class="hljs-list">{{end}</span>}</code></pre>
+
+<p>And scan for error code inside file:</p>
+
+
+
+<pre class="prettyprint"><code class=" hljs fix"><span class="hljs-attribute">$ mbedgt --digest</span>=<span class="hljs-string">./test.txt</span></code></pre>
+
+
+
+<pre class="prettyprint"><code class=" hljs vbnet">$ echo <span class="hljs-keyword">error</span> level <span class="hljs-keyword">is</span> %ERRORLEVEL%
+<span class="hljs-keyword">error</span> level <span class="hljs-keyword">is</span> <span class="hljs-number">5</span></code></pre>
+
+<p>Note: error level <code>5</code> stands for <code>TEST_RESULT_IOERR_DISK</code>.</p>
+
+
+
+<h2 id="example-3-pipe-testtxt-file-content-as-in-example-2">Example 3 - pipe test.txt file content (as in example 2)</h2>
+
+
+
+<pre class="prettyprint"><code class=" hljs fix"><span class="hljs-attribute">$ cat test.txt | mbedgt --digest</span>=<span class="hljs-string">stdin</span></code></pre>
+
+
+
+<pre class="prettyprint"><code class=" hljs vbnet">$ echo <span class="hljs-keyword">error</span> level <span class="hljs-keyword">is</span> %ERRORLEVEL%
+<span class="hljs-keyword">error</span> level <span class="hljs-keyword">is</span> <span class="hljs-number">5</span></code></pre>
+
+
+
+<h1 id="testing">Testing</h1>
+
+<p>To test your platform you need to download mbed SDK sources and make sure you have mbed board (hardware) which is described and supported by any of available yotta modules.</p>
+
+<p>First you can clone mbed SDK sources and move inside mbed SDK sources directory:</p>
+
+
+
+<pre class="prettyprint"><code class=" hljs ruby"><span class="hljs-variable">$ </span>git clone <span class="hljs-symbol">https:</span>/<span class="hljs-regexp">/github.com/</span><span class="hljs-constant">ARMmbed</span>/mbed-sdk.git
+cd mbed-sdk</code></pre>
+
+<p>You are in mbed SDK directory and now you can execute test suite which will call yotta to build your sources first.</p>
+
+<p>Let’s take one step back and see our current configuration:</p>
+
+
+
+<pre class="prettyprint"><code class=" hljs lasso">$ mbedgt –config
+mbed<span class="hljs-attribute">-ls</span>: detecting connected mbed<span class="hljs-attribute">-enabled</span> devices<span class="hljs-attribute">...</span>
+mbed<span class="hljs-attribute">-ls</span>: detected K64F, console at: COM61, mounted at: E:
+        got yotta target <span class="hljs-string">'frdm-k64f-gcc'</span>
+        got yotta target <span class="hljs-string">'frdm-k64f-armcc'</span>
+mbed<span class="hljs-attribute">-ls</span>: detected NUCLEO_F401RE, console at: COM52, mounted at: F:
+        got yotta target <span class="hljs-string">'st-nucleo-f401re-gcc'</span></code></pre>
+
+<p>We can see <code>mbedgt</code> detected (using <code>mbed-ls</code> module) two boards connected to host system: <code>K64F</code>, <code>NUCLEO_F401RE</code>.</p>
+
+<p>For each <code>mbedgt</code> proposed few supported yotta targets: <br>
+* <code>frdm-k64f-gcc</code> - Freescale K64F platform compiled with GCC cross-compiler. <br>
+* <code>frdm-k64f-armcc</code> - Freescale K64F platform compiled with Keil armcc cross-compiler. <br>
+* <code>st-nucleo-f401re-gcc</code>- STMicro Nucleo F401RE platform compiled with GCC cross-compiler.</p>
+
+<p>Because our test system doesn’t have Keil armcc compiler installed I will use only targets describing how to build mbed SDK using GCC cross-compiler. I want to build mbed SDK first to see if there are no issues. Let’s use test suite and invoke indirectly yotta to build only for two supported at this time targets.</p>
+
+<p>In this example we will use option <code>`--target</code> to specify targets I want to interact with. Option <code>-O</code> will be used to tell test suite to only build sources and tests without test procedure.</p>
+
+
+
+<pre class="prettyprint"><code class=" hljs ruby"><span class="hljs-variable">$ </span>mbedgt --target=frdm-k64f-gcc,st-nucleo-f401re-gcc -<span class="hljs-constant">O</span>
+mbed-<span class="hljs-symbol">ls:</span> detecting connected mbed-enabled devices...
+mbed-<span class="hljs-symbol">ls:</span> detected <span class="hljs-constant">K64F</span>, console <span class="hljs-symbol">at:</span> <span class="hljs-constant">COM61</span>, mounted <span class="hljs-symbol">at:</span> <span class="hljs-constant">E</span><span class="hljs-symbol">:</span>
+        got yotta target <span class="hljs-string">'frdm-k64f-gcc'</span>
+mbed-<span class="hljs-symbol">ls:</span> calling yotta to build your sources <span class="hljs-keyword">and</span> tests
+<span class="hljs-symbol">warning:</span> uvisor-lib has invalid <span class="hljs-class"><span class="hljs-keyword">module</span>.<span class="hljs-title">json</span>:</span>
+<span class="hljs-symbol">warning:</span>   author value [u<span class="hljs-string">'Milosch Meriac &lt;milosch.meriac@arm.com&gt;'</span>, u<span class="hljs-string">'Alessandro Angelino &lt;alessandro.angelino@arm.com&gt;'</span>] is <span class="hljs-keyword">not</span> valid under any of the given schemas
+<span class="hljs-symbol">info:</span> generate <span class="hljs-keyword">for</span> <span class="hljs-symbol">target:</span> frdm-k64f-gcc <span class="hljs-number">0</span>.<span class="hljs-number">0</span>.<span class="hljs-number">10</span> at <span class="hljs-symbol">c:</span>\temp\xxx\mbed-sdk-private\yotta_targets\frdm-k64f-gcc
+mbedOS.cmake included
+<span class="hljs-constant">GCC</span>-<span class="hljs-constant">C</span>.cmake included
+mbedOS-<span class="hljs-constant">GNU</span>-<span class="hljs-constant">C</span>.cmake included
+<span class="hljs-constant">GCC</span>-<span class="hljs-constant">GXX</span>.cmake included
+mbedOS-<span class="hljs-constant">GNU</span>-<span class="hljs-constant">CXX</span>.cmake included
+<span class="hljs-constant">GCC</span> version <span class="hljs-symbol">is:</span> <span class="hljs-number">4.8</span>.<span class="hljs-number">4</span>
+<span class="hljs-constant">GNU</span>-<span class="hljs-constant">ASM</span>.cmake included
+<span class="hljs-constant">GNU</span>-<span class="hljs-constant">ASM</span>.cmake included
+-- <span class="hljs-constant">Configuring</span> done
+-- <span class="hljs-constant">Generating</span> done
+-- <span class="hljs-constant">Build</span> files have been written <span class="hljs-symbol">to:</span> <span class="hljs-constant">C</span><span class="hljs-symbol">:/temp/xxx/mbed-sdk-private/build/frdm-k64f-gcc</span>
+<span class="hljs-symbol">ninja:</span> no work to <span class="hljs-keyword">do</span>.
+        got yotta target <span class="hljs-string">'frdm-k64f-armcc'</span>
+mbed-<span class="hljs-symbol">ls:</span> detected <span class="hljs-constant">NUCLEO_F401RE</span>, console <span class="hljs-symbol">at:</span> <span class="hljs-constant">COM52</span>, mounted <span class="hljs-symbol">at:</span> <span class="hljs-constant">F</span><span class="hljs-symbol">:</span>
+        got yotta target <span class="hljs-string">'st-nucleo-f401re-gcc'</span>
+mbed-<span class="hljs-symbol">ls:</span> calling yotta to build your sources <span class="hljs-keyword">and</span> tests
+<span class="hljs-symbol">info:</span> generate <span class="hljs-keyword">for</span> <span class="hljs-symbol">target:</span> st-nucleo-f401re-gcc <span class="hljs-number">0</span>.<span class="hljs-number">0</span>.<span class="hljs-number">5</span> at <span class="hljs-symbol">c:</span>\temp\xxx\mbed-sdk-private\yotta_targets\st-nucleo-f401re-gcc
+mbedOS.cmake included
+<span class="hljs-constant">GCC</span>-<span class="hljs-constant">C</span>.cmake included
+mbedOS-<span class="hljs-constant">GNU</span>-<span class="hljs-constant">C</span>.cmake included
+<span class="hljs-constant">GCC</span>-<span class="hljs-constant">GXX</span>.cmake included
+mbedOS-<span class="hljs-constant">GNU</span>-<span class="hljs-constant">CXX</span>.cmake included
+<span class="hljs-constant">GCC</span> version <span class="hljs-symbol">is:</span> <span class="hljs-number">4.8</span>.<span class="hljs-number">4</span>
+<span class="hljs-constant">GNU</span>-<span class="hljs-constant">ASM</span>.cmake included
+-- <span class="hljs-constant">Configuring</span> done
+-- <span class="hljs-constant">Generating</span> done
+-- <span class="hljs-constant">Build</span> files have been written <span class="hljs-symbol">to:</span> <span class="hljs-constant">C</span><span class="hljs-symbol">:/temp/xxx/mbed-sdk-private/build/st-nucleo-f401re-gcc</span>
+<span class="hljs-symbol">ninja:</span> no work to <span class="hljs-keyword">do</span>.</code></pre>
+
+<p>Now we know our sources and tests are built correctly. We can now call test suite again and ask for target test.</p>
+
+<p>Please stay in the same directory (with mbed SDK) and execute below command:</p>
+
+
+
+<pre class="prettyprint"><code class=" hljs ruby">mbedgt --target=frdm-k64f-gcc,st-nucleo-f401re-gcc
+mbed-<span class="hljs-symbol">ls:</span> detecting connected mbed-enabled devices...
+mbed-<span class="hljs-symbol">ls:</span> detected <span class="hljs-constant">K64F</span>, console <span class="hljs-symbol">at:</span> <span class="hljs-constant">COM61</span>, mounted <span class="hljs-symbol">at:</span> <span class="hljs-constant">E</span><span class="hljs-symbol">:</span>
+        got yotta target <span class="hljs-string">'frdm-k64f-gcc'</span>
+mbed-<span class="hljs-symbol">ls:</span> calling yotta to build your sources <span class="hljs-keyword">and</span> tests
+<span class="hljs-symbol">warning:</span> uvisor-lib has invalid <span class="hljs-class"><span class="hljs-keyword">module</span>.<span class="hljs-title">json</span>:</span>
+<span class="hljs-symbol">warning:</span>   author value [u<span class="hljs-string">'Milosch Meriac &lt;milosch.meriac@arm.com&gt;'</span>, u<span class="hljs-string">'Alessandro Angelino &lt;alessandro.angelino@arm.com&gt;'</span>] is <span class="hljs-keyword">not</span> valid under any of the given schemas
+<span class="hljs-symbol">info:</span> generate <span class="hljs-keyword">for</span> <span class="hljs-symbol">target:</span> frdm-k64f-gcc <span class="hljs-number">0</span>.<span class="hljs-number">0</span>.<span class="hljs-number">10</span> at <span class="hljs-symbol">c:</span>\temp\xxx\mbed-sdk-private\yotta_targets\frdm-k64f-gcc
+mbedOS.cmake included
+<span class="hljs-constant">GCC</span>-<span class="hljs-constant">C</span>.cmake included
+mbedOS-<span class="hljs-constant">GNU</span>-<span class="hljs-constant">C</span>.cmake included
+<span class="hljs-constant">GCC</span>-<span class="hljs-constant">GXX</span>.cmake included
+mbedOS-<span class="hljs-constant">GNU</span>-<span class="hljs-constant">CXX</span>.cmake included
+<span class="hljs-constant">GCC</span> version <span class="hljs-symbol">is:</span> <span class="hljs-number">4.8</span>.<span class="hljs-number">4</span>
+<span class="hljs-constant">GNU</span>-<span class="hljs-constant">ASM</span>.cmake included
+<span class="hljs-constant">GNU</span>-<span class="hljs-constant">ASM</span>.cmake included
+-- <span class="hljs-constant">Configuring</span> done
+-- <span class="hljs-constant">Generating</span> done
+-- <span class="hljs-constant">Build</span> files have been written <span class="hljs-symbol">to:</span> <span class="hljs-constant">C</span><span class="hljs-symbol">:/temp/xxx/mbed-sdk-private/build/frdm-k64f-gcc</span>
+<span class="hljs-symbol">ninja:</span> no work to <span class="hljs-keyword">do</span>.
+<span class="hljs-symbol">mbedgt:</span> running tests...
+        test <span class="hljs-string">'mbed-test-dev_null'</span> .................................................... <span class="hljs-constant">OK</span>
+        test <span class="hljs-string">'mbed-test-cpp'</span> ......................................................... <span class="hljs-constant">OK</span>
+        test <span class="hljs-string">'mbed-test-time_us'</span> ..................................................... <span class="hljs-constant">OK</span>
+        test <span class="hljs-string">'mbed-test-ticker'</span> ...................................................... <span class="hljs-constant">OK</span>
+        test <span class="hljs-string">'mbed-test-div'</span> ......................................................... <span class="hljs-constant">OK</span>
+        test <span class="hljs-string">'mbed-test-detect'</span> ...................................................... <span class="hljs-constant">SKIPPED</span>
+        test <span class="hljs-string">'mbed-test-call_before_main'</span> ............................................ <span class="hljs-constant">OK</span>
+        test <span class="hljs-string">'mbed-test-basic'</span> ....................................................... <span class="hljs-constant">OK</span>
+        test <span class="hljs-string">'mbed-test-stdio'</span> ....................................................... <span class="hljs-constant">OK</span>
+        test <span class="hljs-string">'mbed-test-ticker_3'</span> .................................................... <span class="hljs-constant">OK</span>
+        test <span class="hljs-string">'mbed-test-ticker_2'</span> .................................................... <span class="hljs-constant">OK</span>
+        test <span class="hljs-string">'mbed-test-timeout'</span> ..................................................... <span class="hljs-constant">OK</span>
+        test <span class="hljs-string">'mbed-test-rtc'</span> ......................................................... <span class="hljs-constant">OK</span>
+        test <span class="hljs-string">'mbed-test-echo'</span> ........................................................ <span class="hljs-constant">OK</span>
+        test <span class="hljs-string">'mbed-test-hello'</span> ....................................................... <span class="hljs-constant">OK</span>
+        got yotta target <span class="hljs-string">'frdm-k64f-armcc'</span>
+mbed-<span class="hljs-symbol">ls:</span> detected <span class="hljs-constant">NUCLEO_F401RE</span>, console <span class="hljs-symbol">at:</span> <span class="hljs-constant">COM52</span>, mounted <span class="hljs-symbol">at:</span> <span class="hljs-constant">F</span><span class="hljs-symbol">:</span>
+        got yotta target <span class="hljs-string">'st-nucleo-f401re-gcc'</span>
+mbed-<span class="hljs-symbol">ls:</span> calling yotta to build your sources <span class="hljs-keyword">and</span> tests
+<span class="hljs-symbol">info:</span> generate <span class="hljs-keyword">for</span> <span class="hljs-symbol">target:</span> st-nucleo-f401re-gcc <span class="hljs-number">0</span>.<span class="hljs-number">0</span>.<span class="hljs-number">5</span> at <span class="hljs-symbol">c:</span>\temp\xxx\mbed-sdk-private\yotta_targets\st-nucleo-f401re-gcc
+mbedOS.cmake included
+<span class="hljs-constant">GCC</span>-<span class="hljs-constant">C</span>.cmake included
+mbedOS-<span class="hljs-constant">GNU</span>-<span class="hljs-constant">C</span>.cmake included
+<span class="hljs-constant">GCC</span>-<span class="hljs-constant">GXX</span>.cmake included
+mbedOS-<span class="hljs-constant">GNU</span>-<span class="hljs-constant">CXX</span>.cmake included
+<span class="hljs-constant">GCC</span> version <span class="hljs-symbol">is:</span> <span class="hljs-number">4.8</span>.<span class="hljs-number">4</span>
+<span class="hljs-constant">GNU</span>-<span class="hljs-constant">ASM</span>.cmake included
+-- <span class="hljs-constant">Configuring</span> done
+-- <span class="hljs-constant">Generating</span> done
+-- <span class="hljs-constant">Build</span> files have been written <span class="hljs-symbol">to:</span> <span class="hljs-constant">C</span><span class="hljs-symbol">:/temp/xxx/mbed-sdk-private/build/st-nucleo-f401re-gcc</span>
+<span class="hljs-symbol">ninja:</span> no work to <span class="hljs-keyword">do</span>.
+<span class="hljs-symbol">mbedgt:</span> running tests...
+        test <span class="hljs-string">'mbed-test-dev_null'</span> .................................................... <span class="hljs-constant">OK</span>
+        test <span class="hljs-string">'mbed-test-cpp'</span> ......................................................... <span class="hljs-constant">OK</span>
+        test <span class="hljs-string">'mbed-test-time_us'</span> ..................................................... <span class="hljs-constant">OK</span>
+        test <span class="hljs-string">'mbed-test-ticker'</span> ...................................................... <span class="hljs-constant">OK</span>
+        test <span class="hljs-string">'mbed-test-div'</span> ......................................................... <span class="hljs-constant">OK</span>
+        test <span class="hljs-string">'mbed-test-detect'</span> ...................................................... <span class="hljs-constant">SKIPPED</span>
+        test <span class="hljs-string">'mbed-test-call_before_main'</span> ............................................ <span class="hljs-constant">OK</span>
+        test <span class="hljs-string">'mbed-test-basic'</span> ....................................................... <span class="hljs-constant">OK</span>
+        test <span class="hljs-string">'mbed-test-stdio'</span> ....................................................... <span class="hljs-constant">OK</span>
+        test <span class="hljs-string">'mbed-test-ticker_3'</span> .................................................... <span class="hljs-constant">OK</span>
+        test <span class="hljs-string">'mbed-test-ticker_2'</span> .................................................... <span class="hljs-constant">OK</span>
+        test <span class="hljs-string">'mbed-test-timeout'</span> ..................................................... <span class="hljs-constant">OK</span>
+        test <span class="hljs-string">'mbed-test-rtc'</span> ......................................................... <span class="hljs-constant">FAIL</span>
+        test <span class="hljs-string">'mbed-test-echo'</span> ........................................................ <span class="hljs-constant">OK</span>
+        test <span class="hljs-string">'mbed-test-hello'</span> ....................................................... <span class="hljs-constant">OK</span></code></pre>
+
+
+
+<h1 id="common-issues">Common Issues</h1>
+
+<ul>
+<li>Issue: In this release there are known issues related to Linux serial port handling during test. <br>
+<ul><li>Solution: Our army of cybernetic organisms is working on fix for this problem as we speak in your mind ;)</li></ul></li>
+<li>Issue: Some boards show up as ‘unknown’ <br>
+<ul><li>Solution: we will add them in coming releases</li></ul></li>
+<li>Issue: Not all mbed platforms have targets mapped to them. <br>
+<ul><li>Solution: Be patient, more target descriptions are comming.</li></ul></li>
+</ul>
