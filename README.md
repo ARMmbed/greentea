@@ -1,12 +1,14 @@
 # Introduction
 Hello and welcome to the mbed SDK test suite, codename 'greentea'. 
+
 The mbed test suite is a collection of tools that enable automated testing on mbed platforms.
-The mbed test suite imports and uses following modules:
+
+The mbed test suite imports and uses the following modules:
 
 * [mbed-ls](https://github.com/ARMmbed/mbed-ls)
 * [mbed-host-tests](https://github.com/ARMmbed/mbed-host-tests)
 
-Make sure you've installed above Python modules. You can check it by typing:
+Make sure you've installed the above Python modules. You can check it by typing:
 ```
 pip freeze | grep mbed
 mbed-greentea==0.0.5
@@ -31,7 +33,7 @@ Note: More platforms and yotta targets will be added. In most cases only meta-da
 To use the mbed test suite you must:
 * Install the dependencies.
 * Download and install the mbed test suite.
-* Download mbed SDk sources.
+* Download the mbed SDk sources.
 
 ## Dependencies
 * [Python2.7](https://www.python.org/download/releases/2.7/) - all host side scripts are written in python.
@@ -39,7 +41,7 @@ To use the mbed test suite you must:
 * [yotta](https://github.com/ARMmbed/yotta) - used to build tests from the mbed SDK.
 * [mbed-ls](https://github.com/ARMmbed/mbed-ls).
 * [mbed-host-tests](https://github.com/ARMmbed/mbed-host-tests).
-* Some Nucleo boards like F401RE can be correctly flashed only with ```cp``` or ```copy``` command line command. make sure in your system there is a ```cp``` shell command installed. It can be available by default (LInux OS) or provided by environments such as ```git```. We will assume you've installed ```git``` command line tools for Windows and ```cp``` command is available.
+* Some Nucleo boards like F401RE can be correctly flashed only with the ```cp``` or ```copy``` command-line commands. Make sure your system has a ```cp``` shell command installed. It can be available by default (Linux OS) or provided by environments such as ```git```. We will assume you've installed the ```git``` command line tools for Windows and the ```cp``` command is available.
 
 ## Installation
 To install the mbed test suite download the repo and run the setup.py script with the install option.
@@ -49,15 +51,15 @@ $ cd mbed-greentea
 $ python setup.py install
 ```
 
-Use the same procedure to install dependencies ```mbed-ls``` and ```mbed-host-tests```.
+Use the same procedure to install the dependencies ```mbed-ls``` and ```mbed-host-tests```.
 
 To check that the installer was successful try running the ```mbedgt --help``` command. You should get feedback like below. You may need to restart your terminal first.
 ```
 $ mbedgt --help
 Usage: mbedgt-script.py [options]
 
-This automated test script is used to test mbed SDK 3.0 on mbed-enabled
-deviecs with support from yotta build tool
+This automated test script is used to test the mbed SDK 3.0 on mbed-enabled
+devices with support from the yotta build tool
 
 Options:
   -h, --help            show this help message and exit
@@ -66,13 +68,13 @@ Options:
 ```
 
 ## Uninstall
-You can unstall test suite package using ```pip```. List installed packages and filter for test suite package name:
+You can uninstall the test suite package by using ```pip```. List installed packages and filter for the test suite package name:
 ```
 $ pip freeze | grep mbed-greentea
 mbed-greentea==0.0.5
 ```
 
-Uninstall test suite package:
+Uninstall the test suite package:
 ```
 $ pip uninstall mbed-greentea
 Uninstalling mbed-greentea:
@@ -85,12 +87,12 @@ Proceed (y/n)? Y
 ```
 
 # Environment precheck
-At this point you should install all dependencies and be ready to build mbed SDK and perform automated testing.
-In current configuration mbed test suite can automatically detect most of popular mbed-enabled platforms connected to host via USB interface.
+At this point you should install all dependencies and be ready to build the mbed SDK and perform automated testing.
+In the current configuration the mbed test suite can automatically detect most of the popular mbed-enabled platforms connected to the host via the USB interface.
 
-Test suite is using ```mbed-ls``` module to check connected devices and. Separate module called ```mbed-host –tests``` is used to flash and supervise each platforms test. This decoupling allows us to make better software and maintain each or the functionalities as separate domain. Previously mbed SDK test suite consisted of mentioned modules which is not good for maintainability and stopped us from building more efficient tools.
+The test suite is using the ```mbed-ls``` module to check connected devices and a separate module called ```mbed-host –tests``` is used to flash and supervise each platforms test. This decoupling allows us to make better software and maintain each of the functionalities as a separate domain. Previously the mbed SDK test suite consisted of the mentioned modules which is not good for maintainability and stopped us from building more efficient tools.
 
-Make sure you have all tools installed. For example you can list all mbed devices connected to your host computer:
+Make sure you have all the tools installed. For example you can list all mbed devices connected to your host computer:
 ```
 $ mbedls
 +---------------------+-------------------+-------------------+--------------------------------+
@@ -102,21 +104,24 @@ $ mbedls
 ```
 
 # Digesting alien goo
-Test suite has now new feature of input digesting activated with ```--digest``` command line switch. Now you can pipe your proprietary test runner’s console output to test suite or just ```cat``` file with test runner’s console output. You can also just specify file name which will be digested as test runner console input.
 
-This option allows you to write your own automation where you execute test runner or just feed test suite with test runner’s console output and test suite returns to environment if this console output indicated success or test failure.
+The test suite has a new feature of input digesting activated with the ```--digest``` command line switch. Now you can pipe your proprietary test runner’s console output to the test suite or just the ```cat``` file with the test runner’s console output. You can also just specify a file name which will be digested as the test runner console input.
+
+This option allows you to write your own automation where you execute test runner or just feed test suite the test runner’s console output and the test suite returns to the environment whether this console output indicated test success or failure.
+
 Note:
-* ```--digest=stdin``` will force ```stdin``` to be default test suite input.
-* ```--digest=filename.txt``` will force ```filename.txt``` file content to be default test suite input.
+* ```--digest=stdin``` will force ```stdin``` to be the default test suite input.
+* ```--digest=filename.txt``` will force ```filename.txt``` file content to be the default test suite input.
 
-Below examples will explain better ```--digest``` option existence. Let’s for example assume you are having your own written in ```bash``` test runner or just collected bunch of test results in database and test console output is in your disposal.
-You would like to scan console output from tests to get mbed test suite predefined test result. Note: test suit results and tags are encoded between double curly braces.
-For example typical success code looks like this: ```{{success}}{{end}}```.
+The below examples will better explain the ```--digest``` option's existence. Let’s for example assume you are having your own tests written in a ```bash``` test runner or just collected a bunch of test results in a database and the test console output is at your disposal.
+You would like to scan the console output from tests to get the mbed test suite predefined test result. Note: test suit results and tags are encoded between double curly braces.
+For example a typical success code looks like this: ```{{success}}{{end}}```.
 
 ## Example 1 - Digest mbed default host test runner
-You can just run installed with ```mbed-host-tests``` ```mbedhtrun``` to evaluate test case test result (Test result is returned to environment as ```mbedgt``` return code, success code is ```0```).
+You can just run installed with ```mbed-host-tests``` ```mbedhtrun``` to evaluate a test case's test result (The test result is returned to the environment as an ```mbedgt``` return code, the success code is ```0```).
 
 ```
+
 $ mbedhtrun -d E: -f ".\build\frdm-k64f-gcc\test\mbed-test-hello.bin" -p COM61 -C 4 -c default -m K64F | mbedgt --digest=stdin -V
 
 MBED: Instrumentation: "COM61" and disk: "E:"
@@ -133,16 +138,21 @@ Hello World
 
 {{success}}
 {{end}}
+
 ```
 ```
+
 $ echo error level is %ERRORLEVEL%
 error level is 0
+
 ```
-Note; test suite detected strings ```{{success}}``` and ```{{end}}``` and concluded test result was a success.
+Note: the test suite detected strings ```{{success}}``` and ```{{end}}``` and concluded that the test result was a success.
 
 ## Example 2 - digest directly from file
 File ```test.txt``` content:
+
 ```
+
 $ cat test.txt
 MBED: Instrumentation: "COM61" and disk: "E:"
 HOST: Copy image onto target...
@@ -158,39 +168,59 @@ Hello World
 
 {{ioerr_disk}}
 {{end}}
+
 ```
 
-And scan for error code inside file:
+And scan for the error code inside the file:
+
 ```
+
 $ mbedgt --digest=./test.txt
+
 ```
+
 ```
+
 $ echo error level is %ERRORLEVEL%
 error level is 5
+
 ```
+
 Note: error level ```5``` stands for ```TEST_RESULT_IOERR_DISK```.
 
 ## Example 3 - pipe test.txt file content (as in example 2)
+
 ```
+
 $ cat test.txt | mbedgt --digest=stdin
+
 ```
+
 ```
 $ echo error level is %ERRORLEVEL%
+
 error level is 5
+
 ```
 
 # Testing
-To test your platform you need to download mbed SDK sources and make sure you have mbed board (hardware) which is described and supported by any of available yotta modules.
+To test your platform you need to download the mbed SDK sources and make sure you have an mbed board (hardware) which is described and supported by any of the available yotta modules.
 
-First you can clone mbed SDK sources and move inside mbed SDK sources directory:
+First you can clone the mbed SDK sources and move them to the mbed SDK sources directory:
+
 ```
+
 $ git clone https://github.com/ARMmbed/mbed-sdk.git
 cd mbed-sdk
+
 ```
-You are in mbed SDK directory and now you can execute test suite which will call yotta to build your sources first.
+
+You are in the mbed SDK directory and now you can execute a test suite which will call yotta to build your sources first.
 
 Let’s take one step back and see our current configuration:
+
 ```
+
 $ mbedgt –config
 mbed-ls: detecting connected mbed-enabled devices...
 mbed-ls: detected K64F, console at: COM61, mounted at: E:
@@ -198,19 +228,23 @@ mbed-ls: detected K64F, console at: COM61, mounted at: E:
         got yotta target 'frdm-k64f-armcc'
 mbed-ls: detected NUCLEO_F401RE, console at: COM52, mounted at: F:
         got yotta target 'st-nucleo-f401re-gcc'
-```
-We can see ```mbedgt``` detected (using ```mbed-ls``` module) two boards connected to host system: ``` K64F```, ```NUCLEO_F401RE ```.
-
-For each ```mbedgt``` proposed few supported yotta targets:
-* ```frdm-k64f-gcc``` - Freescale K64F platform compiled with GCC cross-compiler.
-* ```frdm-k64f-armcc``` - Freescale K64F platform compiled with Keil armcc cross-compiler.
-* ```st-nucleo-f401re-gcc```- STMicro Nucleo F401RE platform compiled with GCC cross-compiler.
-
-Because our test system doesn’t have Keil armcc compiler installed I will use only targets describing how to build mbed SDK using GCC cross-compiler. I want to build mbed SDK first to see if there are no issues. Let’s use test suite and invoke indirectly yotta to build only for two supported at this time targets.
-
-In this example we will use option ````--target``` to specify targets I want to interact with. Option ```-O``` will be used to tell test suite to only build sources and tests without test procedure.
 
 ```
+
+We can see ```mbedgt``` detected (using the ```mbed-ls``` module) two boards connected to the host system: ``` K64F```, ```NUCLEO_F401RE ```.
+
+For each ```mbedgt``` we propose a few supported yotta targets:
+
+* ```frdm-k64f-gcc``` - Freescale K64F platform compiled with the GCC cross-compiler.
+* ```frdm-k64f-armcc``` - Freescale K64F platform compiled with the Keil armcc cross-compiler.
+* ```st-nucleo-f401re-gcc```- STMicro Nucleo F401RE platform compiled with the GCC cross-compiler.
+
+Because our test system doesn’t have the Keil armcc compiler installed I will use only the targets describing how to build mbed SDK using the GCC cross-compiler. I want to build the mbed SDK first to see if there are no issues. Let’s use the test suite and invoke yotta indirectly to build only for the two targets supported at this time.
+
+In this example we will use the option ````--target``` to specify the targets I want to interact with. Option ```-O``` will be used to tell the test suite to only build the sources and tests without the test procedure.
+
+```
+
 $ mbedgt --target=frdm-k64f-gcc,st-nucleo-f401re-gcc -O
 mbed-ls: detecting connected mbed-enabled devices...
 mbed-ls: detected K64F, console at: COM61, mounted at: E:
@@ -247,12 +281,15 @@ GNU-ASM.cmake included
 -- Generating done
 -- Build files have been written to: C:/temp/xxx/mbed-sdk-private/build/st-nucleo-f401re-gcc
 ninja: no work to do.
+
 ```
 
-Now we know our sources and tests are built correctly. We can now call test suite again and ask for target test.
+Now we know that our sources and tests are built correctly. We can now call the test suite again and ask for a target test.
 
-Please stay in the same directory (with mbed SDK) and execute below command:
+Please stay in the same directory (with the mbed SDK) and execute the below command:
+
 ```
+
 mbedgt --target=frdm-k64f-gcc,st-nucleo-f401re-gcc
 mbed-ls: detecting connected mbed-enabled devices...
 mbed-ls: detected K64F, console at: COM61, mounted at: E:
@@ -321,12 +358,13 @@ mbedgt: running tests...
         test 'mbed-test-rtc' ......................................................... FAIL
         test 'mbed-test-echo' ........................................................ OK
         test 'mbed-test-hello' ....................................................... OK
+
 ```
 
 # Common Issues
-* Issue: In this release there are known issues related to Linux serial port handling during test.
-  * Solution: Our army of cybernetic organisms is working on fix for this problem as we speak in your mind ;)
-* Issue: Some boards show up as 'unknown'
-  * Solution: we will add them in coming releases
+* Issue: In this release there are known issues related to Linux's serial port handling during testing.
+  * Solution: Our army of cybernetic organisms is working on a fix for this problem as we speak in your mind ;)
+* Issue: Some boards show up as 'unknown'.
+  * Solution: we will add them in coming releases.
 * Issue: Not all mbed platforms have targets mapped to them.
-  * Solution: Be patient, more target descriptions are comming.
+  * Solution: Be patient, more target descriptions are coming.
