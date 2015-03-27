@@ -35,7 +35,10 @@ To use the mbed test suite you must:
 * Download mbed SDk sources.
 
 ## Dependencies
-* [Python2.7.9](https://www.python.org/downloads/release/python-279/) - all host side scripts are written in python.
+* [Python2.7](https://www.python.org/download/releases/2.7/) - all host side scripts are written in python.
+    * Note: If you do not have python installed already, [Python2.7.9](https://www.python.org/downloads/release/python-279/) is recommended.
+* [pip](https://pypi.python.org/pypi/pip) is required, however it is bundled with Python 2.7.9
+    * To check if pip is installed, run ```$ pip --version```
 * Python [setuptools](https://pythonhosted.org/an_example_pypi_project/setuptools.html) to install dependencies.
 * [yotta](https://github.com/ARMmbed/yotta) - used to build tests from the mbed SDK.
 * mbed-ls (tools/mbed-ls)
