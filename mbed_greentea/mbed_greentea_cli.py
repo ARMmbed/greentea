@@ -25,7 +25,7 @@ import optparse
 
 from mbed_test_api import run_host_test
 from mbed_test_api import run_cli_command
-from mbed_test_api import TEST_RESULTS
+from mbed_test_api import TEST_RESULTS, TEST_RESULTS_FAIL
 from cmake_handlers import load_ctest_testsuite
 from cmake_handlers import list_binaries_for_targets
 from mbed_report_api import exporter_junit
@@ -229,6 +229,7 @@ def main():
                             binary_type=binary_type)
 
                         print "mbedgt: running tests for '%s' target" % yotta_target_name
+                        fail_count = 0
                         for test_bin, image_path in ctest_test_list.iteritems():
                             test_result = 'SKIPPED'
                             # Skip test not mentioned in -n option
@@ -269,6 +270,14 @@ def main():
 
                                 print "\ttest '%s' %s"% (test_bin, '.' * (80 - len(test_bin))),
                                 print " %s in %.2f sec"% (test_result, single_testduration)
+
+                            # Increase failures count for later report
+                            if test_result in TEST_RESULTS_FAIL:
+                                fail_count = fail_count + 1;
+
+                        # Return the number of failures to shell
+                        sys.exit(fail_count)
+
         else:
             print "mbed-ls: mbed classic target name %s is not in target database"% (mut['platform_name'])
 
