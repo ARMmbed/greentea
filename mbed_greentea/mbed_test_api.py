@@ -38,18 +38,19 @@ TEST_RESULT_NO_IMAGE = "NO_IMAGE"
 TEST_RESULT_MBED_ASSERT = "MBED_ASSERT"
 TEST_RESULT_BUILD_FAILED = "BUILD_FAILED"
 
-TEST_RESULTS = [TEST_RESULT_OK,
-                TEST_RESULT_FAIL,
-                TEST_RESULT_ERROR,
-                TEST_RESULT_UNDEF,
-                TEST_RESULT_IOERR_COPY,
-                TEST_RESULT_IOERR_DISK,
-                TEST_RESULT_IOERR_SERIAL,
-                TEST_RESULT_TIMEOUT,
-                TEST_RESULT_NO_IMAGE,
-                TEST_RESULT_MBED_ASSERT,
-                TEST_RESULT_BUILD_FAILED
-                ]
+TEST_RESULTS_FAIL = [TEST_RESULT_FAIL,
+                     TEST_RESULT_ERROR,
+                     TEST_RESULT_UNDEF,
+                     TEST_RESULT_IOERR_COPY,
+                     TEST_RESULT_IOERR_DISK,
+                     TEST_RESULT_IOERR_SERIAL,
+                     TEST_RESULT_TIMEOUT,
+                     TEST_RESULT_NO_IMAGE,
+                     TEST_RESULT_MBED_ASSERT,
+                     TEST_RESULT_BUILD_FAILED
+                     ]
+
+TEST_RESULTS = [TEST_RESULT_OK] + TEST_RESULTS_FAIL
 
 TEST_RESULT_MAPPING = {"success" : TEST_RESULT_OK,
                        "failure" : TEST_RESULT_FAIL,
