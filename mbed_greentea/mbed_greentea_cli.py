@@ -120,11 +120,11 @@ def main():
                     action="store_true",
                     help='List available binaries')
 
-    parser.add_option('', '--lock',
-                    dest='lock_by_target',
-                    default=False,
-                    action="store_true",
-                    help='Use simple resource locking mechanism to run multiple application instances')
+    #parser.add_option('', '--lock',
+    #                dest='lock_by_target',
+    #                default=False,
+    #                action="store_true",
+    #                help='Use simple resource locking mechanism to run multiple application instances')
 
     parser.add_option('', '--digest',
                     dest='digest_source',
@@ -185,7 +185,7 @@ def main():
 
     start = time()
     if opts.lock_by_target:
-        # We are using Greentea proprietary locking meachnism to lock between platforms and targets
+        # We are using Greentea proprietary locking mechanism to lock between platforms and targets
         gt_log("using (experimental) simple locking mechaism")
         gt_log_tab("kettle: %s"% GREENTEA_KETTLE_PATH)
         gt_file_sem, gt_file_sem_name, gt_instance_uuid = greentea_get_app_sem()
