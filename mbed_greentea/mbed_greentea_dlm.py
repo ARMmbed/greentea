@@ -31,10 +31,14 @@ GREENTEA_KETTLE_PATH = os.path.join(HOME_DIR, GREENTEA_HOME_DIR, GREENTEA_KETTLE
 
 
 def greentea_home_dir_init():
+    """ Initialize data in home directory for locking features
+    """
     if not os.path.isdir(os.path.join(HOME_DIR, GREENTEA_HOME_DIR)):
         os.mkdir(os.path.join(HOME_DIR, GREENTEA_HOME_DIR))
 
 def greentea_get_app_sem():
+    """ Obtain locking mechanism info
+    """
     greentea_home_dir_init()
     gt_instance_uuid = str(uuid.uuid4())   # String version
     gt_file_sem_name = os.path.join(HOME_DIR, GREENTEA_HOME_DIR, gt_instance_uuid)
@@ -50,7 +54,6 @@ def greentea_get_global_lock():
     file_path = os.path.join(HOME_DIR, GREENTEA_HOME_DIR, GREENTEA_GLOBAL_LOCK)
     lock = lockfile.LockFile(file_path)
     return lock
-
 
 def greentea_update_kettle(greentea_uuid):
     from time import gmtime, strftime
@@ -76,8 +79,47 @@ def greentea_clean_kettle(greentea_uuid):
         with open(GREENTEA_KETTLE_PATH, 'w') as kettle_file:
             json.dump(current_brew, kettle_file, indent=4)
 
-def greentea_():
-    pass
+def greentea_acquire_target_id(target_id, gt_instance_uuid):
+    with greentea_get_global_lock():
+        current_brew = get_json_data_from_file(GREENTEA_KETTLE_PATH)
+        if current_brew:
+            current_brew[gt_instance_uuid]['locks'].append(target_id)
+            with open(GREENTEA_KETTLE_PATH, 'w') as kettle_file:
+                json.dump(current_brew, kettle_file, indent=4)
+
+def greentea_acquire_target_id_from_list(possible_target_ids, gt_instance_uuid):
+    print "possible_target_ids: ", possible_target_ids
+    target_id = None
+    already_locked_target_ids = []
+    with greentea_get_global_lock():
+        current_brew = get_json_data_from_file(GREENTEA_KETTLE_PATH)
+        # Get all already locked target_id
+        for cb in current_brew:
+            locks_list = current_brew[cb]['locks']
+            already_locked_target_ids.extend(locks_list)
+
+        print "already_locked_target_ids: ", already_locked_target_ids
+
+        available_target_ids = possible_target_ids
+        for locked_tid in already_locked_target_ids:
+            available_target_ids.remove(locked_tid)
+
+        print "available_target_ids: ", available_target_ids
+        if available_target_ids:
+            target_id = available_target_ids[0]
+            print "target_id, gt_instance_uuid:", target_id, gt_instance_uuid
+            current_brew[gt_instance_uuid]['locks'].append(target_id)
+            with open(GREENTEA_KETTLE_PATH, 'w') as kettle_file:
+                json.dump(current_brew, kettle_file, indent=4)
+    return target_id
+
+def greentea_release_target_id(target_id, gt_instance_uuid):
+    with greentea_get_global_lock():
+        current_brew = get_json_data_from_file(GREENTEA_KETTLE_PATH)
+        if current_brew:
+            current_brew[gt_instance_uuid]['locks'].remove(target_id)
+            with open(GREENTEA_KETTLE_PATH, 'w') as kettle_file:
+                json.dump(current_brew, kettle_file, indent=4)
 
 def get_json_data_from_file(json_spec_filename, verbose=False):
     """ Loads from file JSON formatted string to data structure
