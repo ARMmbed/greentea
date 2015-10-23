@@ -71,6 +71,8 @@ def greentea_update_kettle(greentea_uuid):
             json.dump(current_brew, kettle_file, indent=4)
 
 def greentea_clean_kettle(greentea_uuid):
+    """ Clean info in local file system config file
+    """
     with greentea_get_global_lock():
         current_brew = get_json_data_from_file(GREENTEA_KETTLE_PATH)
         if not current_brew:
@@ -80,6 +82,8 @@ def greentea_clean_kettle(greentea_uuid):
             json.dump(current_brew, kettle_file, indent=4)
 
 def greentea_acquire_target_id(target_id, gt_instance_uuid):
+    """ Acquire lock on target_id for given greentea UUID
+    """
     with greentea_get_global_lock():
         current_brew = get_json_data_from_file(GREENTEA_KETTLE_PATH)
         if current_brew:
@@ -88,7 +92,8 @@ def greentea_acquire_target_id(target_id, gt_instance_uuid):
                 json.dump(current_brew, kettle_file, indent=4)
 
 def greentea_acquire_target_id_from_list(possible_target_ids, gt_instance_uuid):
-    print "possible_target_ids: ", possible_target_ids
+    """ Acquire lock on target_id from list of possible target_ids for given greentea UUID
+    """
     target_id = None
     already_locked_target_ids = []
     with greentea_get_global_lock():
@@ -98,22 +103,20 @@ def greentea_acquire_target_id_from_list(possible_target_ids, gt_instance_uuid):
             locks_list = current_brew[cb]['locks']
             already_locked_target_ids.extend(locks_list)
 
-        print "already_locked_target_ids: ", already_locked_target_ids
-
         available_target_ids = possible_target_ids
         for locked_tid in already_locked_target_ids:
             available_target_ids.remove(locked_tid)
 
-        print "available_target_ids: ", available_target_ids
         if available_target_ids:
             target_id = available_target_ids[0]
-            print "target_id, gt_instance_uuid:", target_id, gt_instance_uuid
             current_brew[gt_instance_uuid]['locks'].append(target_id)
             with open(GREENTEA_KETTLE_PATH, 'w') as kettle_file:
                 json.dump(current_brew, kettle_file, indent=4)
     return target_id
 
 def greentea_release_target_id(target_id, gt_instance_uuid):
+    """ Release target_id for given greentea UUID
+    """
     with greentea_get_global_lock():
         current_brew = get_json_data_from_file(GREENTEA_KETTLE_PATH)
         if current_brew:

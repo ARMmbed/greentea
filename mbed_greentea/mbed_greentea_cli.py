@@ -338,10 +338,6 @@ def main_cli(opts, args, gt_instance_uuid=None):
 
     # Selecting muts to be used for specific platform occurrence
     if opts.lock_by_target:
-        print "unique_platforms", unique_platforms
-        print "platform_to_tid_map", platform_to_tids_map
-        print "opts.lock_by_target:"
-
         temp_unique_platforms = set(unique_platforms)
         for unique_platform in temp_unique_platforms:
             possible_target_ids = platform_to_tids_map[unique_platform]
@@ -359,7 +355,7 @@ def main_cli(opts, args, gt_instance_uuid=None):
                                         target_platforms_match += 1
                                         muts_to_test.append(mut)
             else:
-                gt_log("no platform '%s' available to lock"% unique_platform)
+                gt_log("no platform '%s' available to lock (switch --lock)"% unique_platform)
     else:
         temp_unique_platforms = set(unique_platforms)
         for mut in mbeds_list:
