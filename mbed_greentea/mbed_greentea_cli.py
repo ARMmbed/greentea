@@ -44,6 +44,7 @@ from mbed_greentea_dlm import GREENTEA_KETTLE_PATH
 from mbed_greentea_dlm import greentea_get_app_sem
 from mbed_greentea_dlm import greentea_update_kettle
 from mbed_greentea_dlm import greentea_clean_kettle
+from mbed_greentea_dlm import greentea_kettle_info
 from mbed_greentea_dlm import greentea_release_target_id
 from mbed_greentea_dlm import greentea_acquire_target_id_from_list
 
@@ -188,9 +189,10 @@ def main():
     start = time()
     if opts.lock_by_target:
         # We are using Greentea proprietary locking mechanism to lock between platforms and targets
+        gt_file_sem, gt_file_sem_name, gt_instance_uuid = greentea_get_app_sem()
         gt_log("using (experimental) simple locking mechanism")
         gt_log_tab("kettle: %s"% GREENTEA_KETTLE_PATH)
-        gt_file_sem, gt_file_sem_name, gt_instance_uuid = greentea_get_app_sem()
+        gt_log_tab("greentea lock uuid: %s)"% gt_instance_uuid)
         with gt_file_sem:
             greentea_update_kettle(gt_instance_uuid)
             try:
@@ -356,6 +358,7 @@ def main_cli(opts, args, gt_instance_uuid=None):
                                         muts_to_test.append(mut)
             else:
                 gt_log("no platform '%s' available to lock (switch --lock)"% unique_platform)
+                print greentea_kettle_info()
     else:
         temp_unique_platforms = set(unique_platforms)
         for mut in mbeds_list:

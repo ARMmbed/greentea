@@ -105,7 +105,8 @@ def greentea_acquire_target_id_from_list(possible_target_ids, gt_instance_uuid):
 
         available_target_ids = possible_target_ids
         for locked_tid in already_locked_target_ids:
-            available_target_ids.remove(locked_tid)
+            if locked_tid in available_target_ids:
+                available_target_ids.remove(locked_tid)
 
         if available_target_ids:
             target_id = available_target_ids[0]
@@ -137,3 +138,36 @@ def get_json_data_from_file(json_spec_filename, verbose=False):
     except IOError:
         result = None
     return result
+
+def greentea_kettle_info():
+    """ generates human friendly info about current cettle state
+
+    @details
+    {
+        "475a46d0-41fe-41dc-b5e6-5197a2fcbb28": {
+            "locks": [],
+            "start_time": "2015-10-23 09:29:54",
+            "cwd": "c:\\Work\\mbed-drivers"
+        }
+    }
+    """
+    from prettytable import PrettyTable
+    with greentea_get_global_lock():
+        current_brew = get_json_data_from_file(GREENTEA_KETTLE_PATH)
+        cols = ['greentea_uuid', 'start_time', 'cwd', 'locks']
+        pt = PrettyTable(cols)
+
+        for col in cols:
+            pt.align[col] = "l"
+        pt.padding_width = 1 # One space between column edges and contents (default)
+
+        row = []
+        for greentea_uuid in current_brew:
+            kettle = current_brew[greentea_uuid]
+            row.append(greentea_uuid)
+            row.append(kettle['start_time'])
+            row.append(kettle['cwd'])
+            row.append('\n'.join(kettle['locks']))
+            pt.add_row(row)
+            row = []
+    return pt.get_string()
