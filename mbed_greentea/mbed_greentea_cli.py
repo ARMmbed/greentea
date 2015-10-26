@@ -192,7 +192,7 @@ def main():
         gt_file_sem, gt_file_sem_name, gt_instance_uuid = greentea_get_app_sem()
         gt_log("using (experimental) simple locking mechanism")
         gt_log_tab("kettle: %s"% GREENTEA_KETTLE_PATH)
-        gt_log_tab("greentea lock uuid: %s)"% gt_instance_uuid)
+        gt_log_tab("greentea lock uuid '%s'"% gt_instance_uuid)
         with gt_file_sem:
             greentea_update_kettle(gt_instance_uuid)
             try:
@@ -300,7 +300,8 @@ def main_cli(opts, args, gt_instance_uuid=None):
             mount_text = gt_bright(mut['mount_point'])
             if not all([mut['platform_name'], mut['serial_port'], mut['mount_point']]):
                 gt_log_err("can't detect all properties of the device!")
-            gt_log_tab("detected '%s' -> '%s', console at '%s', mounted at '%s'"% (platform_text, platform_unique_text, serial_text, mount_text))
+            gt_log_tab("detected '%s' -> '%s', console at '%s', mounted at '%s'"% 
+                (platform_text, platform_unique_text, serial_text, mount_text))
 
             # Determine unique platform set available
             if mut['platform_name'] not in unique_platforms:
@@ -341,23 +342,38 @@ def main_cli(opts, args, gt_instance_uuid=None):
     # Selecting muts to be used for specific platform occurrence
     if opts.lock_by_target:
         temp_unique_platforms = set(unique_platforms)
+        gt_log("locking required platforms (switch --lock)")
         for unique_platform in temp_unique_platforms:
+            gt_log("locking required platform '%s'"% gt_bright(unique_platform))
             possible_target_ids = platform_to_tids_map[unique_platform]
-            locked_target_id = greentea_acquire_target_id_from_list(possible_target_ids, gt_instance_uuid)
-            if locked_target_id:
-                for mut in mbeds_list:
-                    if mut['platform_name'] == unique_platform:
-                        if mut['target_id'] == locked_target_id:
-                            mut_info = muts_info[mut['platform_name']]
-                            if mut_info:
-                                for yotta_target in mut_info['yotta_targets']:
-                                    yotta_target_name = yotta_target['yotta_target']
-                                    # Add MUT to list of muts under test in this run
-                                    if yotta_target_name in list_of_targets:
-                                        target_platforms_match += 1
-                                        muts_to_test.append(mut)
+            if possible_target_ids:
+                for ptid in possible_target_ids:
+                    gt_log_tab("available target '%s'"% gt_bright(ptid))
+                locked_target_id = greentea_acquire_target_id_from_list(possible_target_ids, gt_instance_uuid)
+                if locked_target_id:
+                    gt_log_tab("locking platform '%s'"% gt_bright(locked_target_id))
+                    for mut in mbeds_list:
+                        if mut['platform_name'] == unique_platform:
+                            if mut['target_id'] == locked_target_id:
+                                mut_info = muts_info[mut['platform_name']]
+                                if mut_info:
+                                    for yotta_target in mut_info['yotta_targets']:
+                                        yotta_target_name = yotta_target['yotta_target']
+                                        # Add MUT to list of muts under test in this run
+                                        if yotta_target_name in list_of_targets:
+                                            target_platforms_match += 1
+                                            muts_to_test.append(mut)
+                                            gt_log_tab("locked '%s' -> '%s', target_id: '%s'"% 
+                                                (gt_bright(mut['platform_name']), 
+                                                 gt_bright(mut['platform_name_unique']), 
+                                                 gt_bright(mut['target_id'])))
+                    if target_platforms_match == 0:
+                        gt_log_tab("no platforms locked"% unique_platform)
+                else:
+                    gt_log_tab("failed to lock platform")
+                    print greentea_kettle_info()
             else:
-                gt_log("no platform '%s' available to lock (switch --lock)"% unique_platform)
+                gt_log_tab("no platform '%s' available to lock"% unique_platform)
                 print greentea_kettle_info()
     else:
         temp_unique_platforms = set(unique_platforms)
