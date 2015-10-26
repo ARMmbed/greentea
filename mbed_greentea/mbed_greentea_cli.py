@@ -129,6 +129,11 @@ def main():
                     action="store_true",
                     help='Use simple resource locking mechanism to run multiple application instances')
 
+    parser.add_option('', '--use-tids',
+                    dest='use_target_ids',
+                    default=str,
+                    help='Specify explicitly which target IDs can be used by Greentea (use comma separated list)')
+
     parser.add_option('', '--digest',
                     dest='digest_source',
                     help='Redirect input from where test suite should take console input. You can use stdin or file name to get test case console output')
@@ -298,10 +303,15 @@ def main_cli(opts, args, gt_instance_uuid=None):
             platform_unique_text = gt_bright(mut['platform_name_unique'])
             serial_text = gt_bright(mut['serial_port'])
             mount_text = gt_bright(mut['mount_point'])
+            target_id_text = gt_bright(mut['target_id'])
             if not all([mut['platform_name'], mut['serial_port'], mut['mount_point']]):
                 gt_log_err("can't detect all properties of the device!")
-            gt_log_tab("detected '%s' -> '%s', console at '%s', mounted at '%s'"% 
-                (platform_text, platform_unique_text, serial_text, mount_text))
+            gt_log_tab("detected '%s' -> '%s', console at '%s', mounted at '%s', target id '%s'"%
+                (platform_text,
+                 platform_unique_text,
+                 serial_text,
+                 mount_text,
+                 target_id_text))
 
             # Determine unique platform set available
             if mut['platform_name'] not in unique_platforms:
@@ -332,6 +342,7 @@ def main_cli(opts, args, gt_instance_uuid=None):
     test_exec_retcode = 0       # Decrement this value each time test case result is not 'OK'
     test_platforms_match = 0    # Count how many tests were actually ran with current settings
     target_platforms_match = 0  # Count how many platforms were actually tested with current settings
+    user_target_ids = opts.use_target_ids.split(',') if opts.use_target_ids else []  # User specific target IDs subset to use
 
     # Configuration print only
     if opts.verbose_test_configuration_only:
@@ -339,14 +350,25 @@ def main_cli(opts, args, gt_instance_uuid=None):
 
     muts_to_test = [] # MUTs to actually be tested
 
+    gt_log("filtering out target ids not on below list (switch --use-tids)")
+    for utids in user_target_ids:
+        gt_log_tab("using only '%s'"% gt_bright(utids))
+
     # Selecting muts to be used for specific platform occurrence
     if opts.lock_by_target:
         temp_unique_platforms = set(unique_platforms)
         gt_log("locking required platforms (switch --lock)")
+        if user_target_ids:
+            gt_log("filtering out target ids not on below list (switch --use-tids)")
+            for utids in user_target_ids:
+                gt_log_tab("using only '%s'"% gt_bright(utids))
         for unique_platform in temp_unique_platforms:
             gt_log("locking required platform '%s'"% gt_bright(unique_platform))
             possible_target_ids = platform_to_tids_map[unique_platform]
             if possible_target_ids:
+                if user_target_ids:
+                    # Remove from possible_target_ids elements not on user_target_ids
+                    possible_target_ids = [item for item in possible_target_ids if item in user_target_ids]
                 for ptid in possible_target_ids:
                     gt_log_tab("available target '%s'"% gt_bright(ptid))
                 locked_target_id = greentea_acquire_target_id_from_list(possible_target_ids, gt_instance_uuid)
@@ -363,9 +385,9 @@ def main_cli(opts, args, gt_instance_uuid=None):
                                         if yotta_target_name in list_of_targets:
                                             target_platforms_match += 1
                                             muts_to_test.append(mut)
-                                            gt_log_tab("locked '%s' -> '%s', target_id: '%s'"% 
-                                                (gt_bright(mut['platform_name']), 
-                                                 gt_bright(mut['platform_name_unique']), 
+                                            gt_log_tab("locked '%s' -> '%s', target_id: '%s'"%
+                                                (gt_bright(mut['platform_name']),
+                                                 gt_bright(mut['platform_name_unique']),
                                                  gt_bright(mut['target_id'])))
                     if target_platforms_match == 0:
                         gt_log_tab("no platforms locked"% unique_platform)
@@ -378,6 +400,12 @@ def main_cli(opts, args, gt_instance_uuid=None):
     else:
         temp_unique_platforms = set(unique_platforms)
         for mut in mbeds_list:
+            # Use only target ids specified with --use-tids switch
+            if user_target_ids:
+                if mut['target_id'] not in user_target_ids:
+                    gt_log_tab("skipped '%s'"% gt_bright(mut['target_id']))
+                    continue
+
             if mut['platform_name'] in temp_unique_platforms:
                 temp_unique_platforms.remove(mut['platform_name'])
                 mut_info = muts_info[mut['platform_name']]
@@ -388,6 +416,10 @@ def main_cli(opts, args, gt_instance_uuid=None):
                         if yotta_target_name in list_of_targets:
                             target_platforms_match += 1
                             muts_to_test.append(mut)
+                            gt_log_tab("using '%s' -> '%s', target_id: '%s'"%
+                                (gt_bright(mut['platform_name']),
+                                 gt_bright(mut['platform_name_unique']),
+                                 gt_bright(mut['target_id'])))
 
     # We can continue with testing because we actually have platforms to test
     if muts_to_test:

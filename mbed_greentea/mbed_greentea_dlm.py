@@ -103,10 +103,8 @@ def greentea_acquire_target_id_from_list(possible_target_ids, gt_instance_uuid):
             locks_list = current_brew[cb]['locks']
             already_locked_target_ids.extend(locks_list)
 
-        available_target_ids = possible_target_ids
-        for locked_tid in already_locked_target_ids:
-            if locked_tid in available_target_ids:
-                available_target_ids.remove(locked_tid)
+        # Remove from possible_target_ids elements from already_locked_target_ids
+        available_target_ids = [item for item in possible_target_ids if item not in already_locked_target_ids]
 
         if available_target_ids:
             target_id = available_target_ids[0]
