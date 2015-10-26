@@ -546,11 +546,12 @@ def main_cli(opts, args, gt_instance_uuid=None):
             print exporter_json(test_report)
         else:
             # Final summary
-            gt_log("test report:")
-            text_report, text_results = exporter_text(test_report)
-            print text_report
-            print
-            print "Result: " + text_results
+            if test_report:
+                gt_log("test report:")
+                text_report, text_results = exporter_text(test_report)
+                print text_report
+                print
+                print "Result: " + text_results
 
         # This flag guards 'build only' so we expect only yotta errors
         if test_platforms_match == 0:
