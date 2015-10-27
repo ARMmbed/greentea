@@ -131,7 +131,6 @@ def main():
 
     parser.add_option('', '--use-tids',
                     dest='use_target_ids',
-                    default=str,
                     help='Specify explicitly which target IDs can be used by Greentea (use comma separated list)')
 
     parser.add_option('', '--digest',
@@ -342,6 +341,7 @@ def main_cli(opts, args, gt_instance_uuid=None):
     test_exec_retcode = 0       # Decrement this value each time test case result is not 'OK'
     test_platforms_match = 0    # Count how many tests were actually ran with current settings
     target_platforms_match = 0  # Count how many platforms were actually tested with current settings
+
     user_target_ids = opts.use_target_ids.split(',') if opts.use_target_ids else []  # User specific target IDs subset to use
 
     # Configuration print only
