@@ -183,7 +183,7 @@ def main():
                     action="store_true",
                     help='Prints package version and exits')
 
-    parser.description = """This automated test script is used to test mbed SDK 3.0 on mbed-enabled devices with support from yotta build tool"""
+    parser.description = """This automated test script is used to execute tests for yotta modules on mbed-enabled devices"""
     parser.epilog = """Example: mbedgt --target frdm-k64f-gcc"""
 
     (opts, args) = parser.parse_args()
