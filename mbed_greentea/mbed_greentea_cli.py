@@ -44,6 +44,9 @@ from mbed_greentea_dlm import GREENTEA_KETTLE_PATH
 from mbed_greentea_dlm import greentea_get_app_sem
 from mbed_greentea_dlm import greentea_update_kettle
 from mbed_greentea_dlm import greentea_clean_kettle
+from mbed_greentea_dlm import greentea_kettle_info
+from mbed_greentea_dlm import greentea_release_target_id
+from mbed_greentea_dlm import greentea_acquire_target_id_from_list
 
 
 try:
@@ -126,6 +129,10 @@ def main():
                     action="store_true",
                     help='Use simple resource locking mechanism to run multiple application instances')
 
+    parser.add_option('', '--use-tids',
+                    dest='use_target_ids',
+                    help='Specify explicitly which target IDs can be used by Greentea (use comma separated list)')
+
     parser.add_option('', '--digest',
                     dest='digest_source',
                     help='Redirect input from where test suite should take console input. You can use stdin or file name to get test case console output')
@@ -176,7 +183,7 @@ def main():
                     action="store_true",
                     help='Prints package version and exits')
 
-    parser.description = """This automated test script is used to test mbed SDK 3.0 on mbed-enabled devices with support from yotta build tool"""
+    parser.description = """This automated test script is used to execute tests for yotta modules on mbed-enabled devices"""
     parser.epilog = """Example: mbedgt --target frdm-k64f-gcc"""
 
     (opts, args) = parser.parse_args()
@@ -185,10 +192,11 @@ def main():
 
     start = time()
     if opts.lock_by_target:
-        # We are using Greentea proprietary locking meachnism to lock between platforms and targets
-        gt_log("using (experimental) simple locking mechaism")
-        gt_log_tab("kettle: %s"% GREENTEA_KETTLE_PATH)
+        # We are using Greentea proprietary locking mechanism to lock between platforms and targets
         gt_file_sem, gt_file_sem_name, gt_instance_uuid = greentea_get_app_sem()
+        gt_log("using (experimental) simple locking mechanism")
+        gt_log_tab("kettle: %s"% GREENTEA_KETTLE_PATH)
+        gt_log_tab("greentea lock uuid '%s'"% gt_instance_uuid)
         with gt_file_sem:
             greentea_update_kettle(gt_instance_uuid)
             try:
@@ -197,10 +205,11 @@ def main():
                 greentea_clean_kettle(gt_instance_uuid)
                 gt_log_err("ctrl+c keyboard interrupt!")
                 exit(-2)    # Keyboard interrupt
-            except:
+            except Exception as e:
                 greentea_clean_kettle(gt_instance_uuid)
                 gt_log_err("Unexpected error:")
-                gt_log_tab(sys.exc_info()[0])
+                gt_log_tab(str(e))
+                cli_ret = -3
                 raise
             greentea_clean_kettle(gt_instance_uuid)
     else:
@@ -258,8 +267,7 @@ def main_cli(opts, args, gt_instance_uuid=None):
 
     # mbed-enabled devices auto-detection procedures
     mbeds = mbed_lstools.create()
-    mbeds_list = mbeds.list_mbeds()
-    platform_list = mbeds.list_platforms_ext()
+    mbeds_list = mbeds.list_mbeds_ext()
 
     # Option -t <opts.list_of_targets> supersedes yotta target set in current directory
     if opts.list_of_targets is None:
@@ -281,11 +289,45 @@ def main_cli(opts, args, gt_instance_uuid=None):
             ))
             return (-1)
 
+    unique_platforms = [] # Unique platforms names in detected set
+    muts_info = {} # Platfrom: mut_info mapping
+    platform_to_tids_map = {}    # platform_name : [tid, tid, tid, ...]
+
     gt_log("detecting connected mbed-enabled devices... %s"% ("no devices detected" if not len(mbeds_list) else ""))
     if mbeds_list:
+        # Detect devices connected to system
         gt_log("detected %d device%s"% (len(mbeds_list), 's' if len(mbeds_list) != 1 else ''))
+        for mut in mbeds_list:
+            platform_text = gt_bright(mut['platform_name'])
+            platform_unique_text = gt_bright(mut['platform_name_unique'])
+            serial_text = gt_bright(mut['serial_port'])
+            mount_text = gt_bright(mut['mount_point'])
+            target_id_text = gt_bright(mut['target_id'])
+            if not all([mut['platform_name'], mut['serial_port'], mut['mount_point']]):
+                gt_log_err("can't detect all properties of the device!")
+            gt_log_tab("detected '%s' -> '%s', console at '%s', mounted at '%s', target id '%s'"%
+                (platform_text,
+                 platform_unique_text,
+                 serial_text,
+                 mount_text,
+                 target_id_text))
+
+            # Determine unique platform set available
+            if mut['platform_name'] not in unique_platforms:
+                unique_platforms.append(mut['platform_name'])
+
+            # Build platform_name => all platform target_ids mapping
+            if mut['platform_name'] not in platform_to_tids_map:
+                platform_to_tids_map[mut['platform_name']] = []
+            platform_to_tids_map[mut['platform_name']].append(mut['target_id'])
     else:
         gt_log("no devices detected")
+
+    # Preload info about muts and available targets
+    for unique_platform in unique_platforms:
+        # Check if mbed classic target name can be translated to yotta target name
+        gt_log("scan available targets for '%s' platform..."% gt_bright(unique_platform))
+        muts_info[unique_platform] = get_mbed_clasic_target_info(unique_platform)
 
     list_of_targets = opts.list_of_targets.split(',') if opts.list_of_targets is not None else None
 
@@ -300,33 +342,92 @@ def main_cli(opts, args, gt_instance_uuid=None):
     test_platforms_match = 0    # Count how many tests were actually ran with current settings
     target_platforms_match = 0  # Count how many platforms were actually tested with current settings
 
-    for mut in mbeds_list:
-        platform_text = gt_bright(mut['platform_name'])
-        serial_text = gt_bright(mut['serial_port'])
-        mount_text = gt_bright(mut['mount_point'])
-        platform_target_id = gt_bright(mut['target_id'])    # We can use it to do simple resource lock
+    user_target_ids = opts.use_target_ids.split(',') if opts.use_target_ids else []  # User specific target IDs subset to use
 
-        if not all([platform_text, serial_text, mount_text]):
-            gt_log_err("can't detect all properties of the device!")
-            gt_log_tab("detected '%s', console at '%s', mounted at '%s'"% (platform_text, serial_text, mount_text))
-            continue
+    # Configuration print only
+    if opts.verbose_test_configuration_only:
+        return (test_exec_retcode)
 
-        gt_log_tab("detected '%s', console at '%s', mounted at '%s'"% (platform_text, serial_text, mount_text))
+    muts_to_test = [] # MUTs to actually be tested
 
-        # Check if mbed classic target name can be translated to yotta target name
-        gt_log("scan available targets for '%s' platform..."% gt_bright(mut['platform_name']))
-        mut_info = get_mbed_clasic_target_info(mut['platform_name'])
+    gt_log("filtering out target ids not on below list (switch --use-tids)")
+    for utids in user_target_ids:
+        gt_log_tab("using only '%s'"% gt_bright(utids))
 
-        if mut_info is not None:
-            for yotta_target in mut_info['yotta_targets']:
-                yotta_target_name = yotta_target['yotta_target']
-
-                if yotta_target_name in list_of_targets:
-                    target_platforms_match += 1
-
-                # Configuration print mode:
-                if opts.verbose_test_configuration_only:
+    # Selecting muts to be used for specific platform occurrence
+    if opts.lock_by_target:
+        temp_unique_platforms = set(unique_platforms)
+        gt_log("locking required platforms (switch --lock)")
+        if user_target_ids:
+            gt_log("filtering out target ids not on below list (switch --use-tids)")
+            for utids in user_target_ids:
+                gt_log_tab("using only '%s'"% gt_bright(utids))
+        for unique_platform in temp_unique_platforms:
+            gt_log("locking required platform '%s'"% gt_bright(unique_platform))
+            possible_target_ids = platform_to_tids_map[unique_platform]
+            if possible_target_ids:
+                if user_target_ids:
+                    # Remove from possible_target_ids elements not on user_target_ids
+                    possible_target_ids = [item for item in possible_target_ids if item in user_target_ids]
+                for ptid in possible_target_ids:
+                    gt_log_tab("available target '%s'"% gt_bright(ptid))
+                locked_target_id = greentea_acquire_target_id_from_list(possible_target_ids, gt_instance_uuid)
+                if locked_target_id:
+                    gt_log_tab("locking platform '%s'"% gt_bright(locked_target_id))
+                    for mut in mbeds_list:
+                        if mut['platform_name'] == unique_platform:
+                            if mut['target_id'] == locked_target_id:
+                                mut_info = muts_info[mut['platform_name']]
+                                if mut_info:
+                                    for yotta_target in mut_info['yotta_targets']:
+                                        yotta_target_name = yotta_target['yotta_target']
+                                        # Add MUT to list of muts under test in this run
+                                        if yotta_target_name in list_of_targets:
+                                            target_platforms_match += 1
+                                            muts_to_test.append(mut)
+                                            gt_log_tab("locked '%s' -> '%s', target_id: '%s'"%
+                                                (gt_bright(mut['platform_name']),
+                                                 gt_bright(mut['platform_name_unique']),
+                                                 gt_bright(mut['target_id'])))
+                    if target_platforms_match == 0:
+                        gt_log_tab("no platforms locked"% unique_platform)
+                else:
+                    gt_log_tab("failed to lock platform")
+                    print greentea_kettle_info()
+            else:
+                gt_log_tab("no platform '%s' available to lock"% unique_platform)
+                print greentea_kettle_info()
+    else:
+        temp_unique_platforms = set(unique_platforms)
+        for mut in mbeds_list:
+            # Use only target ids specified with --use-tids switch
+            if user_target_ids:
+                if mut['target_id'] not in user_target_ids:
+                    gt_log_tab("skipped '%s'"% gt_bright(mut['target_id']))
                     continue
+
+            if mut['platform_name'] in temp_unique_platforms:
+                temp_unique_platforms.remove(mut['platform_name'])
+                mut_info = muts_info[mut['platform_name']]
+                if mut_info:
+                    for yotta_target in mut_info['yotta_targets']:
+                        yotta_target_name = yotta_target['yotta_target']
+                        # Add MUT to list of muts under test in this run
+                        if yotta_target_name in list_of_targets:
+                            target_platforms_match += 1
+                            muts_to_test.append(mut)
+                            gt_log_tab("using '%s' -> '%s', target_id: '%s'"%
+                                (gt_bright(mut['platform_name']),
+                                 gt_bright(mut['platform_name_unique']),
+                                 gt_bright(mut['target_id'])))
+
+    # We can continue with testing because we actually have platforms to test
+    if muts_to_test:
+        for yotta_target in mut_info['yotta_targets']:
+            yotta_target_name = yotta_target['yotta_target']
+
+            for mut in muts_to_test:
+                mut_info = muts_info[mut['platform_name']]
 
                 # Demo mode: --run implementation (already added --run to mbedhtrun)
                 # We want to pass file name to mbedhtrun (--run NAME  =>  -f NAME_ and run only one binary
@@ -448,6 +549,7 @@ def main_cli(opts, args, gt_instance_uuid=None):
                                 test_report[yotta_target_name][test_name]['single_test_output'] = single_test_output
                                 test_report[yotta_target_name][test_name]['elapsed_time'] = single_testduration
                                 test_report[yotta_target_name][test_name]['platform_name'] = micro
+                                test_report[yotta_target_name][test_name]['platform_name_unique'] = mut['platform_name_unique']
                                 test_report[yotta_target_name][test_name]['copy_method'] = copy_method
 
                                 if single_test_result != 'OK' and not verbose and opts.report_fails:
@@ -463,8 +565,6 @@ def main_cli(opts, args, gt_instance_uuid=None):
                         gt_log_err("yotta returned %d"% yotta_ret)
                         test_exec_retcode = -1
                         return (test_exec_retcode)
-        else:
-            gt_log_err("mbed classic target name '%s' is not in target database"% gt_bright(mut['platform_name']))
 
     if opts.verbose_test_configuration_only:
         print
@@ -486,6 +586,7 @@ def main_cli(opts, args, gt_instance_uuid=None):
             text_report, text_results = exporter_text(test_report)
             with open(opts.report_text_file_name, 'w') as f:
                 f.write(text_report)
+
         # Reports (to console)
         if opts.report_json:
             # We will not print summary and json report together
@@ -493,11 +594,12 @@ def main_cli(opts, args, gt_instance_uuid=None):
             print exporter_json(test_report)
         else:
             # Final summary
-            gt_log("test report:")
-            text_report, text_results = exporter_text(test_report)
-            print text_report
-            print
-            print "Result: " + text_results
+            if test_report:
+                gt_log("test report:")
+                text_report, text_results = exporter_text(test_report)
+                print text_report
+                print
+                print "Result: " + text_results
 
         # This flag guards 'build only' so we expect only yotta errors
         if test_platforms_match == 0:
