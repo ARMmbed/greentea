@@ -17,8 +17,10 @@ limitations under the License.
 Author: Przemyslaw Wirkus <Przemyslaw.wirkus@arm.com>
 """
 
+import os
 import re
 import sys
+import binascii
 from time import sleep
 from time import time
 from Queue import Queue, Empty
@@ -261,6 +263,9 @@ def run_host_test(image_path,
         proc = Popen(cmd, stdout=PIPE)
         obs = ProcessObserver(proc)
 
+    coverage_start_data = None
+    coverage_start_data_list = []   # List of code coverage reports to dump
+
     result = None
     update_once_flag = {}   # Stores flags checking if some auto-parameter was already set
     unknown_property_count = 0
@@ -309,6 +314,21 @@ def run_host_test(image_path,
                     output.append('{{mbed_assert}}')
                     break
 
+                if coverage_start_data and "{{coverage_end}}" in line:
+                    idx = line.find("{{coverage_end}}")
+                    coverage_end_line = line[:idx]  # Coverage payload
+                    cov_data = {
+                        "path" : coverage_start_data[1],
+                        "payload" : coverage_end_line,
+                        "encoding" : 'hex'  # hex, base64
+                    }
+                    coverage_start_data_list.append(cov_data)
+                    coverage_start_data = None
+
+                if line.startswith("{{coverage_start"):
+                    coverage_start_line = line.strip("{}")  # Remove {{ }} delimiters
+                    coverage_start_data = coverage_start_line.split(";")
+
                 # Check for test end
                 if '{end}' in line:
                     break
@@ -334,6 +354,38 @@ def run_host_test(image_path,
 
     end_time = time()
     testcase_duration = end_time - start_time   # Test case duration from reset to {end}
+
+    def pack_hex_payload(path, payload):
+        """! Convert a block of hex string data back to binary and return the binary data
+        @param path Where to save file with binary payload
+        @param payload String with hex encoded ascii data, e.g.: '6164636772...'
+        @return bytearray with payload with data
+        """
+        hex_pairs = map(''.join, zip(*[iter(payload)] * 2)) # ['61', '64', '63', '67', '72', ... ]
+        bin_payload = bytearray([int(s, 16) for s in hex_pairs])
+        return bin_payload
+
+    def pack_base64_payload(path, payload):
+        """! Convert a block of base64 data back to binary and return the binary data
+        """
+        return None
+
+    # We may have code coverage data to dump from test prints
+    if coverage_start_data_list:
+        gt_log("storing coverage data artefacts")
+        for cov_data in coverage_start_data_list:
+            path = os.path.abspath(cov_data['path'])
+            payload = cov_data['payload']
+            encoding = cov_data['encoding']
+            bin_payload = None
+            if encoding == 'hex':
+                bin_payload = pack_hex_payload(path, payload)
+            else:
+                bin_payload = pack_base64_payload(path, payload)
+            if bin_payload:
+                gt_log_tab("storing %d bytes in '%s'"% (len(bin_payload), path))
+                with open(path, "wb") as f:
+                    f.write(bin_payload)
 
     if verbose:
         gt_log("mbed-host-test-runner: stopped")
