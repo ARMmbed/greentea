@@ -20,8 +20,6 @@ Author: Przemyslaw Wirkus <Przemyslaw.wirkus@arm.com>
 import os
 import re
 import sys
-import binascii
-from time import sleep
 from time import time
 from Queue import Queue, Empty
 from threading import Thread
