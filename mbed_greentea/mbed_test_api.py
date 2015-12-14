@@ -265,9 +265,12 @@ def run_host_test(image_path,
     coverage_start_data_list = []   # List of code coverage reports to dump
 
     result = None
-    update_once_flag = {}   # Stores flags checking if some auto-parameter was already set
+    update_once_flag = {}       # Stores flags checking if some auto-parameter was already set
     unknown_property_count = 0
-    total_duration = 20     # This for flashing, reset and other serial port operations
+    TOTAL_DURATION = 30         # This for flashing, reset and other serial port operations
+    COVERAGE_EXTRA_TIME = 20    # Extra time for coverage dump
+
+    total_duration = TOTAL_DURATION
     line = ''
     output = []
     start_time = time()
@@ -326,6 +329,7 @@ def run_host_test(image_path,
                 if line.startswith("{{coverage_start"):
                     coverage_start_line = line.strip("{}")  # Remove {{ }} delimiters
                     coverage_start_data = coverage_start_line.split(";")
+                    total_duration += COVERAGE_EXTRA_TIME   # Increase timeout to get extra lcov data
 
                 # Check for test end
                 if '{end}' in line:
