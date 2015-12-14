@@ -17,6 +17,7 @@ limitations under the License.
 Author: Przemyslaw Wirkus <Przemyslaw.wirkus@arm.com>
 """
 
+import re
 import json
 from mbed_greentea.mbed_greentea_log import gt_log
 from mbed_greentea.mbed_greentea_log import gt_bright
@@ -26,8 +27,6 @@ from mbed_greentea.mbed_test_api import run_cli_command
 
 """
 List of available hooks:
-* hook_test_end - executed when test is completed
-* hook_all_test_end - executed when all tests are completed
 """
 
 
@@ -80,7 +79,8 @@ class GreenteaHooks():
                         if hook_expression.startswith('$'):
                             self.HOOKS[hook_name] = GreenteaCliTestHook(hook_name, hook_expression[1:])
         except IOError as e:
-            HOOKS = None
+            print str(e)
+            self.HOOKS = None
 
     def is_hooked_to(self, hook_name):
         return hook_name in self.HOOKS
@@ -88,3 +88,55 @@ class GreenteaHooks():
     def run_hook(self, hook_name, format):
         if hook_name in self.HOOKS:
             return self.HOOKS[hook_name].run(format)
+
+def expand_parameters(expr, expandables, delimiter=' '):
+    """! Expands lists for multiple parameters in hook command
+
+    @param expr Expression to expand
+    @param expandables Dictionary of token: list_to_expand See details for more info
+    @param delimiter Delimiter used to combine expanded strings, space by default
+
+    @details
+    test_name_list = ['mbed-drivers-test-basic', 'mbed-drivers-test-hello', 'mbed-drivers-test-time_us']
+    build_path_list = ['./build/frdm-k64f-gcc', './build/frdm-k64f-armcc']
+
+    expandables = {
+        "{test_name_list}": test_name_list,
+        "{build_path_list}": build_path_list
+    }
+
+    expr = "lcov --gcov-tool arm-none-eabi-gcov [-a {build_path_list}/test/{test_name_list}.info] --output-file result.info"
+
+    'expr' expression [-a {build_path_list}/test/{test_name_list}.info] will expand to:
+
+    [
+      "-a ./build/frdm-k64f-gcc/test/mbed-drivers-test-basic.info",
+      "-a ./build/frdm-k64f-armcc/test/mbed-drivers-test-basic.info",
+      "-a ./build/frdm-k64f-gcc/test/mbed-drivers-test-hello.info",
+      "-a ./build/frdm-k64f-armcc/test/mbed-drivers-test-hello.info",
+      "-a ./build/frdm-k64f-gcc/test/mbed-drivers-test-time_us.info",
+      "-a ./build/frdm-k64f-armcc/test/mbed-drivers-test-time_us.info"
+    ]
+
+    """
+    result = None
+    expansion_result = []
+    m = re.search('\[.*?\]', expr)
+    if m:
+        expr_str_orig = m.group(0)
+        expr_str_base = m.group(0)[1:-1]
+        expr_str_list = [expr_str_base]
+        for token in expandables:
+            for expr_str in expr_str_list:
+                if token in expr_str:
+                    patterns = expandables[token]
+                    for pattern in patterns:
+                        s = expr_str
+                        s = s.replace(token, pattern)
+                        expr_str_list.append(s)
+                        # Nothing to extend/change in this string
+                        if not any(p in s for p in expandables.keys()):
+                            expansion_result.append(s)
+        expansion_result.sort()
+        result = expr.replace(expr_str_orig, delimiter.join(expansion_result))
+    return result
