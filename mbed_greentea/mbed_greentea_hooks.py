@@ -35,8 +35,8 @@ class GreenteaTestHook():
     """
     name = None
 
-    def __init__(self, name, ):
-        pass
+    def __init__(self, name):
+        self.name = name
 
     def run(self, format=None):
         pass
@@ -51,14 +51,82 @@ class GreenteaCliTestHook(GreenteaTestHook):
         self.cmd = cmd
 
     def run(self, format=None):
-        """! Runs hook
+        """! Runs hook after command is formated with in-place {tags}
+        @format Pass format dictionary to replace hook {tags} with real values
         @param format Used to format string with cmd, notation used is e.g: {build_name}
         """
+        gt_log("hook '%s' execution"% self.name)
         cmd = self.cmd
         if format:
-            cmd = self.cmd.format(**format)
+            # We will expand first
+            cmd_expand = self.expand_parameters(cmd, format)
+            if cmd_expand:
+                cmd = cmd_expand
+                gt_log_tab("hook expanded: %s"% cmd)
 
+            cmd = cmd.format(**format)
+            gt_log_tab("hook formated: %s"% cmd)
+
+        gt_log_tab("hook command: %s"% cmd)
         return run_cli_command(cmd, shell=False)
+
+    @staticmethod
+    def expand_parameters(expr, expandables, delimiter=' '):
+        """! Expands lists for multiple parameters in hook command
+
+        @param expr Expression to expand
+        @param expandables Dictionary of token: list_to_expand See details for more info
+        @param delimiter Delimiter used to combine expanded strings, space by default
+
+        @details
+        test_name_list = ['mbed-drivers-test-basic', 'mbed-drivers-test-hello', 'mbed-drivers-test-time_us']
+        build_path_list = ['./build/frdm-k64f-gcc', './build/frdm-k64f-armcc']
+
+        expandables = {
+            "{test_name_list}": test_name_list,
+            "{build_path_list}": build_path_list
+        }
+
+        expr = "lcov --gcov-tool arm-none-eabi-gcov [-a {build_path_list}/test/{test_name_list}.info] --output-file result.info"
+
+        'expr' expression [-a {build_path_list}/test/{test_name_list}.info] will expand to:
+
+        [
+          "-a ./build/frdm-k64f-gcc/test/mbed-drivers-test-basic.info",
+          "-a ./build/frdm-k64f-armcc/test/mbed-drivers-test-basic.info",
+          "-a ./build/frdm-k64f-gcc/test/mbed-drivers-test-hello.info",
+          "-a ./build/frdm-k64f-armcc/test/mbed-drivers-test-hello.info",
+          "-a ./build/frdm-k64f-gcc/test/mbed-drivers-test-time_us.info",
+          "-a ./build/frdm-k64f-armcc/test/mbed-drivers-test-time_us.info"
+        ]
+
+        """
+        result = None
+        if expandables:
+            expansion_result = []
+            m = re.search('\[.*?\]', expr)
+            if m:
+                expr_str_orig = m.group(0)
+                expr_str_base = m.group(0)[1:-1]
+                expr_str_list = [expr_str_base]
+                for token in expandables:
+                    # We will expand only values which are lists (of strings)
+                    if type(expandables[token]) is list:
+                        # Use tokens with curly braces (Python string format like)
+                        format_token = '{' + token + '}'
+                        for expr_str in expr_str_list:
+                            if format_token in expr_str:
+                                patterns = expandables[token]
+                                for pattern in patterns:
+                                    s = expr_str
+                                    s = s.replace(format_token, pattern)
+                                    expr_str_list.append(s)
+                                    # Nothing to extend/change in this string
+                                    if not any('{' + p + '}' in s for p in expandables.keys() if type(expandables[p]) is list):
+                                        expansion_result.append(s)
+                expansion_result.sort()
+                result = expr.replace(expr_str_orig, delimiter.join(expansion_result))
+        return result
 
 class GreenteaHooks():
     """! Class used to store all hooks
@@ -89,54 +157,7 @@ class GreenteaHooks():
         if hook_name in self.HOOKS:
             return self.HOOKS[hook_name].run(format)
 
-def expand_parameters(expr, expandables, delimiter=' '):
-    """! Expands lists for multiple parameters in hook command
-
-    @param expr Expression to expand
-    @param expandables Dictionary of token: list_to_expand See details for more info
-    @param delimiter Delimiter used to combine expanded strings, space by default
-
-    @details
-    test_name_list = ['mbed-drivers-test-basic', 'mbed-drivers-test-hello', 'mbed-drivers-test-time_us']
-    build_path_list = ['./build/frdm-k64f-gcc', './build/frdm-k64f-armcc']
-
-    expandables = {
-        "{test_name_list}": test_name_list,
-        "{build_path_list}": build_path_list
-    }
-
-    expr = "lcov --gcov-tool arm-none-eabi-gcov [-a {build_path_list}/test/{test_name_list}.info] --output-file result.info"
-
-    'expr' expression [-a {build_path_list}/test/{test_name_list}.info] will expand to:
-
-    [
-      "-a ./build/frdm-k64f-gcc/test/mbed-drivers-test-basic.info",
-      "-a ./build/frdm-k64f-armcc/test/mbed-drivers-test-basic.info",
-      "-a ./build/frdm-k64f-gcc/test/mbed-drivers-test-hello.info",
-      "-a ./build/frdm-k64f-armcc/test/mbed-drivers-test-hello.info",
-      "-a ./build/frdm-k64f-gcc/test/mbed-drivers-test-time_us.info",
-      "-a ./build/frdm-k64f-armcc/test/mbed-drivers-test-time_us.info"
-    ]
-
-    """
-    result = None
-    expansion_result = []
-    m = re.search('\[.*?\]', expr)
-    if m:
-        expr_str_orig = m.group(0)
-        expr_str_base = m.group(0)[1:-1]
-        expr_str_list = [expr_str_base]
-        for token in expandables:
-            for expr_str in expr_str_list:
-                if token in expr_str:
-                    patterns = expandables[token]
-                    for pattern in patterns:
-                        s = expr_str
-                        s = s.replace(token, pattern)
-                        expr_str_list.append(s)
-                        # Nothing to extend/change in this string
-                        if not any(p in s for p in expandables.keys()):
-                            expansion_result.append(s)
-        expansion_result.sort()
-        result = expr.replace(expr_str_orig, delimiter.join(expansion_result))
-    return result
+    def run_hook_ext(self, hook_name, format):
+        if self.is_hooked_to(hook_name):
+            # We can execute this test hook just after all tests are finished ('hook_post_test_end')
+            self.run_hook(hook_name, format)
