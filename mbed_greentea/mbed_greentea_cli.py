@@ -314,7 +314,7 @@ def run_test_thread(test_result_queue, test_queue, opts, mut, mut_info, yotta_ta
         if single_test_result != TEST_RESULT_OK:
             test_exec_retcode += 1
         else:
-            if greentea_hooks and greentea_hooks.is_hooked_to('hook_test_end'):
+            if greentea_hooks:
                 # Test was successful
                 # We can execute test hook just after test is finished ('hook_test_end')
                 format = {
@@ -325,10 +325,7 @@ def run_test_thread(test_result_queue, test_queue, opts, mut, mut_info, yotta_ta
                     "build_path_abs": build_path_abs,
                     "yotta_target_name": yotta_target_name,
                 }
-                gt_log("execute test end hook 'hook_test_end'")
-                for k in format:
-                    gt_log_tab("{%s} -> '%s'"% (k, format[k]))
-                greentea_hooks.run_hook('hook_test_end', format)
+                greentea_hooks.run_hook_ext('hook_test_end', format)
 
         # Update report for optional reporting feature
         test_name = test['test_bin'].lower()
@@ -709,11 +706,14 @@ def main_cli(opts, args, gt_instance_uuid=None):
 
     # We will execute post test hooks on tests
     for yotta_target in test_report:
+        test_name_list = []    # All test case names for particular yotta target
         for test_name in test_report[yotta_target]:
             test = test_report[yotta_target][test_name]
             # Test was successful
             if test['single_test_result'] == 'OK':
-                if greentea_hooks and greentea_hooks.is_hooked_to('hook_post_test_end'):
+                test_name_list.append(test_name)
+                # Call hook executed for each test, just after all tests are finished
+                if greentea_hooks:
                     # We can execute this test hook just after all tests are finished ('hook_post_test_end')
                     format = {
                         "test_name": test_name,
@@ -723,11 +723,18 @@ def main_cli(opts, args, gt_instance_uuid=None):
                         "build_path_abs": test['build_path_abs'],
                         "yotta_target_name": yotta_target,
                     }
-                    gt_log("execute post test end hook 'hook_post_test_end'")
-                    for k in format:
-                        gt_log_tab("{%s} -> '%s'"% (k, format[k]))
-                    greentea_hooks.run_hook('hook_post_test_end', format)
-
+                    greentea_hooks.run_hook_ext('hook_post_test_end', format)
+        if greentea_hooks:
+            build_path = os.path.join("./build", yotta_target)
+            build_path_abs = os.path.abspath(build_path)
+            # We can execute this test hook just after all tests are finished ('hook_post_test_end')
+            format = {
+                "build_path": build_path,
+                "build_path_abs": build_path_abs,
+                "test_name_list": test_name_list,
+                "yotta_target_name": yotta_target,
+            }
+            greentea_hooks.run_hook_ext('hook_post_all_test_end', format)
 
     # This tool is designed to work in CI
     # We want to return success codes based on tool actions,
