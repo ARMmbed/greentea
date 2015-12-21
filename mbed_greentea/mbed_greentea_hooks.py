@@ -56,19 +56,24 @@ class GreenteaCliTestHook(GreenteaTestHook):
         @param format Used to format string with cmd, notation used is e.g: {build_name}
         """
         gt_log("hook '%s' execution"% self.name)
-        cmd = self.cmd
-        if format:
-            # We will expand first
-            cmd_expand = self.expand_parameters(cmd, format)
-            if cmd_expand:
-                cmd = cmd_expand
-                gt_log_tab("hook expanded: %s"% cmd)
-
-            cmd = cmd.format(**format)
-            gt_log_tab("hook formated: %s"% cmd)
-
+        cmd = self.format_before_run(self.cmd, format, verbose=True)
         gt_log_tab("hook command: %s"% cmd)
         return run_cli_command(cmd, shell=False)
+
+    @staticmethod
+    def format_before_run(cmd, format, verbose=False):
+        if format:
+            # We will expand first
+            cmd_expand = GreenteaCliTestHook.expand_parameters(cmd, format)
+            if cmd_expand:
+                cmd = cmd_expand
+                if verbose:
+                    gt_log_tab("hook expanded: %s"% cmd)
+
+            cmd = cmd.format(**format)
+            if verbose:
+                gt_log_tab("hook formated: %s"% cmd)
+        return cmd
 
     @staticmethod
     def expand_parameters(expr, expandables, delimiter=' '):

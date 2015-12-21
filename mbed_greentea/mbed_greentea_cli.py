@@ -725,6 +725,7 @@ def main_cli(opts, args, gt_instance_uuid=None):
                     }
                     greentea_hooks.run_hook_ext('hook_post_test_end', format)
         if greentea_hooks:
+            # Call hook executed for each yotta target, just after all tests are finished
             build_path = os.path.join("./build", yotta_target)
             build_path_abs = os.path.abspath(build_path)
             # We can execute this test hook just after all tests are finished ('hook_post_test_end')
