@@ -56,7 +56,7 @@ class GreenteaCliTestHook(GreenteaTestHook):
         @param format Used to format string with cmd, notation used is e.g: {build_name}
         """
         gt_log("hook '%s' execution"% self.name)
-        cmd = self.format_before_run(self.cmd, format, verbose=True)
+        cmd = self.format_before_run(self.cmd, format)
         gt_log_tab("hook command: %s"% cmd)
         return run_cli_command(cmd, shell=False)
 
