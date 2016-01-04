@@ -25,8 +25,7 @@ from Queue import Queue, Empty
 from threading import Thread
 from subprocess import call, Popen, PIPE
 
-from mbed_greentea_log import gt_log
-from mbed_greentea_log import gt_log_tab
+from mbed_greentea.mbed_greentea_log import gt_logger
 
 
 # Return codes for test script
@@ -218,9 +217,9 @@ def run_host_test(image_path,
     # normal test execution can be performed
 
     if verbose:
-        gt_log("selecting test case observer...")
+        gt_logger.gt_log("selecting test case observer...")
         if digest_source:
-            gt_log_tab("selected digest source: %s"% digest_source)
+            gt_logger.gt_log_tab("selected digest source: %s"% digest_source)
 
     # Select who will digest test case serial port data
     if digest_source == 'stdin':
@@ -256,8 +255,8 @@ def run_host_test(image_path,
             cmd += ["-e", '"%s"'% enum_host_tests_path]
 
         if verbose:
-            gt_log_tab("calling mbedhtrun: %s"% " ".join(cmd))
-            gt_log("mbed-host-test-runner: started")
+            gt_logger.gt_log_tab("calling mbedhtrun: %s"% " ".join(cmd))
+            gt_logger.gt_log("mbed-host-test-runner: started")
         proc = Popen(cmd, stdout=PIPE)
         obs = ProcessObserver(proc)
 
@@ -390,11 +389,11 @@ def run_host_test(image_path,
                     f.write(bin_payload)
 
     if verbose:
-        gt_log("mbed-host-test-runner: stopped")
+        gt_logger.gt_log("mbed-host-test-runner: stopped")
     if not result:
         result = get_test_result(output)
     if verbose:
-        gt_log("mbed-host-test-runner: returned '%s'"% result)
+        gt_logger.gt_log("mbed-host-test-runner: returned '%s'"% result)
     return (result, "".join(output), testcase_duration, duration)
 
 def run_cli_command(cmd, shell=True, verbose=False):

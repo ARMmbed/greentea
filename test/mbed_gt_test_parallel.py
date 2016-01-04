@@ -158,6 +158,7 @@ class GtOptions:
                  enum_host_tests=None,
                  hooks_json=None,
                  yotta_search_for_mbed_target=False,
+                 plain=False,
                  verbose=True,
                  version=False):
 
@@ -185,6 +186,7 @@ class GtOptions:
         self.enum_host_tests = enum_host_tests
         self.hooks_json = hooks_json
         self.yotta_search_for_mbed_target = yotta_search_for_mbed_target
+        self.plain = plain
         self.verbose = verbose
         self.version = version
 
