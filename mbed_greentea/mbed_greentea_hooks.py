@@ -19,11 +19,8 @@ Author: Przemyslaw Wirkus <Przemyslaw.wirkus@arm.com>
 
 import re
 import json
-from mbed_greentea.mbed_greentea_log import gt_log
-from mbed_greentea.mbed_greentea_log import gt_bright
-from mbed_greentea.mbed_greentea_log import gt_log_tab
-from mbed_greentea.mbed_greentea_log import gt_log_err
 from mbed_greentea.mbed_test_api import run_cli_command
+from mbed_greentea.mbed_greentea_log import gt_logger
 
 """
 List of available hooks:
@@ -55,9 +52,9 @@ class GreenteaCliTestHook(GreenteaTestHook):
         @format Pass format dictionary to replace hook {tags} with real values
         @param format Used to format string with cmd, notation used is e.g: {build_name}
         """
-        gt_log("hook '%s' execution"% self.name)
+        gt_logger.gt_log("hook '%s' execution"% self.name)
         cmd = self.format_before_run(self.cmd, format)
-        gt_log_tab("hook command: %s"% cmd)
+        gt_logger.gt_log_tab("hook command: %s"% cmd)
         return run_cli_command(cmd, shell=False)
 
     @staticmethod
@@ -68,11 +65,11 @@ class GreenteaCliTestHook(GreenteaTestHook):
             if cmd_expand:
                 cmd = cmd_expand
                 if verbose:
-                    gt_log_tab("hook expanded: %s"% cmd)
+                    gt_logger.gt_log_tab("hook expanded: %s"% cmd)
 
             cmd = cmd.format(**format)
             if verbose:
-                gt_log_tab("hook formated: %s"% cmd)
+                gt_logger.gt_log_tab("hook formated: %s"% cmd)
         return cmd
 
     @staticmethod

@@ -373,7 +373,7 @@ def run_host_test(image_path,
 
     # We may have code coverage data to dump from test prints
     if coverage_start_data_list:
-        gt_log("storing coverage data artefacts")
+        gt_logger.gt_log("storing coverage data artefacts")
         for cov_data in coverage_start_data_list:
             path = os.path.abspath(cov_data['path'])
             payload = cov_data['payload']
@@ -384,7 +384,7 @@ def run_host_test(image_path,
             else:
                 bin_payload = pack_base64_payload(path, payload)
             if bin_payload:
-                gt_log_tab("storing %d bytes in '%s'"% (len(bin_payload), path))
+                gt_logger.gt_log_tab("storing %d bytes in '%s'"% (len(bin_payload), path))
                 with open(path, "wb") as f:
                     f.write(bin_payload)
 
