@@ -98,7 +98,7 @@ def run_host_test(image_path,
                   enum_host_tests_path=None,
                   run_app=None):
     """! This function runs host test supervisor (executes mbedhtrun) and checks output from host test process.
-    @return Tuple with test results, test output and test duration times
+    @return Tuple with test results, test output, test duration times and test case results
     @param image_path Path to binary file for flashing
     @param disk Currently mounted mbed-enabled devices disk (mount point)
     @param port Currently mounted mbed-enabled devices serial port (console)
@@ -276,7 +276,11 @@ def run_host_test(image_path,
         proc = Popen(cmd, stdin=PIPE, stdout=PIPE)
         obs = ProcessObserver(proc)
 
-    result = None
+    RE_TESTCASE_START = re.compile("^\{\{(testcase_start);(\w+)\}")
+    RE_TESTCASE_FINISH = re.compile("^\{\{(testcase_finish);(\w+);(\d+)\}\}")
+
+    result = None           # Test suite result
+    result_test_cases = {}  # Test cases results
     update_once_flag = {}   # Stores flags checking if some auto-parameter was already set
     unknown_property_count = 0
     total_duration = 20     # This for flashing, reset and other serial port operations
@@ -324,6 +328,39 @@ def run_host_test(image_path,
                     output.append('{{mbed_assert}}')
                     break
 
+                # Test case start/finish/result detection
+                # RE_TESTCASE_FINISH
+                m1 = RE_TESTCASE_START.search(line)
+                if m1 and len(m1.groups()) == 2:
+                    # m1.group(1) == "testcase_start"
+                    testcase_id = m1.group(2) # Test Case ID
+                    if testcase_id not in result_test_cases:
+                        result_test_cases[testcase_id] = {}
+                    result_test_cases[testcase_id]['time_start'] = time()
+
+                m2 = RE_TESTCASE_FINISH.search(line)
+                if m2 and len(m2.groups()) == 3:
+                    # m2.group(1) == "testcase_start"
+                    testcase_id = m2.group(2) # Test Case ID
+                    testcase_result = int(m2.group(3)) # success code, 0 == success, <0 inconclusive, >0 FAILure
+                    if testcase_id not in result_test_cases:
+                        result_test_cases[testcase_id] = {}
+                    # Setting some info about test case itself
+                    result_test_cases[testcase_id]['time_end'] = time()
+                    result_test_cases[testcase_id]['result'] = testcase_result
+
+                    result_test_cases[testcase_id]['result_text'] = 'OK'
+                    if testcase_result > 0:
+                        result_test_cases[testcase_id]['result_text'] = 'FAIL'
+                    elif testcase_result < 0:
+                        result_test_cases[testcase_id]['result_text'] = 'ERROR'
+
+                    result_test_cases[testcase_id]['duration'] = 0.0
+                    if 'time_start' in result_test_cases[testcase_id]:
+                        result_test_cases[testcase_id]['duration'] = result_test_cases[testcase_id]['time_end'] - result_test_cases[testcase_id]['time_start']
+                    else:
+                        result_test_cases[testcase_id]['duration'] = 0.0
+
                 # Check for test end
                 if '{end}' in line:
                     break
@@ -356,7 +393,7 @@ def run_host_test(image_path,
         result = get_test_result(output)
     if verbose:
         gt_logger.gt_log("mbed-host-test-runner: returned '%s'"% result)
-    return (result, "".join(output), testcase_duration, duration)
+    return (result, "".join(output), testcase_duration, duration, result_test_cases)
 
 def run_cli_command(cmd, shell=True, verbose=False):
     """! Runs command from command line
