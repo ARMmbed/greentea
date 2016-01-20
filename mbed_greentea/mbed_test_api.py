@@ -20,7 +20,7 @@ Author: Przemyslaw Wirkus <Przemyslaw.wirkus@arm.com>
 import os
 import re
 import sys
-from time import time
+from time import time, sleep
 from Queue import Queue, Empty
 from threading import Thread
 from subprocess import call, Popen, PIPE
@@ -175,11 +175,28 @@ def run_host_test(image_path,
 
         def stop(self):
             self.active = False
+
+            # Try stopping mbed-host-test
             try:
-                self.proc.terminate()
-            except Exception as e:
-                print "ProcessObserver.stop(): %s" % str(e)
+                self.proc.stdin.close()
+            finally:
                 pass
+
+            # Give 5 sec for mbedhtrun to exit
+            ret_code = None
+            for i in range(5):
+                ret_code = self.proc.poll()
+                # A None value indicates that the process hasn't terminated yet.
+                if ret_code is not None:
+                    break
+                sleep(1)
+
+            if ret_code is None:            # Kill it
+                print 'Terminating mbed-host-test(mbedhtrun) process (PID %s)' % self.proc.pid
+                try:
+                    self.proc.terminate()
+                except Exception as e:
+                    print "ProcessObserver.stop(): %s" % str(e)
 
     def get_char_from_queue(obs):
         """ Get character from queue safe way
@@ -257,7 +274,7 @@ def run_host_test(image_path,
         if verbose:
             gt_logger.gt_log_tab("calling mbedhtrun: %s"% " ".join(cmd))
             gt_logger.gt_log("mbed-host-test-runner: started")
-        proc = Popen(cmd, stdout=PIPE)
+        proc = Popen(cmd, stdin=PIPE, stdout=PIPE)
         obs = ProcessObserver(proc)
 
     coverage_start_data = None
@@ -330,8 +347,9 @@ def run_host_test(image_path,
                     coverage_start_data = coverage_start_line.split(";")
                     total_duration += COVERAGE_EXTRA_TIME   # Increase timeout to get extra lcov data
 
-                # Check for test end
-                if '{end}' in line:
+                # Check for test end. Only a '{{end}}' in the start of line indicates a test end.
+                # A sub string '{{end}}' may also appear in an error message.
+                if re.search('^\{\{end\}\}', line, re.I):
                     break
                 line = ''
             else:
