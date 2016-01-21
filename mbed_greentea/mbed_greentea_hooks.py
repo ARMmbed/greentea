@@ -73,6 +73,8 @@ class GreenteaCliTestHook(GreenteaTestHook):
         (_stdout, _stderr, ret) = self.run_cli_process(cmd)
         if _stdout:
             print _stdout
+        if ret:
+            gt_logger.gt_err("hook exited with error: %d, dumping stderr..."% ret)
             print _stderr
         return ret
 
