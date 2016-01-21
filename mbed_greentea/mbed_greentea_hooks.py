@@ -74,7 +74,7 @@ class GreenteaCliTestHook(GreenteaTestHook):
         if _stdout:
             print _stdout
         if ret:
-            gt_logger.gt_err("hook exited with error: %d, dumping stderr..."% ret)
+            gt_logger.gt_log_err("hook exited with error: %d, dumping stderr..."% ret)
             print _stderr
         return ret
 
