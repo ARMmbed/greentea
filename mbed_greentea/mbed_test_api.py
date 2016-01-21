@@ -389,7 +389,7 @@ def run_host_test(image_path,
         """
         return None
 
-    def dump_file(self, path, payload):
+    def dump_file(path, payload):
         """! Creates file and dumps payload to it on specified path (even if path doesn't exist)
         @param path Path to file
         @param payload Data to store in a file
