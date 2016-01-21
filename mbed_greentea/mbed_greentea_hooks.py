@@ -19,7 +19,7 @@ Author: Przemyslaw Wirkus <Przemyslaw.wirkus@arm.com>
 
 import re
 import json
-import subprocess
+from subprocess import Popen, PIPE
 from mbed_greentea.mbed_greentea_log import gt_logger
 
 """
@@ -47,19 +47,20 @@ class GreenteaCliTestHook(GreenteaTestHook):
         GreenteaTestHook.__init__(self, name)
         self.cmd = cmd
 
-    def run_cli_command_with_stdout(self, cmd, shell=True):
-        """! Execute command with stdout
+    def run_cli_process(self, cmd):
+        """! Runs command as a process and return stdout, stderr and ret code
+        @param cmd Command to execute
+        @return Tuple of (stdout, stderr, returncode)
         """
-        result = True
-        _stdout = None
+        _stdout, _stderr, ret = None, None, -1
         try:
-            _stdout = subprocess.check_output(cmd,
-                stderr=subprocess.STDOUT,
-                shell=shell)
-        except subprocess.CalledProcessError as e:
+            p = Popen(cmd, stdout=PIPE, stderr=PIPE, shell=True)
+            _stdout, _stderr = p.communicate()
+            ret = p.returncode
+        except OSError as e:
             gt_logger.gt_log_err(str(e))
-            result = False
-        return (_stdout, result)
+            ret = -1
+        return _stdout, _stderr, ret
 
     def run(self, format=None):
         """! Runs hook after command is formated with in-place {tags}
@@ -69,9 +70,10 @@ class GreenteaCliTestHook(GreenteaTestHook):
         gt_logger.gt_log("hook '%s' execution"% self.name)
         cmd = self.format_before_run(self.cmd, format)
         gt_logger.gt_log_tab("hook command: %s"% cmd)
-        (_stdout, ret) = self.run_cli_command_with_stdout(cmd, shell=False)
+        (_stdout, _stderr, ret) = self.run_cli_process(cmd)
         if _stdout:
             print _stdout
+            print _stderr
         return ret
 
     @staticmethod
