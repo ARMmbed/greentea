@@ -389,6 +389,24 @@ def run_host_test(image_path,
         """
         return None
 
+    def dump_file(self, path, payload):
+        """! Creates file and dumps payload to it on specified path (even if path doesn't exist)
+        @param path Path to file
+        @param payload Data to store in a file
+        @return True if operation was completed
+        """
+        result = True
+        try:
+            d = os.path.dirname(path)
+            if not os.path.exists(d):
+                os.makedirs(d)
+            with open(path, "wb") as f:
+                f.write(bin_payload)
+        except IOError as e:
+            print str(e)
+            result = False
+        return result
+
     # We may have code coverage data to dump from test prints
     if coverage_start_data_list:
         gt_logger.gt_log("storing coverage data artefacts")
@@ -403,8 +421,7 @@ def run_host_test(image_path,
                 bin_payload = pack_base64_payload(path, payload)
             if bin_payload:
                 gt_logger.gt_log_tab("storing %d bytes in '%s'"% (len(bin_payload), path))
-                with open(path, "wb") as f:
-                    f.write(bin_payload)
+                self.dump_file(path, bin_payload)
 
     if verbose:
         gt_logger.gt_log("mbed-host-test-runner: stopped")
