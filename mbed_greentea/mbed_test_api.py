@@ -421,7 +421,7 @@ def run_host_test(image_path,
                 bin_payload = pack_base64_payload(path, payload)
             if bin_payload:
                 gt_logger.gt_log_tab("storing %d bytes in '%s'"% (len(bin_payload), path))
-                self.dump_file(path, bin_payload)
+                dump_file(path, bin_payload)
 
     if verbose:
         gt_logger.gt_log("mbed-host-test-runner: stopped")
