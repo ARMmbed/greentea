@@ -47,7 +47,7 @@ class GreenteaCliTestHook(GreenteaTestHook):
         GreenteaTestHook.__init__(self, name)
         self.cmd = cmd
 
-    def run_cli_command_with_stdout(self, cmd, shell=False):
+    def run_cli_command_with_stdout(self, cmd, shell=True):
         """! Execute command with stdout
         """
         result = True
@@ -70,7 +70,8 @@ class GreenteaCliTestHook(GreenteaTestHook):
         cmd = self.format_before_run(self.cmd, format)
         gt_logger.gt_log_tab("hook command: %s"% cmd)
         (_stdout, ret) = self.run_cli_command_with_stdout(cmd, shell=False)
-        print _stdout
+        if _stdout:
+            print _stdout
         return ret
 
     @staticmethod
