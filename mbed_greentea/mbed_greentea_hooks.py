@@ -19,6 +19,7 @@ Author: Przemyslaw Wirkus <Przemyslaw.wirkus@arm.com>
 
 import re
 import json
+import subprocess
 from mbed_greentea.mbed_test_api import run_cli_command
 from mbed_greentea.mbed_greentea_log import gt_logger
 
@@ -47,6 +48,20 @@ class GreenteaCliTestHook(GreenteaTestHook):
         GreenteaTestHook.__init__(self, name)
         self.cmd = cmd
 
+    def run_cli_command_with_stdout(self, cmd, shell=False):
+        """! Execute command with stdout
+        """
+        result = True
+        _stdout = None
+        try:
+            _stdout = subprocess.check_output(cmd,
+                stderr=subprocess.STDOUT,
+                shell=shell)
+        except subprocess.CalledProcessError as e:
+            print str(e)
+            result = False
+        return (_stdout, result)
+
     def run(self, format=None):
         """! Runs hook after command is formated with in-place {tags}
         @format Pass format dictionary to replace hook {tags} with real values
@@ -55,7 +70,9 @@ class GreenteaCliTestHook(GreenteaTestHook):
         gt_logger.gt_log("hook '%s' execution"% self.name)
         cmd = self.format_before_run(self.cmd, format)
         gt_logger.gt_log_tab("hook command: %s"% cmd)
-        return run_cli_command(cmd, shell=False)
+        (_stdout, ret) = run_cli_command(cmd, shell=False)
+        print _stdout
+        return ret
 
     @staticmethod
     def format_before_run(cmd, format, verbose=False):
