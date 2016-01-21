@@ -20,7 +20,6 @@ Author: Przemyslaw Wirkus <Przemyslaw.wirkus@arm.com>
 import re
 import json
 import subprocess
-from mbed_greentea.mbed_test_api import run_cli_command
 from mbed_greentea.mbed_greentea_log import gt_logger
 
 """
@@ -58,7 +57,7 @@ class GreenteaCliTestHook(GreenteaTestHook):
                 stderr=subprocess.STDOUT,
                 shell=shell)
         except subprocess.CalledProcessError as e:
-            print str(e)
+            gt_logger.gt_log_err(str(e))
             result = False
         return (_stdout, result)
 
@@ -70,7 +69,7 @@ class GreenteaCliTestHook(GreenteaTestHook):
         gt_logger.gt_log("hook '%s' execution"% self.name)
         cmd = self.format_before_run(self.cmd, format)
         gt_logger.gt_log_tab("hook command: %s"% cmd)
-        (_stdout, ret) = run_cli_command(cmd, shell=False)
+        (_stdout, ret) = self.run_cli_command_with_stdout(cmd, shell=False)
         print _stdout
         return ret
 
