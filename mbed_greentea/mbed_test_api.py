@@ -334,8 +334,27 @@ def run_host_test(image_path,
                 if coverage_start_data and "{{coverage_end}}" in line:
                     idx = line.find("{{coverage_end}}")
                     coverage_end_line = line[:idx]  # Coverage payload
+                    cov_data_file_path = coverage_start_data[1]
+                    cov_data_file_path_filename = os.path.basename(cov_data_file_path)
+                    cov_data_file_path_dir = os.path.dirname(cov_data_file_path)
+                    if not os.path.exists(cov_data_file_path_dir):
+                        gt_logger.gt_log_err("Perhaps binaries are built on a different machine. Path not found: %s" % cov_data_file_path_dir)
+                        cwd = os.path.basename(os.path.abspath(os.path.curdir))
+                        while True:
+                            pos = cov_data_file_path_dir.find(cwd)
+                            if pos == -1:
+                                gt_logger.gt_log_err("Failed to correct path as current working directory not found in gcov reported path")
+                                break
+                            else:
+                                cov_data_file_path_dir = cov_data_file_path_dir[pos:]
+                                temp = cov_data_file_path_dir
+                                temp.replace(cwd, os.path.abspath(os.path.curdir))
+                                if os.path.exists(temp):
+                                    cov_data_file_path = os.path.join(cov_data_file_path_dir, cov_data_file_path_filename)
+                                    break
+
                     cov_data = {
-                        "path" : coverage_start_data[1],
+                        "path" : cov_data_file_path,
                         "payload" : coverage_end_line,
                         "encoding" : 'hex'  # hex, base64
                     }
