@@ -382,7 +382,6 @@ def run_host_test(image_path,
                             "encoding" : 'hex'  # hex, base64
                         }
                         coverage_start_data_list.append(cov_data)
-                        gt_logger.gt_log("Found %d coverage data" % len(coverage_start_data_list))
                     coverage_start_data = None
 
                 if line.startswith("{{coverage_start"):
