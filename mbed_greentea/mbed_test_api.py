@@ -389,8 +389,9 @@ def run_host_test(image_path,
                     coverage_start_data = coverage_start_line.split(";")
                     total_duration += COVERAGE_EXTRA_TIME   # Increase timeout to get extra lcov data
 
-                # Check for test end
-                if '{end}' in line:
+                # Check for test end. Only a '{{end}}' in the start of line indicates a test end.
+                # A sub string '{{end}}' may also appear in an error message.
+                if re.search('^\{\{end\}\}', line, re.I):
                     break
                 line = ''
             else:
@@ -430,6 +431,24 @@ def run_host_test(image_path,
         """
         return None
 
+    def dump_file(path, payload):
+        """! Creates file and dumps payload to it on specified path (even if path doesn't exist)
+        @param path Path to file
+        @param payload Data to store in a file
+        @return True if operation was completed
+        """
+        result = True
+        try:
+            d = os.path.dirname(path)
+            if not os.path.exists(d):
+                os.makedirs(d)
+            with open(path, "wb") as f:
+                f.write(bin_payload)
+        except IOError as e:
+            print str(e)
+            result = False
+        return result
+
     # We may have code coverage data to dump from test prints
     if coverage_start_data_list:
         gt_logger.gt_log("storing coverage data artefacts")
@@ -444,8 +463,7 @@ def run_host_test(image_path,
                 bin_payload = pack_base64_payload(path, payload)
             if bin_payload:
                 gt_logger.gt_log_tab("storing %d bytes in '%s'"% (len(bin_payload), path))
-                with open(path, "wb") as f:
-                    f.write(bin_payload)
+                dump_file(path, bin_payload)
 
     if verbose:
         gt_logger.gt_log("mbed-host-test-runner: stopped")
