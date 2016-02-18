@@ -230,6 +230,45 @@ def run_host_test(image_path,
                 result = property.groups()[0]
         return result
 
+    def fix_coverage_report_path(reported_path):
+        """
+        Fixes reported coverage report path if the buils was done on a different machine.
+         Example: reported path can be:
+          C:\Users\azikha01\Documents\GitHub\core-util-przemyslaw\build\frdm-k64f-gcc/source/CMakeFiles/core-util.dir/C_/Users/azikha01/Documents/GitHub/core-util-przemyslaw/source/sbrk.cpp.gcda
+         fixed path will as shown below on a linux machine with path to repo as /home/pi/github/core-util-przemyslaw/
+          /home/pi/github/core-util-przemyslaw//build/frdm-k64f-gcc/source/CMakeFiles/core-util.dir/C_/Users/azikha01/Documents/GitHub/core-util-przemyslaw/source/sbrk.cpp.gcda
+        :param reported_path: Path reported by gcov execution on the target
+        :return str: Fixed path. Same as input reported path if path exists. None if reported path does not exist and can not be fixed.
+        """
+        fixed_path = reported_path
+        cov_data_file_name = os.path.basename(reported_path)
+        cov_data_file_dir = os.path.dirname(reported_path)
+        if not os.path.exists(cov_data_file_dir):
+            fixed_path = None
+            gt_logger.gt_log_warn("gcov data file path reported by target does not exist!")
+            # Try fixing path by replacing reported path upto current working dir name with current working dir path
+            while True:
+                pos = cov_data_file_dir.find('build')
+                if pos == -1:
+                    gt_logger.gt_log_err("Failed to correct path as 'build' directory not found in gcov reported path")
+                    break
+                else:
+                    cov_data_file_dir = cov_data_file_dir[pos:].strip('/\\')
+
+                    # Construct new path in temp var as we don't know if this will work
+                    temp = os.path.abspath(cov_data_file_dir)
+                    if sys.platform == 'win32':
+                        temp = os.path.normpath(temp)
+                    else:
+                        # Assuming there are no valid back slashed in path. Otherwise we can't fix it.
+                        temp = temp.replace('\\', '/')
+                    if os.path.exists(temp):
+                        fixed_path = os.path.join(temp, cov_data_file_name)
+                        gt_logger.gt_log("New gcov data file path %s" % fixed_path)
+                        break
+
+        return fixed_path
+
     # Detect from where input should be taken, if no --digest switch is specified
     # normal test execution can be performed
 
@@ -334,12 +373,15 @@ def run_host_test(image_path,
                 if coverage_start_data and "{{coverage_end}}" in line:
                     idx = line.find("{{coverage_end}}")
                     coverage_end_line = line[:idx]  # Coverage payload
-                    cov_data = {
-                        "path" : coverage_start_data[1],
-                        "payload" : coverage_end_line,
-                        "encoding" : 'hex'  # hex, base64
-                    }
-                    coverage_start_data_list.append(cov_data)
+                    cov_data_file_path = fix_coverage_report_path(coverage_start_data[1])
+
+                    if cov_data_file_path is not None:
+                        cov_data = {
+                            "path" : cov_data_file_path,
+                            "payload" : coverage_end_line,
+                            "encoding" : 'hex'  # hex, base64
+                        }
+                        coverage_start_data_list.append(cov_data)
                     coverage_start_data = None
 
                 if line.startswith("{{coverage_start"):
