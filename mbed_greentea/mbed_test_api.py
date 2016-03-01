@@ -17,6 +17,7 @@ limitations under the License.
 Author: Przemyslaw Wirkus <Przemyslaw.wirkus@arm.com>
 """
 
+import os
 import re
 import sys
 from time import time, sleep
@@ -276,10 +277,16 @@ def run_host_test(image_path,
         proc = Popen(cmd, stdin=PIPE, stdout=PIPE)
         obs = ProcessObserver(proc)
 
+    coverage_start_data = None
+    coverage_start_data_list = []   # List of code coverage reports to dump
+
     result = None
-    update_once_flag = {}   # Stores flags checking if some auto-parameter was already set
+    update_once_flag = {}       # Stores flags checking if some auto-parameter was already set
     unknown_property_count = 0
-    total_duration = 20     # This for flashing, reset and other serial port operations
+    TOTAL_DURATION = 30         # This for flashing, reset and other serial port operations
+    COVERAGE_EXTRA_TIME = 20    # Extra time for coverage dump
+
+    total_duration = TOTAL_DURATION
     line = ''
     output = []
     start_time = time()
@@ -324,6 +331,22 @@ def run_host_test(image_path,
                     output.append('{{mbed_assert}}')
                     break
 
+                if coverage_start_data and "{{coverage_end}}" in line:
+                    idx = line.find("{{coverage_end}}")
+                    coverage_end_line = line[:idx]  # Coverage payload
+                    cov_data = {
+                        "path" : coverage_start_data[1],
+                        "payload" : coverage_end_line,
+                        "encoding" : 'hex'  # hex, base64
+                    }
+                    coverage_start_data_list.append(cov_data)
+                    coverage_start_data = None
+
+                if line.startswith("{{coverage_start"):
+                    coverage_start_line = line.strip("{}")  # Remove {{ }} delimiters
+                    coverage_start_data = coverage_start_line.split(";")
+                    total_duration += COVERAGE_EXTRA_TIME   # Increase timeout to get extra lcov data
+
                 # Check for test end. Only a '{{end}}' in the start of line indicates a test end.
                 # A sub string '{{end}}' may also appear in an error message.
                 if re.search('^\{\{end\}\}', line, re.I):
@@ -350,6 +373,55 @@ def run_host_test(image_path,
 
     end_time = time()
     testcase_duration = end_time - start_time   # Test case duration from reset to {end}
+
+    def pack_hex_payload(path, payload):
+        """! Convert a block of hex string data back to binary and return the binary data
+        @param path Where to save file with binary payload
+        @param payload String with hex encoded ascii data, e.g.: '6164636772...'
+        @return bytearray with payload with data
+        """
+        hex_pairs = map(''.join, zip(*[iter(payload)] * 2)) # ['61', '64', '63', '67', '72', ... ]
+        bin_payload = bytearray([int(s, 16) for s in hex_pairs])
+        return bin_payload
+
+    def pack_base64_payload(path, payload):
+        """! Convert a block of base64 data back to binary and return the binary data
+        """
+        return None
+
+    def dump_file(path, payload):
+        """! Creates file and dumps payload to it on specified path (even if path doesn't exist)
+        @param path Path to file
+        @param payload Data to store in a file
+        @return True if operation was completed
+        """
+        result = True
+        try:
+            d = os.path.dirname(path)
+            if not os.path.exists(d):
+                os.makedirs(d)
+            with open(path, "wb") as f:
+                f.write(bin_payload)
+        except IOError as e:
+            print str(e)
+            result = False
+        return result
+
+    # We may have code coverage data to dump from test prints
+    if coverage_start_data_list:
+        gt_logger.gt_log("storing coverage data artefacts")
+        for cov_data in coverage_start_data_list:
+            path = os.path.abspath(cov_data['path'])
+            payload = cov_data['payload']
+            encoding = cov_data['encoding']
+            bin_payload = None
+            if encoding == 'hex':
+                bin_payload = pack_hex_payload(path, payload)
+            else:
+                bin_payload = pack_base64_payload(path, payload)
+            if bin_payload:
+                gt_logger.gt_log_tab("storing %d bytes in '%s'"% (len(bin_payload), path))
+                dump_file(path, bin_payload)
 
     if verbose:
         gt_logger.gt_log("mbed-host-test-runner: stopped")

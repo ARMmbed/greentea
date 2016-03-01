@@ -44,6 +44,7 @@ from mbed_greentea.mbed_greentea_dlm import greentea_get_app_sem
 from mbed_greentea.mbed_greentea_dlm import greentea_update_kettle
 from mbed_greentea.mbed_greentea_dlm import greentea_clean_kettle
 from mbed_greentea.mbed_yotta_api import build_with_yotta
+from mbed_greentea.mbed_greentea_hooks import GreenteaHooks
 from mbed_greentea.mbed_yotta_target_parse import YottaConfig
 
 try:
@@ -221,6 +222,10 @@ def main():
                     dest='digest_source',
                     help='Redirect input from where test suite should take console input. You can use stdin or file name to get test case console output')
 
+    parser.add_option('-H', '--hooks',
+                    dest='hooks_json',
+                    help='Load hooks used drive extra functionality')
+
     parser.add_option('', '--test-cfg',
                     dest='json_test_configuration',
                     help='Pass to host test data with host test configuration')
@@ -328,7 +333,7 @@ def main():
 
     return(cli_ret)
 
-def run_test_thread(test_result_queue, test_queue, opts, mut, mut_info, yotta_target_name):
+def run_test_thread(test_result_queue, test_queue, opts, mut, mut_info, yotta_target_name, greentea_hooks):
     test_exec_retcode = 0
     test_platforms_match = 0
     test_report = {}
@@ -374,8 +379,25 @@ def run_test_thread(test_result_queue, test_queue, opts, mut, mut_info, yotta_ta
 
         single_test_result, single_test_output, single_testduration, single_timeout = host_test_result
         test_result = single_test_result
+
+        build_path = os.path.join("./build", yotta_target_name)
+        build_path_abs = os.path.abspath(build_path)
+
         if single_test_result != TEST_RESULT_OK:
             test_exec_retcode += 1
+        else:
+            if greentea_hooks:
+                # Test was successful
+                # We can execute test hook just after test is finished ('hook_test_end')
+                format = {
+                    "test_name": test['test_bin'],
+                    "test_bin_name": os.path.basename(test['image_path']),
+                    "image_path": test['image_path'],
+                    "build_path": build_path,
+                    "build_path_abs": build_path_abs,
+                    "yotta_target_name": yotta_target_name,
+                }
+                greentea_hooks.run_hook_ext('hook_test_end', format)
 
         # Update report for optional reporting feature
         test_name = test['test_bin'].lower()
@@ -389,6 +411,10 @@ def run_test_thread(test_result_queue, test_queue, opts, mut, mut_info, yotta_ta
         test_report[yotta_target_name][test_name]['elapsed_time'] = single_testduration
         test_report[yotta_target_name][test_name]['platform_name'] = micro
         test_report[yotta_target_name][test_name]['copy_method'] = copy_method
+        test_report[yotta_target_name][test_name]['build_path'] = build_path
+        test_report[yotta_target_name][test_name]['build_path_abs'] = build_path_abs
+        test_report[yotta_target_name][test_name]['image_path'] = test['image_path']
+        test_report[yotta_target_name][test_name]['test_bin_name'] = os.path.basename(test['image_path'])
 
         gt_logger.gt_log("test on hardware with target id: %s \n\ttest '%s' %s %s in %.2f sec"% (mut['target_id'], test['test_bin'], '.' * (80 - len(test['test_bin'])), test_result, single_testduration))
 
@@ -432,6 +458,11 @@ def main_cli(opts, args, gt_instance_uuid=None):
         print_version()
         return (0)
 
+    # We will load hooks from JSON file to support extra behaviour during test execution
+    greentea_hooks = None
+    if opts.hooks_json:
+        greentea_hooks = GreenteaHooks(opts.hooks_json)
+
     # Capture alternative test console inputs, used e.g. in 'yotta test command'
     if opts.digest_source:
         enum_host_tests_path = get_local_host_tests_dir(opts.enum_host_tests)
@@ -440,6 +471,7 @@ def main_cli(opts, args, gt_instance_uuid=None):
                                          port=None,
                                          digest_source=opts.digest_source,
                                          enum_host_tests_path=enum_host_tests_path,
+                                         hooks=greentea_hooks,
                                          verbose=opts.verbose_test_result_only)
 
         single_test_result, single_test_output, single_testduration, single_timeout = host_test_result
@@ -708,7 +740,7 @@ def main_cli(opts, args, gt_instance_uuid=None):
                     # Experimental, parallel test execution
                     #################################################################
                     if number_of_threads < parallel_test_exec:
-                        args = (test_result_queue, test_queue, opts, mut, mut_info, yotta_target_name)
+                        args = (test_result_queue, test_queue, opts, mut, mut_info, yotta_target_name, greentea_hooks)
                         t = Thread(target=run_test_thread, args=args)
                         execute_threads.append(t)
                         number_of_threads += 1
@@ -739,6 +771,41 @@ def main_cli(opts, args, gt_instance_uuid=None):
         print
         print "Example: execute 'mbedgt --target=TARGET_NAME' to start testing for TARGET_NAME target"
         return (0)
+
+    gt_logger.gt_log("all tests finished!")
+
+    # We will execute post test hooks on tests
+    for yotta_target in test_report:
+        test_name_list = []    # All test case names for particular yotta target
+        for test_name in test_report[yotta_target]:
+            test = test_report[yotta_target][test_name]
+            # Test was successful
+            if test['single_test_result'] == 'OK':
+                test_name_list.append(test_name)
+                # Call hook executed for each test, just after all tests are finished
+                if greentea_hooks:
+                    # We can execute this test hook just after all tests are finished ('hook_post_test_end')
+                    format = {
+                        "test_name": test_name,
+                        "test_bin_name": test['test_bin_name'],
+                        "image_path": test['image_path'],
+                        "build_path": test['build_path'],
+                        "build_path_abs": test['build_path_abs'],
+                        "yotta_target_name": yotta_target,
+                    }
+                    greentea_hooks.run_hook_ext('hook_post_test_end', format)
+        if greentea_hooks:
+            # Call hook executed for each yotta target, just after all tests are finished
+            build_path = os.path.join("./build", yotta_target)
+            build_path_abs = os.path.abspath(build_path)
+            # We can execute this test hook just after all tests are finished ('hook_post_test_end')
+            format = {
+                "build_path": build_path,
+                "build_path_abs": build_path_abs,
+                "test_name_list": test_name_list,
+                "yotta_target_name": yotta_target,
+            }
+            greentea_hooks.run_hook_ext('hook_post_all_test_end', format)
 
     # This tool is designed to work in CI
     # We want to return success codes based on tool actions,
