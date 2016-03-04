@@ -44,12 +44,10 @@ class YOttaConfigurationParse(unittest.TestCase):
                 "minar": "^1.0.0",
                 "core-util": "^1.0.1",
                 "compiler-polyfill": "^1.2.0",
-                "mbed-drivers": "~0.12.0",
-                "greentea-client": "^0.1.2"
+                "mbed-drivers": "~0.12.0"
                 },
             "testDependencies": {
-                "unity": "^2.0.1",
-                "greentea-client": "^0.1.2"
+                "unity": "^2.0.1"
                 }
         }
 
@@ -67,7 +65,7 @@ class YOttaConfigurationParse(unittest.TestCase):
         self.assertEqual('Apache-2.0', self.yotta_module.get_data().get('license'))
         
     def test_check_greentea_client(self):
-        self.assertTrue(self.yotta_module.check_greentea_client())
+        self.assertFalse(self.yotta_module.check_greentea_client())
 
 if __name__ == '__main__':
     unittest.main()
