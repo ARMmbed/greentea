@@ -461,7 +461,7 @@ def main_cli(opts, args, gt_instance_uuid=None):
         * This version of Greentea doesn't support 'greentea-client' module.                    *
         * Please uprade to Greentea after v0.2.0:                                               *
         *                                                                                       *
-        * $ pip install mbed-greentea>=0.2.0 --upgrade                                          *
+        * $ pip install "mbed-greentea>=0.2.0" --upgrade                                          *
         *****************************************************************************************
         """)
         return (0)
