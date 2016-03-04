@@ -37,7 +37,7 @@ def read(fname):
     return open(os.path.join(os.path.dirname(__file__), fname)).read()
 
 setup(name='mbed-greentea',
-      version='0.1.19',
+      version='0.1.20',
       description=DESCRIPTION,
       long_description=read('README.md'),
       author=OWNER_NAMES,
@@ -52,8 +52,7 @@ setup(name='mbed-greentea',
         "console_scripts": ["mbedgt=mbed_greentea.mbed_greentea_cli:main",],
       },
       install_requires=["PrettyTable>=0.7.2",
-        "PySerial==2.7",
-        "mbed-host-tests>=0.1.18",
+        "mbed-host-tests<0.2.0",
         "mbed-ls",
         "junit-xml",
         "lockfile",
