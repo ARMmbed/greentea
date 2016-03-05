@@ -44,7 +44,8 @@ from mbed_greentea.mbed_greentea_dlm import greentea_get_app_sem
 from mbed_greentea.mbed_greentea_dlm import greentea_update_kettle
 from mbed_greentea.mbed_greentea_dlm import greentea_clean_kettle
 from mbed_greentea.mbed_yotta_api import build_with_yotta
-from mbed_greentea.mbed_yotta_target_parse import YottaConfig
+from mbed_greentea.mbed_yotta_module_parse import YottaConfig
+from mbed_greentea.mbed_yotta_module_parse import YottaModule
 
 try:
     import mbed_lstools
@@ -445,7 +446,26 @@ def main_cli(opts, args, gt_instance_uuid=None):
         single_test_result, single_test_output, single_testduration, single_timeout = host_test_result
         status = TEST_RESULTS.index(single_test_result) if single_test_result in TEST_RESULTS else -1
         return (status)
+        
+    ### Read yotta module basic information
+    yotta_module = YottaModule()
+    yotta_module.init() # Read actual yotta module data
 
+    # Check if greentea-client is in module.json of repo to test, if so abort
+    if yotta_module.check_greentea_client():
+        gt_logger.gt_log("""
+        *****************************************************************************************
+        * We've noticed that 'greentea-client' module is specified in dependency/testDependency *
+        * section of this module's 'module.json' file.                                          *
+        *                                                                                       *
+        * This version of Greentea doesn't support 'greentea-client' module.                    *
+        * Please uprade to Greentea after v0.2.0:                                               *
+        *                                                                                       *
+        * $ pip install "mbed-greentea>=0.2.0" --upgrade                                        *
+        *****************************************************************************************
+        """)
+        return (0)
+          
     ### Selecting yotta targets to process
     yt_targets = [] # List of yotta targets specified by user used to process during this run
     if opts.list_of_targets:
