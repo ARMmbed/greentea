@@ -13,6 +13,7 @@ limitations under the License.
 Author: Przemyslaw Wirkus <Przemyslaw.wirkus@arm.com>
 """
 
+import os
 import re
 import json
 from subprocess import Popen, PIPE
@@ -83,8 +84,8 @@ class GreenteaCliTestHook(GreenteaTestHook):
                 cmd = cmd_expand
                 if verbose:
                     gt_logger.gt_log_tab("hook expanded: %s"% cmd)
-
             cmd = cmd.format(**format)
+            cmd = GreenteaCliTestHook.check_parameters(cmd)
             if verbose:
                 gt_logger.gt_log_tab("hook formated: %s"% cmd)
         return cmd
@@ -138,6 +139,57 @@ class GreenteaCliTestHook(GreenteaTestHook):
                                         expansion_result.append(s)
                 expansion_result.sort()
                 result = expr.replace(expr_str_orig, delimiter.join(expansion_result))
+        return result
+
+    @staticmethod
+    def check_parameters(expr):
+        """! Check Expression for user specified arguments in hook command
+        @param expr Expression to check
+        @details
+        user specified arguments are (so far):
+            :n -> remove option if file not exists
+            :e -> remove option if file exists but empty
+            :i -> remove option if file not exists OR if file exists but empty
+        expr = "lcov --gcov-tool arm-none-eabi-gcov (-a <<{build_path}/test/{test_name}.info>>):i --output-file result.info"
+            where:
+            (...) -> specify part to check
+            <<...>> -> specify part which is a path to a file
+        'expr' expression (-a <<{build_path}/test/{test_name}.info>>):i will be either:
+            "-a ./build/frdm-k64f-gcc/test/test_name.info"
+            or will be removed from command
+        It is also possible to use it in combination with expand_parameters:
+        expr = "lcov --gcov-tool arm-none-eabi-gcov [(-a <<{build_path_list}/test/{test_name_list}.info>>):i] --output-file result.info"
+        """
+        result = expr
+        expr_strs_orig = re.findall('\(.*?\):[a-z]', expr)
+        for expr_str_orig in expr_strs_orig:
+            expr_str_base = expr_str_orig[1:-3]
+            expr_str_arg = expr_str_orig[-1]
+            result = result.replace(expr_str_orig, expr_str_base)
+            m = re.search('\<<.*?\>>', expr_str_base)
+            if m:
+                expr_str_path = m.group(0)[2:-2]
+                # Remove option if file not exists
+                if expr_str_arg == 'n':
+                    if not os.path.exists(expr_str_path):
+                        result = result.replace(expr_str_base, '')
+                # Remove option if file exists but empty
+                elif expr_str_arg == 'e':
+                    if os.path.exists(expr_str_path):
+                        if os.path.getsize(expr_str_path) == 0:
+                            result = result.replace(expr_str_base, '')
+                # Remove option if file not exists OR if file exists but empty
+                elif expr_str_arg == 'i':
+                    if not os.path.exists(expr_str_path):
+                        result = result.replace(expr_str_base, '')
+                    elif os.path.getsize(expr_str_path) == 0:
+                        result = result.replace(expr_str_base, '')
+                else:
+                    pass
+
+        # Remove path limiter
+        result = result.replace('<<', '')
+        result = result.replace('>>', '')
         return result
 
 class GreenteaHooks():

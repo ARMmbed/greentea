@@ -14,6 +14,7 @@ limitations under the License.
 """
 
 import unittest
+from mock import patch
 from mbed_greentea.mbed_greentea_hooks import GreenteaCliTestHook
 
 class GreenteaCliTestHookTest(unittest.TestCase):
@@ -91,6 +92,68 @@ class GreenteaCliTestHookTest(unittest.TestCase):
                 "yotta_target_name" : 'frdm-k64f-gcc'
             }))
 
+    @patch('os.path.exists')
+    @patch('os.path.getsize')
+    def test_check_parameters_arg_n(self, pathGetsize_mock, pathExists_mock):
+        pathExists_mock.return_value = True
+        pathGetsize_mock.return_value = 0
+        self.assertEqual('-a ./build/frdm-k64f-gcc.info',
+            self.cli_hooks.check_parameters('(-a <<./build/frdm-k64f-gcc.info>>):n'))
+
+        pathExists_mock.return_value = False
+        pathGetsize_mock.return_value = 0
+        self.assertEqual('',
+            self.cli_hooks.check_parameters('(-a <<./build/frdm-k64f-gcc.info>>):n'))
+            
+    @patch('os.path.exists')
+    @patch('os.path.getsize')
+    def test_check_parameters_arg_e(self, pathGetsize_mock, pathExists_mock):
+        pathExists_mock.return_value = True
+        pathGetsize_mock.return_value = 1
+        self.assertEqual('-a ./build/frdm-k64f-gcc.info',
+            self.cli_hooks.check_parameters('(-a <<./build/frdm-k64f-gcc.info>>):e'))
+
+        pathExists_mock.return_value = True
+        pathGetsize_mock.return_value = 0
+        self.assertEqual('',
+            self.cli_hooks.check_parameters('(-a <<./build/frdm-k64f-gcc.info>>):e'))
+            
+    @patch('os.path.exists')
+    @patch('os.path.getsize')
+    def test_check_parameters_arg_i(self, pathGetsize_mock, pathExists_mock):
+        pathExists_mock.return_value = True
+        pathGetsize_mock.return_value = 1
+        self.assertEqual('-a ./build/frdm-k64f-gcc.info',
+            self.cli_hooks.check_parameters('(-a <<./build/frdm-k64f-gcc.info>>):i'))
+
+        pathExists_mock.return_value = True
+        pathGetsize_mock.return_value = 0
+        self.assertEqual('',
+            self.cli_hooks.check_parameters('(-a <<./build/frdm-k64f-gcc.info>>):i'))
+
+        pathExists_mock.return_value = False
+        pathGetsize_mock.return_value = 1
+        self.assertEqual('',
+            self.cli_hooks.check_parameters('(-a <<./build/frdm-k64f-gcc.info>>):i'))
+
+        pathExists_mock.return_value = False
+        pathGetsize_mock.return_value = 0
+        self.assertEqual('',
+            self.cli_hooks.check_parameters('(-a <<./build/frdm-k64f-gcc.info>>):i'))
+
+    @patch('os.path.exists')
+    @patch('os.path.getsize')
+    def test_check_parameters_arg_i_multiple(self, pathGetsize_mock, pathExists_mock):
+        pathExists_mock.return_value = True
+        pathGetsize_mock.return_value = 1
+        self.assertEqual('-a ./build/frdm-k64f-gcc.info -b ./build/frdm-k64f-gcc.info',
+            self.cli_hooks.check_parameters('(-a <<./build/frdm-k64f-gcc.info>>):i (-b <<./build/frdm-k64f-gcc.info>>):i'))
+
+        pathExists_mock.return_value = True
+        pathGetsize_mock.return_value = 0
+        self.assertEqual(' -b ./build/frdm-k64f-gcc.info',
+            self.cli_hooks.check_parameters('(-a <<./build/frdm-k64f-gcc.info>>):i -b ./build/frdm-k64f-gcc.info'))
+
     def test_format_before_run_with_1_list_1_string(self):
         # {test_name_list} should expand [] list twice
         # {yotta_target_name} should not be used to expand, only to replace
@@ -99,7 +162,6 @@ class GreenteaCliTestHookTest(unittest.TestCase):
                 "test_name_list" : ['mbed-drivers-test-basic', 'mbed-drivers-test-hello'],
                 "yotta_target_name" : 'frdm-k64f-gcc',
             }))
-
 
 if __name__ == '__main__':
     unittest.main()
