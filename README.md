@@ -225,7 +225,7 @@ mbedgt: exited with code 2
 To check whether the mbed test tools dependencies exist on your machine:
 
 ```
-pip freeze | grep mbed
+$ pip freeze | grep mbed
 mbed-greentea==0.2.6
 mbed-host-tests==0.2.4
 mbed-ls==0.2.1
