@@ -5,6 +5,7 @@
 # Table of contents
 
 * [Table of contents](#table-of-contents)
+* [Quickstart document](#quickstart-document)
 * [Introduction](#introduction)
   * [mbed test tools collection](#mbed-test-tools-collection)
   * [Additional documentation:](#additional-documentation)
@@ -44,6 +45,10 @@
 Hello and welcome to the mbed SDK test suite, codename *Greentea*. The test suite is a collection of tools that enable automated testing on mbed boards.
 
 In its current configuration, the mbed test suite can automatically detect most of the popular mbed-enabled boards connected to the host over USB. The test suite uses the ```mbed-ls``` module to check for connected devices. A separate module called ```mbed-host-tests``` is used to flash and supervise each board's test. This decoupling allows us to make better software and maintain each of the functionalities as a separate domain.
+
+# Quickstart document
+
+Please read [QUICKSTART.md](https://github.com/ARMmbed/greentea/blob/master/docs/QUICKSTART.md) document if you want to familiarize yourself with top level features of ```Greentea`` mbed test tools.
 
 ## mbed test tools collection
 

@@ -1,7 +1,6 @@
 
 # Table of content
 
-* [Table of content](#table-of-content)
 * [mbed test tools instructions](#mbed-test-tools-instructions)
   * [Limitations](#limitations)
   * [mbed test tools collection](#mbed-test-tools-collection)
