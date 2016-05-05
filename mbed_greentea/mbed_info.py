@@ -42,27 +42,25 @@ def mbed_get_global_info():
     info_dict = dict()
 
     info_dict['os'] = dict()
-    info_dict['mbed-tools'] = dict()
+    info_dict['dependencies'] = dict()
     info_dict['python'] = dict()
 
     info_dict['os']['os_info'] = mbed_os_info()
-    info_dict['os']['uname'] = platform.uname()
 
     info_dict['os']['details'] = dict()
     info_dict['os']['details']['os_mac'] = platform.mac_ver()
     info_dict['os']['details']['os_linux'] = platform.linux_distribution()
     info_dict['os']['details']['os_win'] = platform.win32_ver()
 
-    info_dict['python']['version_info'] = str(sys.version_info)
     info_dict['python']['version'] =  platform.python_version()
 
-    info_dict['mbed-tools']['packages'] = dict()
-    info_dict['mbed-tools']['details'] = dict()
+    info_dict['dependencies']['packages'] = dict()
+    info_dict['dependencies']['details'] = dict()
 
     for pkg in packages:
         version = pkg_resources.require(pkg)[0].version
-        info_dict['mbed-tools']['packages'][pkg] = version
-        info_dict['mbed-tools']['details'][pkg] = [str(x) for x in pkg_resources.require(pkg)]
+        info_dict['dependencies']['packages'][pkg] = version
+        info_dict['dependencies']['details'][pkg] = [str(x) for x in pkg_resources.require(pkg)]
 
     #print json.dumps(info_dict, indent=4)
     return json.dumps(info_dict, indent=4)
