@@ -47,6 +47,7 @@ from mbed_greentea.mbed_yotta_api import get_test_suite_properties
 from mbed_greentea.mbed_greentea_hooks import GreenteaHooks
 from mbed_greentea.tests_spec import TestSpec, TestBinary
 from mbed_greentea.mbed_target_info import get_platform_property
+from mbed_info import mbed_get_global_info
 
 try:
     import mbed_lstools
@@ -198,6 +199,12 @@ def main():
                     action="store_true",
                     help='List available binaries')
 
+    parser.add_option('', '--info',
+                    dest='system_info',
+                    default=False,
+                    action="store_true",
+                    help='Prints system info in JSON format')
+
     parser.add_option('-m', '--map-target',
                     dest='map_platform_to_yt_target',
                     help='List of custom mapping between platform name and yotta target. Comma separated list of PLATFORM:TARGET tuples')
@@ -333,7 +340,7 @@ def main():
             gt_logger.gt_log_tab(str(e))
             raise
 
-    if not any([opts.list_binaries, opts.version]):
+    if not any([opts.list_binaries, opts.version, opts.system_info]):
         delta = time() - start  # Test execution time delta
         gt_logger.gt_log("completed in %.2f sec"% delta)
 
@@ -382,7 +389,7 @@ def run_test_thread(test_result_queue, test_queue, opts, mut, build, build_path,
         # Some error in htrun, abort test execution
         if host_test_result < 0:
             break
-        
+
         single_test_result, single_test_output, single_testduration, single_timeout, result_test_cases, test_cases_summary = host_test_result
         test_result = single_test_result
 
@@ -546,6 +553,11 @@ def main_cli(opts, args, gt_instance_uuid=None):
     # Prints version and exits
     if opts.version:
         print_version()
+        return (0)
+
+    # Prints system info (for debug purposes) and exits
+    if opts.system_info:
+        print mbed_get_global_info()
         return (0)
 
     # Detect Source of test spec
