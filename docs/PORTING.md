@@ -19,11 +19,12 @@
   * [Detect your mbed platform with mbed-ls](#detect-your-mbed-platform-with-mbed-ls)
     * [Checking if your platform is already supported by mbed-ls](#checking-if-your-platform-is-already-supported-by-mbed-ls)
   * [Build your project](#build-your-project)
-  * [Run test case using Greentea](#run-test-case-using-greentea)
-    * [Running one test binary with htrun](#running-one-test-binary-with-htrun)
+* [Run test case using Greentea](#run-test-case-using-greentea)
+  * [Running one test binary with htrun](#running-one-test-binary-with-htrun)
   * [Interpretting test results](#interpretting-test-results)
-  * [Generating reports](#generating-reports)
-  * [Troubleshooting](#troubleshooting)
+    * [Terms used in `htrun` and `Greentea` output](#terms-used-in-htrun-and-greentea-output)
+    * [Test suite result](#test-suite-result)
+    * [Test cases results](#test-cases-results)
 
 # How to prepare test tools for porting
 
@@ -290,7 +291,7 @@ mbedgt: selecting test case observer...
         calling mbedhtrun: mbedhtrun -d E: -p COM228:9600 -f ".build\tests\K64F\GCC_ARM\TESTS\mbedmicro-rtos-mbed\mail\TESTS-mbedmicro-rtos-mbed-mail.bin" -C 4 -c shell -m K64F -t 0240000029304e450038500878a3003cf131000097969900
 ```
 
-Command itself:
+Command executing `mbedhtrun` from Greentea context:
 ```
 $ mbedhtrun -d E: -p COM228:9600 -f ".build\tests\K64F\GCC_ARM\TESTS\mbedmicro-rtos-mbed\mail\TESTS-mbedmicro-rtos-mbed-mail.bin" -C 4 -c shell -m K64F -t 0240000029304e450038500878a3003cf131000097969900
 ```
@@ -306,5 +307,78 @@ Where:
 This command with few modifications can be used by user to reproduce binary test run (flashing, reset and test execution). Use `--skip-flashing` flag of `mbedhtrun` to skip flashing phase in case you have the same binary already flashed on your device.
 
 ## Interpretting test results
-## Generating reports
-## Troubleshooting
+
+### Terms used in `htrun` and `Greentea` output
+
+Please check [this link](https://github.com/ARMmbed/greentea-client#terms) for details. Especially [test suite](https://github.com/ARMmbed/greentea-client#test-suite) and [test case](https://github.com/ARMmbed/greentea-client#test-case).
+
+```
+$ mbedgt -V -n TESTS-mbed_drivers*
+```
+
+### Test suite result
+
+Test suite report describes what was the state of test binary after all test procedures were finished. In general we return one of three states in our reports:
+* `OK` - all tests in test binary passed.
+* `FAIL` - test binary itself behaved as expected but some test cases, assertions in test code failed.
+* Undeifned state which can manifest itself as many other erroneous states. For example: `ERROR` or for example `TIMEOUT` - something went wrong with binary itself or test mechanism inside binary failed to instrument test code.
+
+```
+mbedgt: test suite report:
++--------------+---------------+----------------------------------+--------+--------------------+-------------+
+| target       | platform_name | test suite                       | result | elapsed_time (sec) | copy_method |
++--------------+---------------+----------------------------------+--------+--------------------+-------------+
+| K64F-GCC_ARM | K64F          | tests-mbed_drivers-c_strings     | FAIL   | 13.3               | shell       |
+| K64F-GCC_ARM | K64F          | tests-mbed_drivers-dev_null      | OK     | 13.14              | shell       |
+| K64F-GCC_ARM | K64F          | tests-mbed_drivers-echo          | FAIL   | 41.08              | shell       |
+| K64F-GCC_ARM | K64F          | tests-mbed_drivers-generic_tests | OK     | 12.11              | shell       |
+| K64F-GCC_ARM | K64F          | tests-mbed_drivers-rtc           | OK     | 21.6               | shell       |
+| K64F-GCC_ARM | K64F          | tests-mbed_drivers-stl_features  | OK     | 12.87              | shell       |
+| K64F-GCC_ARM | K64F          | tests-mbed_drivers-ticker        | OK     | 22.08              | shell       |
+| K64F-GCC_ARM | K64F          | tests-mbed_drivers-ticker_2      | OK     | 22.04              | shell       |
+| K64F-GCC_ARM | K64F          | tests-mbed_drivers-ticker_3      | OK     | 22.07              | shell       |
+| K64F-GCC_ARM | K64F          | tests-mbed_drivers-timeout       | OK     | 22.06              | shell       |
+| K64F-GCC_ARM | K64F          | tests-mbed_drivers-wait_us       | OK     | 20.96              | shell       |
++--------------+---------------+----------------------------------+--------+--------------------+-------------+
+mbedgt: test suite results: 2 FAIL / 9 OK
+```
+
+### Test cases results
+
+Some test suites (test binaries) may use our in-house test hardness called [utest](https://github.com/ARMmbed/utest). `utest` test harness allows users to write set of test cases inside one binary. This allows us to add more test code inside test binaries and report results for each test case separately. Each test case may report `OK`, `FAIL` or `ERROR`.
+
+```
+mbedgt: test case report:
++--------------+---------------+----------------------------------+-------------------------------------+--------+--------+--------+--------------------+
+| target       | platform_name | test suite                       | test case                           | passed | failed | result | elapsed_time (sec) |
++--------------+---------------+----------------------------------+-------------------------------------+--------+--------+--------+--------------------+
+| K64F-GCC_ARM | K64F          | tests-mbed_drivers-c_strings     | C strings: %e %E float formatting   | 1      | 0      | OK     | 1.01               |
+| K64F-GCC_ARM | K64F          | tests-mbed_drivers-c_strings     | C strings: %f %f float formatting   | 0      | 1      | FAIL   | 0.0                |
+| K64F-GCC_ARM | K64F          | tests-mbed_drivers-c_strings     | C strings: %g %g float formatting   | 1      | 0      | OK     | 0.0                |
+| K64F-GCC_ARM | K64F          | tests-mbed_drivers-c_strings     | C strings: %i %d integer formatting | 1      | 0      | OK     | 0.0                |
+| K64F-GCC_ARM | K64F          | tests-mbed_drivers-c_strings     | C strings: %u %d integer formatting | 1      | 0      | OK     | 0.0                |
+| K64F-GCC_ARM | K64F          | tests-mbed_drivers-c_strings     | C strings: %x %E integer formatting | 1      | 0      | OK     | 0.0                |
+| K64F-GCC_ARM | K64F          | tests-mbed_drivers-c_strings     | C strings: strpbrk                  | 1      | 0      | OK     | 0.0                |
+| K64F-GCC_ARM | K64F          | tests-mbed_drivers-c_strings     | C strings: strtok                   | 1      | 0      | OK     | 0.0                |
+| K64F-GCC_ARM | K64F          | tests-mbed_drivers-dev_null      | tests-mbed_drivers-dev_null         | 1      | 0      | OK     | 13.14              |
+| K64F-GCC_ARM | K64F          | tests-mbed_drivers-echo          | Echo server: x16                    | 1      | 0      | OK     | 16.54              |
+| K64F-GCC_ARM | K64F          | tests-mbed_drivers-echo          | Echo server: x32                    | 0      | 0      | ERROR  | 0.0                |
+| K64F-GCC_ARM | K64F          | tests-mbed_drivers-generic_tests | Basic                               | 1      | 0      | OK     | 0.0                |
+| K64F-GCC_ARM | K64F          | tests-mbed_drivers-generic_tests | Blinky                              | 1      | 0      | OK     | 0.0                |
+| K64F-GCC_ARM | K64F          | tests-mbed_drivers-generic_tests | C++ heap                            | 1      | 0      | OK     | 0.0                |
+| K64F-GCC_ARM | K64F          | tests-mbed_drivers-generic_tests | C++ stack                           | 1      | 0      | OK     | 0.0                |
+| K64F-GCC_ARM | K64F          | tests-mbed_drivers-rtc           | RTC strftime                        | 1      | 0      | OK     | 10.14              |
+| K64F-GCC_ARM | K64F          | tests-mbed_drivers-stl_features  | STL std::equal                      | 1      | 0      | OK     | 0.0                |
+| K64F-GCC_ARM | K64F          | tests-mbed_drivers-stl_features  | STL std::sort abs                   | 1      | 0      | OK     | 0.0                |
+| K64F-GCC_ARM | K64F          | tests-mbed_drivers-stl_features  | STL std::sort greater               | 1      | 0      | OK     | 0.0                |
+| K64F-GCC_ARM | K64F          | tests-mbed_drivers-stl_features  | STL std::transform                  | 1      | 0      | OK     | 0.0                |
+| K64F-GCC_ARM | K64F          | tests-mbed_drivers-ticker        | Timers: 2 x tickers                 | 1      | 0      | OK     | 11.15              |
+| K64F-GCC_ARM | K64F          | tests-mbed_drivers-ticker_2      | Timers: 1x ticker                   | 1      | 0      | OK     | 11.15              |
+| K64F-GCC_ARM | K64F          | tests-mbed_drivers-ticker_3      | Timers: 2x callbacks                | 1      | 0      | OK     | 11.15              |
+| K64F-GCC_ARM | K64F          | tests-mbed_drivers-timeout       | Timers: toggle on/off               | 1      | 0      | OK     | 11.15              |
+| K64F-GCC_ARM | K64F          | tests-mbed_drivers-wait_us       | Timers: wait_us                     | 1      | 0      | OK     | 10.14              |
++--------------+---------------+----------------------------------+-------------------------------------+--------+--------+--------+--------------------+
+mbedgt: test case results: 1 FAIL / 23 OK / 1 ERROR
+mbedgt: completed in 223.55 sec
+mbedgt: exited with code 2
+```
