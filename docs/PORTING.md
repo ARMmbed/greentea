@@ -1,7 +1,7 @@
 # Table of contents
 
 * [Table of contents](#table-of-contents)
-* [How to prepare test tools for porting](#how-to-prepare-test-tools-for-porting)
+* [Using Greentea to test an mbed OS port](#using-greentea-to-test-an-mbed-os-port)
 * [Getting started](#getting-started)
   * [Test tools overview](#test-tools-overview)
     * [Greentea](#greentea)
@@ -11,8 +11,6 @@
 * [Test tools installation dependencies](#test-tools-installation-dependencies)
   * [Test tools installation](#test-tools-installation)
   * [Using virtual environment](#using-virtual-environment)
-    * [How to get and install `virtualenv`](#how-to-get-and-install-virtualenv)
-    * [Basic Usage of virtual environment](#basic-usage-of-virtual-environment)
   * [Verify test tools setup](#verify-test-tools-setup)
 * [Test tools work flows](#test-tools-work-flows)
   * [List connected devices](#list-connected-devices)
@@ -26,17 +24,19 @@
     * [Test suite result](#test-suite-result)
     * [Test cases results](#test-cases-results)
 
-# How to prepare test tools for porting
+# Using Greentea to test an mbed OS port
 
-This document will walk you through most common work flow with mbed test tools. It will also demonstrate how to prepare test tools and outline useful features.
+When you're porting your platform to mbed OS, it helps to test as you go. Greentea, the mbed test tools suite, is perfectly suited for this purpose.
+
+This guide walks you through the basic setup and workflows you'll need to test your mbed OS port.
 
 # Getting started
 
-Below you will find short *HOW TO* setup mbed test tools for new mbed-enabled platform porting.
+How to set up the test tools for your new platform.
 
 ## Test tools overview
 ```mbed ```  test tools collection:
-* [Greentea](https://github.com/ARMmbed/greentea) - mbed test automation framework, instrument test suite execution inside your yotta module.
+* [Greentea](https://github.com/ARMmbed/greentea) - mbed test automation framework.
   * This application is also distributed as Python Package: [mbed-greentea in PyPI](https://pypi.python.org/pypi/mbed-greentea).
 * [greentea-client](https://github.com/ARMmbed/greentea-client) - Greenteas device under test (DUT) side C++ library.
     * Greentea-client public API can be found [here](https://github.com/ARMmbed/htrun#greentea-client-api).
@@ -107,63 +107,19 @@ You may already recognize that out test tools are mainly written in Python (2.7)
 
 For more details about Python's virtual environment please check [Virtual Environments](http://docs.python-guide.org/en/latest/dev/virtualenvs/).
 
-### How to get and install `virtualenv`
-
-Note that even installing virtual environment is option for some systems it is recommended.
-
-The simplest way is to just install ```virtualenv``` via ```pip```:
-```
-$ pip install virtualenv -U
-```
-
-### Basic Usage of virtual environment
-
-* Create a virtual environment for your project:
-```
-$ cd my_project
-$ virtualenv venv
-```
-
-* To begin using the virtual environment (On Windows), it needs to be activated:
-```bash
-$ venv\Scripts\activate.bat
-```
-
-* To begin using the virtual environment (On Linux), it needs to be activated:
-```bash
-$ source venv/bin/activate
-```
-
-* Install packages as usual, for example:
-```bash
-$ pip install mbed-greentea
-```
-
-* If you are done working in the virtual environment (On Windows) for the moment, you can deactivate it:
-```
-$ venv/script/deactivate.bat
-```
-
-* If you are done working in the virtual environment (On Windows) for the moment, you can deactivate it:
-```
-$ source venv/bin/deactivate
-```
-
-More information regarding virtual environment and mbed test tools can be found [here](https://github.com/ARMmbed/greentea#virtual-environments-python). Please note that these instructions may include `yotta` installation. You can skip this steps if you are not using `yotta` as your build system.
-
 ## Verify test tools setup
 
-You can use `pip freeze` command to check if mbed test tools are installed on your system correctly:
+You can use `pip list` command to check if mbed test tools are installed on your system correctly:
 ```
-$ pip freeze | grep mbed
+$ pip list | grep mbed
 mbed-greentea==0.2.18
 mbed-host-tests==0.2.14
 mbed-ls==0.2.10
 ```
 
-We can see that all required packages (`mbed-greentea`, `mbed-host-tests` and `mbed-host-tests`) are present and in latest `0.2.x` versions.
+We can see that all required packages (`mbed-greentea`, `mbed-host-tests` and `mbed-ls`) are present and in latest `0.2.x` versions.
 
-Alternatively you can just command line tools with help option:
+Alternatively, you can call the tools with the ``--version`` option:
 ```
 $ mbedgt --version
 ```
@@ -291,7 +247,7 @@ mbedgt: selecting test case observer...
         calling mbedhtrun: mbedhtrun -d E: -p COM228:9600 -f ".build\tests\K64F\GCC_ARM\TESTS\mbedmicro-rtos-mbed\mail\TESTS-mbedmicro-rtos-mbed-mail.bin" -C 4 -c shell -m K64F -t 0240000029304e450038500878a3003cf131000097969900
 ```
 
-Command executing `mbedhtrun` from Greentea context:
+Greentea uses the following command to call `mbedhtrun`:
 ```
 $ mbedhtrun -d E: -p COM228:9600 -f ".build\tests\K64F\GCC_ARM\TESTS\mbedmicro-rtos-mbed\mail\TESTS-mbedmicro-rtos-mbed-mail.bin" -C 4 -c shell -m K64F -t 0240000029304e450038500878a3003cf131000097969900
 ```
@@ -302,7 +258,7 @@ Where:
 * `-C 4` is time we will wait after device is flashed. This time may vary depending on platform.
 * `-c shell` is method used to copy binary onto DUT mount point.
 * `-m K64F` is platform name, currently not used.
-* `-t 0240000029304e450038500878a3003cf131000097969900` is TargetID of platform we will use. This useful option is passed by `Greentea` to `htrun` during process of auto-detection of test compatible platforms. Greentea uses `mbed-ls` to list all compatible platforms (by platform names) and maps it to TargetID.
+* `-t 0240000029304e450038500878a3003cf131000097969900` is `target_id` of platform we will use. This useful option is passed by `Greentea` to `htrun` during process of auto-detection of test compatible platforms. Greentea uses `mbed-ls` to list all compatible platforms (by platform names) and maps it to `target_id`.
 
 This command with few modifications can be used by user to reproduce binary test run (flashing, reset and test execution). Use `--skip-flashing` flag of `mbedhtrun` to skip flashing phase in case you have the same binary already flashed on your device.
 
@@ -310,11 +266,7 @@ This command with few modifications can be used by user to reproduce binary test
 
 ### Terms used in `htrun` and `Greentea` output
 
-Please check [this link](https://github.com/ARMmbed/greentea-client#terms) for details. Especially [test suite](https://github.com/ARMmbed/greentea-client#test-suite) and [test case](https://github.com/ARMmbed/greentea-client#test-case).
-
-```
-$ mbedgt -V -n TESTS-mbed_drivers*
-```
+Please check [this link](https://github.com/ARMmbed/greentea-client#terms) for details, especially [test suite](https://github.com/ARMmbed/greentea-client#test-suite) and [test case](https://github.com/ARMmbed/greentea-client#test-case).
 
 ### Test suite result
 
@@ -345,7 +297,7 @@ mbedgt: test suite results: 2 FAIL / 9 OK
 
 ### Test cases results
 
-Some test suites (test binaries) may use our in-house test hardness called [utest](https://github.com/ARMmbed/utest). `utest` test harness allows users to write set of test cases inside one binary. This allows us to add more test code inside test binaries and report results for each test case separately. Each test case may report `OK`, `FAIL` or `ERROR`.
+Some test suites (test binaries) may use our in-house test hardness, called [utest](https://github.com/ARMmbed/utest). `utest` test harness allows users to write set of test cases inside one binary. This allows us to add more test code inside test binaries and report results for each test case separately. Each test case may report `OK`, `FAIL` or `ERROR`.
 
 ```
 mbedgt: test case report:
