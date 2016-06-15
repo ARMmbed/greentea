@@ -35,7 +35,8 @@ TARGET_INFO_MAPPING = {
         "program_cycle_s": 4,
         "binary_type": ".bin",
         "copy_method": "default",
-        "reset_method": "default"
+        "reset_method": "default",
+        "forced_reset_timeout": 1
     },
 
     "K64F" : {
