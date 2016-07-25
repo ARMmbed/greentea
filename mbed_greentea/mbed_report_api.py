@@ -217,6 +217,48 @@ def exporter_testcase_junit(test_result_ext, test_suite_properties=None):
 
     return TestSuite.to_xml_string(test_suites)
 
+def exporter_testlink_xml(test_result_ext, test_suite_properties=None):
+    """! Export test results in Testlink XML compliant format
+    @param test_result_ext Extended report from Greentea
+    @details This function will loop through the results building the XML
+    @return String containing Testlink XML formatted test result output
+    """
+
+    from platform import system
+    from StringIO import StringIO
+    from xml.sax.saxutils import XMLGenerator
+    from xml.sax.xmlreader import AttributesImpl
+
+    host_os = system()
+    output = StringIO()
+    generator = XMLGenerator(output, 'UTF-8')
+    generator.startDocument()
+
+    errors = failures = tests = 0
+    time = 0.0
+    for target_toolcahin, testsuites in test_result_ext.iteritems():
+        for testsuite_name, testsuite in testsuites.iteritems():
+            time += testsuite['elapsed_time']
+            tests += len(testsuite['testcase_result'])
+            for testcase_name, testcase in testsuite['testcase_result'].iteritems():
+                if testcase['result'] < 0:
+                    errors += 1
+                failures += testcase['failed']
+    generator.startElement('testsuite', AttributesImpl({'errors': str(errors), 'failures': str(failures), 'tests': str(tests), 'time': str(time)}))
+
+    for target_toolcahin, testsuites in test_result_ext.iteritems():
+        for testsuite_name, testsuite in testsuites.iteritems():
+            for testcase_name, testcase in testsuite['testcase_result'].iteritems():
+                output.write("\n\t".expandtabs(4))
+                generator.startElement('testcase', AttributesImpl({'classname': testcase_name, 'host_os': host_os, 'name': testcase_name, 'time': str(testcase['duration'])}))
+                generator.endElement('testcase')
+    output.write("\n")
+    generator.endElement('testsuite')
+    
+    string = output.getvalue()
+    output.close()
+    return string
+
 html_template = """<html>
     <head>
         <title>mbed Greentea Results Report</title>
