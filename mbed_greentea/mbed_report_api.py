@@ -259,7 +259,9 @@ def exporter_testlink_xml(test_result_ext, test_suite_properties=None):
     output.close()
     return string
 
-html_template = """<html>
+html_template = """
+<!DOCTYPE html>
+<html>
     <head>
         <title>mbed Greentea Results Report</title>
         <script type="text/javascript">
@@ -400,12 +402,12 @@ TEST_RESULT_COLOURS = {
     'FAIL': "darkorange",
     'ERROR': "orangered",
     'SKIPPED': "lightsteelblue",
-    # 'UNDEF': "",
-    # 'IOERR_COPY': "",
-    # 'IOERR_DISK': "",
-    # 'IOERR_SERIAL': "",
-    # 'TIMEOUT': "",
-    # 'NO_IMAGE': "",
+    'UNDEF': "Red",
+    'IOERR_COPY': "DarkSalmon",
+    'IOERR_DISK': "DarkSalmon",
+    'IOERR_SERIAL': "DarkSalmon",
+    'TIMEOUT': "DarkKhaki",
+    'NO_IMAGE': "DarkSalmon",
     # 'MBED_ASSERT': "",
     # 'BUILD_FAILED': "",
 }
