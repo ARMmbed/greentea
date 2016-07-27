@@ -244,13 +244,21 @@ def exporter_testlink_xml(test_result_ext, test_suite_properties=None):
                 if testcase['result'] < 0:
                     errors += 1
                 failures += testcase['failed']
-    generator.startElement('testsuite', AttributesImpl({'errors': str(errors), 'failures': str(failures), 'tests': str(tests), 'time': str(time)}))
+    generator.startElement('testsuite', AttributesImpl({
+        'errors': str(errors),
+        'failures': str(failures),
+        'tests': str(tests),
+        'time': str(time)}))
 
     for target_toolcahin, testsuites in test_result_ext.iteritems():
         for testsuite_name, testsuite in testsuites.iteritems():
             for testcase_name, testcase in testsuite['testcase_result'].iteritems():
                 output.write("\n\t".expandtabs(4))
-                generator.startElement('testcase', AttributesImpl({'classname': testcase_name, 'host_os': host_os, 'name': testcase_name, 'time': str(testcase['duration'])}))
+                generator.startElement('testcase', AttributesImpl({
+                    'classname': testcase_name,
+                    'host_os': host_os,
+                    'name': testcase_name,
+                    'time': str(testcase['duration'])}))
                 generator.endElement('testcase')
     output.write("\n")
     generator.endElement('testsuite')
