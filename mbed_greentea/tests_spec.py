@@ -37,7 +37,7 @@ class TestBinary:
     BIN_TYPE_DEFAULT = BIN_TYPE_BOOTABLE
     SUPPORTED_BIN_TYPES = [BIN_TYPE_BOOTABLE]
 
-    def __init__(self, path, binary_type, testcases=None):
+    def __init__(self, path, binary_type, testcases=[]):
         """
         ctor.
 
@@ -235,6 +235,7 @@ class TestBuild:
         :param binary_type: Type of the binary
         :return: Dict of test case against test name
         """
+        conflict_string = "TestBuild::get_test_cases_tests - Conflicting test case '%s' matches '%s' and '%s'"
         invalid_names = {}
         result = {}
         for name, test in self.__tests.iteritems():
@@ -242,7 +243,7 @@ class TestBuild:
                 if test_case in result:
                     if result[test_case] is not name:
                         if test_case not in invalid_names:
-                            invalid_names[test_case] = "TestBuild::get_test_cases_tests - Conflicting test case '%s' matches '%s' and '%s'"% (
+                            invalid_names[test_case] = conflict_string% (
                                 test_case,
                                 result[test_case],
                                 name)
@@ -250,7 +251,7 @@ class TestBuild:
                     result[test_case] = name
         if invalid_names:
             for value in invalid_names.values():
-                print(value)
+                print value
             return {}
         else:
             return result
@@ -367,7 +368,7 @@ class TestSpec:
         """
         return self.__target_test_spec.get(build_name, None)
 
-    def get_test_cases(self, by_binary=False):
+    def get_test_cases(self):
         """
         Gives test cases.
 
@@ -385,7 +386,6 @@ class TestSpec:
         """
         Gives test cases.
 
-        :param by_binary: List the binaries against its test cases
         :return: A dictionary of binary against its test cases
         """
         result = {}

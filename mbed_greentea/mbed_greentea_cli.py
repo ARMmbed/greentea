@@ -53,6 +53,7 @@ from mbed_greentea.mbed_target_info import get_platform_property
 
 from mbed_greentea.cmake_handlers import list_binaries_for_builds
 from mbed_greentea.cmake_handlers import list_binaries_for_targets
+from mbed_greentea.cmake_handlers import list_test_cases_for_binaries
 
 try:
     import mbed_lstools
@@ -210,14 +211,14 @@ def create_testlink_test_list(test_list, available_test_cases, filtered_test_cas
             invalid_test_cases.append(test_case)
 
     if invalid_test_cases:
-        gt_logger.gt_log_warn("invalid test case names (specified with '--testlink-test-plan' option)")
+        gt_logger.gt_log_warn("invalid test case names, test cases do not exist")
         for test_case in invalid_test_cases:
             test_spec_name = test_spec.test_spec_filename
-            gt_logger.gt_log_warn("test case '%s' not found in '%s' (specified with --test-spec option)"% (gt_logger.gt_bright(test_case),
+            gt_logger.gt_log_warn("test case '%s' not found in '%s' (specified with --test-spec option)"% (
+                gt_logger.gt_bright(test_case),
                 gt_logger.gt_bright(test_spec_name)))
         gt_logger.gt_log_tab("note: test case names are case sensitive")
         gt_logger.gt_log_tab("note: see list of available test cases below")
-        # Print available test suite names (binary names user can use with -n
         list_test_cases_for_binaries(test_spec)
 
     return filtered_test_list
