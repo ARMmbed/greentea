@@ -122,3 +122,13 @@ def list_binaries_for_builds(test_spec, verbose_footer=False):
     if verbose_footer:
         print
         print "Example: execute 'mbedgt -t BUILD_NAME -n TEST_NAME' to run test TEST_NAME for build TARGET_NAME in current test specification"
+
+def list_test_cases_for_binaries(test_spec):
+    """! Parse test spec and list test cases inside the binaries
+    @param test_spec Test specification object
+    """
+    test_cases = test_spec.get_test_cases_by_binary()
+    for binary, tc in test_cases.iteritems():
+        gt_logger.gt_log("available test cases for test '%s'"% binary)
+        for case in tc:
+            gt_logger.gt_log_tab("test case '%s'"% case)

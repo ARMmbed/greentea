@@ -21,6 +21,7 @@ Author: Przemyslaw Wirkus <Przemyslaw.wirkus@arm.com>
 
 import os
 import sys
+import json
 import random
 import optparse
 from time import time
@@ -106,7 +107,7 @@ def get_hello_string():
 
 def create_filtered_test_list(ctest_test_list, test_by_names, skip_test, test_spec=None):
     """! Filters test case list (filtered with switch -n) and return filtered list.
-    @ctest_test_list List iof tests, originally from CTestTestFile.cmake in yotta module. Now comes from test specification
+    @ctest_test_list List of tests, originally from CTestTestFile.cmake in yotta module. Now comes from test specification
     @test_by_names Command line switch -n <test_by_names>
     @skip_test Command line switch -i <skip_test>
     @param test_spec Test specification object loaded with --test-spec switch
@@ -179,7 +180,59 @@ def create_filtered_test_list(ctest_test_list, test_by_names, skip_test, test_sp
         else:
             list_binaries_for_targets()
 
+    print(filtered_ctest_test_list)
     return filtered_ctest_test_list
+
+def create_testlink_test_list(test_list, test_case_list, test_plan_file, test_spec):
+    """! Filters test case list (filtered with testlink test plan) and return filtered list.
+    @test_case_list List of test cases from test_spec
+    @test_plan Path of 'test_plan.json'
+    @param test_spec Test specification object loaded with --test-spec switch
+    @return A set of tests to run, filtered by test cases
+    """
+
+    filtered_test_list = {}
+    invalid_test_cases = []
+    if not test_case_list:
+        return {}
+    gt_logger.gt_log("test case filter (specified with --testlink-test-plan option)")
+
+    # Load in testplan json
+    test_plan_json = None
+    try:
+        with open(test_plan_file, "r") as f:
+            test_plan_json = json.load(f)
+    except Exception as e:
+        gt_logger.gt_log_err("loading Testlink Test Plan('%s')"% test_plan_file + str(e))
+        return {}
+
+    if test_plan_json:
+        test_plan = test_plan_json['testplan']
+        gt_logger.gt_log("using Testlink Test Plan '%s'"% test_plan['name'])
+        
+        for test_case in test_plan['testcases']:
+            if test_case['name'] in test_case_list:
+                test_name = test_case_list[test_case['name']]
+                gt_logger.gt_log_tab("test '%s' chosen from test case '%s'"% (
+                    gt_logger.gt_bright(test_name),
+                    gt_logger.gt_bright(test_case['name'])))
+                if test_name not in filtered_test_list:
+                    filtered_test_list[test_name] = test_list[test_name]
+            else:
+                invalid_test_cases.append(test_case['name'])
+
+    if invalid_test_cases:
+        gt_logger.gt_log_warn("invalid test case names (specified with '--testlink-test-plan' option)")
+        for test_case in invalid_test_cases:
+            test_spec_name = test_spec.test_spec_filename
+            gt_logger.gt_log_warn("test case '%s' not found in '%s' (specified with --test-spec option)"% (gt_logger.gt_bright(test_case),
+                gt_logger.gt_bright(test_spec_name)))
+        gt_logger.gt_log_tab("note: test case names are case sensitive")
+        gt_logger.gt_log_tab("note: see list of available test cases below")
+        # Print available test suite names (binary names user can use with -n
+        list_test_cases_for_binaries(test_spec)
+
+    return filtered_test_list
 
 
 def main():
@@ -251,6 +304,12 @@ def main():
                     action="store_true",
                     help='List available binaries')
 
+    parser.add_option('', '--list-test-cases',
+                    dest='list_test_cases',
+                    default=False,
+                    action="store_true",
+                    help='List available test cases inside the binaries')
+
     parser.add_option('-g', '--grm',
                     dest='global_resource_mgr',
                     help='Global resource manager service query: platrform name, remote mgr module name, IP address and port, example K64F:module_name:10.2.123.43:3334')
@@ -299,6 +358,10 @@ def main():
     parser.add_option('', '--run',
                     dest='run_app',
                     help='Flash, reset and dump serial from selected binary application')
+
+    parser.add_option('', '--testlink-test-plan',
+                    dest='testlink_test_plan',
+                    help='Testlink Test Plan of test cases to run')
 
     parser.add_option('', '--report-junit',
                     dest='report_junit_file_name',
@@ -366,6 +429,12 @@ def main():
     if not opts.version:
         # This string should not appear when fetching plain version string
         gt_logger.gt_log(get_hello_string())
+
+    # Check for mismatching parameters
+    if opts.testlink_test_plan:
+        if opts.test_by_names or opts.skip_test:
+            gt_logger.gt_log_err("when using --testlink-test-plan, -n and -i cannot be specified ")
+            return(-1)
 
     start = time()
     if opts.lock_by_target:
@@ -849,8 +918,11 @@ def main_cli(opts, args, gt_instance_uuid=None):
                     test_exec_retcode += 1
 
             test_list = test_build.get_tests()
-
-            filtered_ctest_test_list = create_filtered_test_list(test_list, opts.test_by_names, opts.skip_test, test_spec=test_spec)
+            if opts.testlink_test_plan:
+                test_case_list = test_build.get_test_cases_by_test_name(binary_type=TestBinary.BIN_TYPE_BOOTABLE)
+                filtered_ctest_test_list = create_testlink_test_list(test_list, test_case_list, opts.testlink_test_plan, test_spec)
+            else:
+                filtered_ctest_test_list = create_filtered_test_list(test_list, opts.test_by_names, opts.skip_test, test_spec=test_spec)
 
             gt_logger.gt_log("running %d test%s for platform '%s' and toolchain '%s'"% (
                 len(filtered_ctest_test_list),
