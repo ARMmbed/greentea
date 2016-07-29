@@ -31,17 +31,19 @@ class TestBinary:
     """
     KW_BIN_TYPE = "binary_type"
     KW_BIN_PATH = "path"
+    KW_BIN_TEST_CASES = "testcases"
 
     BIN_TYPE_BOOTABLE = "bootable"
     BIN_TYPE_DEFAULT = BIN_TYPE_BOOTABLE
     SUPPORTED_BIN_TYPES = [BIN_TYPE_BOOTABLE]
 
-    def __init__(self, path, binary_type):
+    def __init__(self, path, binary_type, testcases=None):
         """
         ctor.
 
         :param path:
         :param binary_type:
+        :param testcases: An array of testcases inside of the binary
         :return:
         """
         assert binary_type in TestBinary.SUPPORTED_BIN_TYPES, \
@@ -49,6 +51,7 @@ class TestBinary:
             (binary_type, ", ".join(TestBinary.SUPPORTED_BIN_TYPES))
         self.__path = path
         self.__flash_method = binary_type
+        self.__test_cases = testcases
 
     def get_path(self):
         """
@@ -56,6 +59,14 @@ class TestBinary:
         :return:
         """
         return self.__path
+
+    def get_test_cases(self):
+        """
+        Gives testcase array
+
+        :return: Array of testcases
+        """
+        return self.__test_cases
 
 
 class Test:
@@ -94,6 +105,19 @@ class Test:
         """
         return self.__binaries_by_flash_method.get(binary_type, None)
 
+    def get_test_cases(self, binary_type=TestBinary.BIN_TYPE_DEFAULT):
+        """
+        Gives test case array for the specified binary type.
+
+        :param binary_type: Type of the binary
+        :return: An array of test cases
+        """
+        binary = self.get_binary(binary_type)
+        if binary:
+            return binary.get_test_cases()
+        else:
+            return []
+
     def parse(self, test_json):
         """
         Parse json contents into object.
@@ -108,7 +132,9 @@ class Test:
                 "Binary spec should contain key [%s]" % ",".join(mandatory_keys)
             fm = binary.get(TestBinary.KW_BIN_TYPE, self.__default_flash_method)
             assert fm is not None, "Binary type not specified in build and binary spec."
-            tb = TestBinary(binary[TestBinary.KW_BIN_PATH], fm)
+            # Check for testcases inside of the binary
+            tcs = binary.get(TestBinary.KW_BIN_TEST_CASES, [])
+            tb = TestBinary(binary[TestBinary.KW_BIN_PATH], fm, tcs)
             self.__binaries_by_flash_method[fm] = tb
 
     def add_binary(self, path, binary_type):
@@ -201,6 +227,33 @@ class TestBuild:
         :return:
         """
         return self.__tests
+
+    def get_test_cases_by_test_name(self, binary_type=TestBinary.BIN_TYPE_DEFAULT):
+        """
+        Gives test cases dict keyed by test case.
+
+        :param binary_type: Type of the binary
+        :return: Dict of test case against test name
+        """
+        invalid_names = {}
+        result = {}
+        for name, test in self.__tests.iteritems():
+            for test_case in test.get_test_cases(binary_type):
+                if test_case in result:
+                    if result[test_case] is not name:
+                        if test_case not in invalid_names:
+                            invalid_names[test_case] = "TestBuild::get_test_cases_tests - Conflicting test case '%s' matches '%s' and '%s'"% (
+                                test_case,
+                                result[test_case],
+                                name)
+                else:
+                    result[test_case] = name
+        if invalid_names:
+            for value in invalid_names.values():
+                print(value)
+            return {}
+        else:
+            return result
 
     def parse(self, build_spec):
         """
@@ -313,6 +366,35 @@ class TestSpec:
         :return:
         """
         return self.__target_test_spec.get(build_name, None)
+
+    def get_test_cases(self, by_binary=False):
+        """
+        Gives test cases.
+
+        :return: An array of all of the test cases
+        """
+        result = []
+        for test_build in self.__target_test_spec.values():
+            for test in test_build.get_tests().values():
+                test_cases = test.get_binary().get_test_cases()
+                if test_cases:
+                    result.extend(test_cases)
+        return result
+
+    def get_test_cases_by_binary(self):
+        """
+        Gives test cases.
+
+        :param by_binary: List the binaries against its test cases
+        :return: A dictionary of binary against its test cases
+        """
+        result = {}
+        for test_build in self.__target_test_spec.values():
+            for test in test_build.get_tests().values():
+                test_cases = test.get_binary().get_test_cases()
+                if test_cases:
+                    result[test.get_binary().get_path()] = test_cases
+        return result
 
     def add_test_builds(self, name, test_build):
         """
