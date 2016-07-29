@@ -217,9 +217,10 @@ def exporter_testcase_junit(test_result_ext, test_suite_properties=None):
 
     return TestSuite.to_xml_string(test_suites)
 
-def exporter_testlink_xml(test_result_ext, test_suite_properties=None):
+def exporter_testlink_xml(test_result_ext, filtered_test_cases=None, test_suite_properties=None):
     """! Export test results in Testlink XML compliant format
     @param test_result_ext Extended report from Greentea
+    @param filtered_test_cases The list of test cases to output, all are outputted if None
     @details This function will loop through the results building the XML
     @return String containing Testlink XML formatted test result output
     """
@@ -238,12 +239,14 @@ def exporter_testlink_xml(test_result_ext, test_suite_properties=None):
     time = 0.0
     for target_toolcahin, testsuites in test_result_ext.iteritems():
         for testsuite_name, testsuite in testsuites.iteritems():
-            time += testsuite['elapsed_time']
             tests += len(testsuite['testcase_result'])
             for testcase_name, testcase in testsuite['testcase_result'].iteritems():
-                if testcase['result'] < 0:
-                    errors += 1
-                failures += testcase['failed']
+                # Only record if filtered_test_cases is None or test case is in it
+                if not filtered_test_cases or testcase_name in filtered_test_cases:
+                    time += testcase['duration']
+                    if testcase['result'] < 0:
+                        errors += 1
+                    failures += testcase['failed']
     generator.startElement('testsuite', AttributesImpl({
         'errors': str(errors),
         'failures': str(failures),
@@ -253,13 +256,14 @@ def exporter_testlink_xml(test_result_ext, test_suite_properties=None):
     for target_toolcahin, testsuites in test_result_ext.iteritems():
         for testsuite_name, testsuite in testsuites.iteritems():
             for testcase_name, testcase in testsuite['testcase_result'].iteritems():
-                output.write("\n\t".expandtabs(4))
-                generator.startElement('testcase', AttributesImpl({
-                    'classname': testcase_name,
-                    'host_os': host_os,
-                    'name': testcase_name,
-                    'time': str(testcase['duration'])}))
-                generator.endElement('testcase')
+                if not filtered_test_cases or testcase_name in filtered_test_cases:
+                    output.write("\n\t".expandtabs(4))
+                    generator.startElement('testcase', AttributesImpl({
+                        'classname': testcase_name,
+                        'host_os': host_os,
+                        'name': testcase_name,
+                        'time': str(testcase['duration'])}))
+                    generator.endElement('testcase')
     output.write("\n")
     generator.endElement('testsuite')
     

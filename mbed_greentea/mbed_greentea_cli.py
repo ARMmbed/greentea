@@ -183,43 +183,31 @@ def create_filtered_test_list(ctest_test_list, test_by_names, skip_test, test_sp
     print(filtered_ctest_test_list)
     return filtered_ctest_test_list
 
-def create_testlink_test_list(test_list, test_case_list, test_plan_file, test_spec):
+def create_testlink_test_list(test_list, available_test_cases, filtered_test_cases, test_spec):
     """! Filters test case list (filtered with testlink test plan) and return filtered list.
-    @test_case_list List of test cases from test_spec
-    @test_plan Path of 'test_plan.json'
+    @test_list Dict of Test Objects against their names
+    @available_test_cases List of test cases from test_spec
+    @filtered_test_cases All of the chosen test cases from test plan
     @param test_spec Test specification object loaded with --test-spec switch
     @return A set of tests to run, filtered by test cases
     """
 
     filtered_test_list = {}
     invalid_test_cases = []
-    if not test_case_list:
+    if not available_test_cases:
         return {}
     gt_logger.gt_log("test case filter (specified with --testlink-test-plan option)")
 
-    # Load in testplan json
-    test_plan_json = None
-    try:
-        with open(test_plan_file, "r") as f:
-            test_plan_json = json.load(f)
-    except Exception as e:
-        gt_logger.gt_log_err("loading Testlink Test Plan('%s')"% test_plan_file + str(e))
-        return {}
-
-    if test_plan_json:
-        test_plan = test_plan_json['testplan']
-        gt_logger.gt_log("using Testlink Test Plan '%s'"% test_plan['name'])
-        
-        for test_case in test_plan['testcases']:
-            if test_case['name'] in test_case_list:
-                test_name = test_case_list[test_case['name']]
-                gt_logger.gt_log_tab("test '%s' chosen from test case '%s'"% (
-                    gt_logger.gt_bright(test_name),
-                    gt_logger.gt_bright(test_case['name'])))
-                if test_name not in filtered_test_list:
-                    filtered_test_list[test_name] = test_list[test_name]
-            else:
-                invalid_test_cases.append(test_case['name'])
+    for test_case in filtered_test_cases:
+        if test_case in available_test_cases:
+            test_name = available_test_cases[test_case]
+            gt_logger.gt_log_tab("test '%s' chosen from test case '%s'"% (
+                gt_logger.gt_bright(test_name),
+                gt_logger.gt_bright(test_case)))
+            if test_name not in filtered_test_list:
+                filtered_test_list[test_name] = test_list[test_name]
+        else:
+            invalid_test_cases.append(test_case)
 
     if invalid_test_cases:
         gt_logger.gt_log_warn("invalid test case names (specified with '--testlink-test-plan' option)")
@@ -829,6 +817,24 @@ def main_cli(opts, args, gt_instance_uuid=None):
     if opts.shuffle_test_seed:
         shuffle_random_seed = round(float(opts.shuffle_test_seed), SHUFFLE_SEED_ROUND)
 
+    filtered_test_cases = []
+    # Populate list of the test cases wanted from the test plan
+    # All test cases have to have unique names
+    if opts.testlink_test_plan:
+        test_plan_json = None
+        try:
+            with open(opts.testlink_test_plan, "r") as f:
+                test_plan_json = json.load(f)
+        except Exception as e:
+            gt_logger.gt_log_err("loading Testlink Test Plan('%s')"% opts.testlink_test_plan + str(e))
+
+        if test_plan_json:
+            test_plan = test_plan_json['testplan']
+            gt_logger.gt_log("using Testlink Test Plan '%s'"% gt_logger.gt_bright(test_plan['name']))
+            
+            for test_case in test_plan['testcases']:
+                filtered_test_cases.append(test_case['name'])
+
     ### Testing procedures, for each target, for each target's compatible platform
     # In case we are using test spec (switch --test-spec) command line option -t <list_of_targets>
     # is used to enumerate builds from test spec we are supplying
@@ -920,7 +926,7 @@ def main_cli(opts, args, gt_instance_uuid=None):
             test_list = test_build.get_tests()
             if opts.testlink_test_plan:
                 test_case_list = test_build.get_test_cases_by_test_name(binary_type=TestBinary.BIN_TYPE_BOOTABLE)
-                filtered_ctest_test_list = create_testlink_test_list(test_list, test_case_list, opts.testlink_test_plan, test_spec)
+                filtered_ctest_test_list = create_testlink_test_list(test_list, test_case_list, filtered_test_cases, test_spec)
             else:
                 filtered_ctest_test_list = create_filtered_test_list(test_list, opts.test_by_names, opts.skip_test, test_spec=test_spec)
 
@@ -1087,7 +1093,7 @@ def main_cli(opts, args, gt_instance_uuid=None):
         if opts.report_testlink_xml_file_name:
             gt_logger.gt_log("exporting to Testlink XML file '%s'..."% gt_logger.gt_bright(opts.report_testlink_xml_file_name))
             # Generate a Testlink XML with all of the results
-            testlink_xml_report = exporter_testlink_xml(test_report)
+            testlink_xml_report = exporter_testlink_xml(test_report, filtered_test_cases=filtered_test_cases)
             dump_report_to_text_file(opts.report_testlink_xml_file_name, testlink_xml_report)
 
         # Final summary
