@@ -926,7 +926,7 @@ def main_cli(opts, args, gt_instance_uuid=None):
 
             test_list = test_build.get_tests()
             if opts.testlink_test_plan:
-                test_case_list = test_build.get_test_cases_by_test_name(binary_type=TestBinary.BIN_TYPE_BOOTABLE)
+                test_case_list = test_build.get_test_cases_test_name(binary_type=TestBinary.BIN_TYPE_BOOTABLE)
                 filtered_ctest_test_list = create_testlink_test_list(test_list, test_case_list, filtered_test_cases, test_spec)
             else:
                 filtered_ctest_test_list = create_filtered_test_list(test_list, opts.test_by_names, opts.skip_test, test_spec=test_spec)

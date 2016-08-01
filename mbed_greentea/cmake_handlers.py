@@ -129,6 +129,6 @@ def list_test_cases_for_binaries(test_spec):
     """
     test_cases = test_spec.get_test_cases_by_binary()
     for binary, tc in test_cases.iteritems():
-        gt_logger.gt_log("available test cases for test '%s'"% binary)
+        gt_logger.gt_log("available test cases for test binary '%s'"% binary)
         for case in tc:
             gt_logger.gt_log_tab("test case '%s'"% case)

@@ -228,7 +228,7 @@ class TestBuild:
         """
         return self.__tests
 
-    def get_test_cases_by_test_name(self, binary_type=TestBinary.BIN_TYPE_DEFAULT):
+    def get_test_cases_test_name(self, binary_type=TestBinary.BIN_TYPE_DEFAULT):
         """
         Gives test cases dict keyed by test case.
 
@@ -303,7 +303,7 @@ class TestSpec:
         Load test spec directly from file
 
         :param test_spec_filename: Name of JSON file with TestSpec to load
-        :return: Treu if load was successful
+        :return: True if load was successful
         """
         try:
             with open(test_spec_filename, "r") as f:
@@ -380,7 +380,7 @@ class TestSpec:
                 test_cases = test.get_binary().get_test_cases()
                 if test_cases:
                     result.extend(test_cases)
-        return result
+        return set(result)
 
     def get_test_cases_by_binary(self):
         """
