@@ -181,7 +181,6 @@ def create_filtered_test_list(ctest_test_list, test_by_names, skip_test, test_sp
         else:
             list_binaries_for_targets()
 
-    print(filtered_ctest_test_list)
     return filtered_ctest_test_list
 
 def create_testlink_test_list(test_list, available_test_cases, filtered_test_cases, test_spec):
