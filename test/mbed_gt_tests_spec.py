@@ -78,32 +78,32 @@ test_case_test_spec = {
                     "binaries": [
                         {
                             "binary_type": "bootable",
-                            "path": ".build/tests/K64F/ARM/TESTS/mbed_drivers/generic_tests/tests-mbed_drivers-generic_tests.bin", 
-                            "testcases": [
-                                "Blinky", 
-                                "C++ stack", 
-                                "C++ heap", 
-                                "Basic"
-                            ]
+                            "path": ".build/tests/K64F/ARM/TESTS/mbed_drivers/generic_tests/tests-mbed_drivers-generic_tests.bin"
                         }
+                    ],
+                    "testcases": [
+                        "Blinky", 
+                        "C++ stack", 
+                        "C++ heap", 
+                        "Basic"
                     ]
                 },
                 "tests-mbed_drivers-c_strings": {
                     "binaries": [
                         {
                             "binary_type": "bootable",
-                            "path": ".build/tests/K64F/ARM/TESTS/mbed_drivers/c_strings/tests-mbed_drivers-c_strings.bin", 
-                            "testcases": [
-                                "C strings: strpbrk", 
-                                "C strings: %g %g float formatting", 
-                                "C strings: %f %f float formatting", 
-                                "C strings: %u %d integer formatting", 
-                                "C strings: strtok", 
-                                "C strings: %i %d integer formatting", 
-                                "C strings: %e %E float formatting", 
-                                "C strings: %x %E integer formatting"
-                            ]
+                            "path": ".build/tests/K64F/ARM/TESTS/mbed_drivers/c_strings/tests-mbed_drivers-c_strings.bin"
                         }
+                    ],
+                    "testcases": [
+                        "C strings: strpbrk", 
+                        "C strings: %g %g float formatting", 
+                        "C strings: %f %f float formatting", 
+                        "C strings: %u %d integer formatting", 
+                        "C strings: strtok", 
+                        "C strings: %i %d integer formatting", 
+                        "C strings: %e %E float formatting", 
+                        "C strings: %x %E integer formatting"
                     ]
                 }
             }
@@ -261,17 +261,15 @@ class TestsSpecFunctionality(unittest.TestCase):
         self.assertIn('C strings: %g %g float formatting', test_cases)
         self.assertIn('C++ stack', test_cases)
 
-    def test_get_test_cases_by_binary(self):
+    def test_get_test_cases_by_name(self):
         self.test_spec = TestSpec()
         self.test_spec.parse(self.tc_ts)
-        test_cases = self.test_spec.get_test_cases_by_binary()
+        test_cases = self.test_spec.get_test_cases_by_test_name()
 
         self.assertIs(type(test_cases), dict)
-        self.assertEqual(len(test_cases), 3)
-        self.assertIn(".build/tests/K64F/ARM/TESTS/mbed_drivers/generic_tests/tests-mbed_drivers-generic_tests.bin", test_cases)
-        self.assertIn(".build/tests/K64F/ARM/TESTS/mbed_drivers/c_strings/tests-mbed_drivers-c_strings.bin", test_cases)
-        self.assertIn(".build/tests/K64F/GCC_ARM/TESTS/mbed_drivers/generic_tests/tests-mbed_drivers-generic_tests.bin", test_cases)
-        self.assertEqual(len(test_cases[".build/tests/K64F/GCC_ARM/TESTS/mbed_drivers/generic_tests/tests-mbed_drivers-generic_tests.bin"]), 4)
+        self.assertEqual(len(test_cases), 2)
+        self.assertIn("tests-mbed_drivers-c_strings", test_cases)
+        self.assertEqual(len(test_cases["tests-mbed_drivers-c_strings"]), 8)
 
     def test_get_test_cases_by_test_name(self):
         self.test_spec = TestSpec()

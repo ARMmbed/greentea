@@ -214,6 +214,17 @@ class TestBuild:
         """
         return self.__tests
 
+    def get_test_cases(self):
+        """
+        Gives all of the test cases for the build.
+
+        :return: Array of all of the test cases
+        """
+        test_cases = []
+        for test in self.__tests.values():
+            test_cases.extend(test.get_test_cases())
+        return test_cases
+
     def get_test_cases_test_name(self):
         """
         Gives test cases dict keyed by test case.

@@ -299,6 +299,12 @@ def main():
                     action="store_true",
                     help='List available test cases inside the binaries')
 
+    parser.add_option('', '--list-test-plan',
+                    dest='list_test_plan',
+                    default=False,
+                    action="store_true",
+                    help='List implemented, not implemented, and conflicting test cases from the specified Test Plan (--test-plan)')
+
     parser.add_option('-g', '--grm',
                     dest='global_resource_mgr',
                     help='Global resource manager service query: platrform name, remote mgr module name, IP address and port, example K64F:module_name:10.2.123.43:3334')
@@ -422,8 +428,11 @@ def main():
     # Check for mismatching parameters
     if opts.test_plan:
         if opts.test_by_names or opts.skip_test:
-            gt_logger.gt_log_err("when using --test-plan, -n and -i cannot be specified ")
+            gt_logger.gt_log_err("when using --test-plan, -n and -i cannot be specified")
             return(-1)
+    elif opts.list_test_plan:
+        gt_logger.gt_log_err("when using --list-test-plan, --test-plan must also be specified")
+        return(-1)
 
     start = time()
     if opts.lock_by_target:
@@ -724,6 +733,69 @@ def main_cli(opts, args, gt_instance_uuid=None):
     if not test_spec:
         return ret
 
+    available_test_cases = test_spec.get_test_cases()
+    filtered_test_cases = []
+    # Populate list of the test cases wanted from the test plan
+    # All test cases have to have unique names
+    if opts.test_plan:
+        test_plan_json = None
+        try:
+            with open(opts.test_plan, "r") as f:
+                test_plan_json = json.load(f)
+        except Exception as e:
+            gt_logger.gt_log_err("loading Test Plan('%s')"% opts.test_plan + str(e))
+
+        if test_plan_json:
+            test_plan = test_plan_json['testplan']
+            gt_logger.gt_log("using Test Plan '%s'"% gt_logger.gt_bright(test_plan['name']))
+            
+            for test_case in test_plan['testcases']:
+                filtered_test_cases.append(test_case['name'])
+
+        # Check for conflicting test cases and fail if any are found
+        conflicting = {}
+        for build in test_spec.get_test_builds():
+            conflicting[build.get_name()] = []
+            all_test_cases = []
+            for test_case in build.get_test_cases():
+                if test_case in all_test_cases:
+                    conflicting[build.get_name()].append(test_case)
+                all_test_cases.append(test_case)
+        if conflicting:
+            for build, test_cases in conflicting.iteritems():
+                gt_logger.gt_log_err("conflicting test cases (name not unique) in build '%s'"% build)
+                for tc in test_cases:
+                    gt_logger.gt_log_tab("test case '%s'"% gt_logger.gt_bright(tc))
+            return(-1)
+
+    if opts.list_test_plan:
+        all_found = []
+        implemented = []
+        not_implemented = []
+        conflicting = []
+        for test_case in filtered_test_cases:
+            if test_case in all_found:
+                conflicting.append(test_case)
+            elif test_case not in available_test_cases:
+                not_implemented.append(test_case)
+            else:
+                implemented.append(test_case)
+            all_found.append(test_case)
+
+        if implemented:
+            gt_logger.gt_log("implemented test cases")
+            for tc in implemented:
+                gt_logger.gt_log_tab("test case '%s'"% gt_logger.gt_bright(tc))
+        if not_implemented:
+            gt_logger.gt_log_warn("not implemented test cases")
+            for tc in not_implemented:
+                gt_logger.gt_log_tab("test case '%s'"% gt_logger.gt_bright(tc))
+        if conflicting:
+            gt_logger.gt_log_err("conflicting test cases (name is not unique)")
+            for tc in set(conflicting):
+                gt_logger.gt_log_tab("test case '%s'"% gt_logger.gt_bright(tc))
+        return(0)
+
     # Verbose flag
     verbose = opts.verbose_test_result_only
 
@@ -818,24 +890,6 @@ def main_cli(opts, args, gt_instance_uuid=None):
     if opts.shuffle_test_seed:
         shuffle_random_seed = round(float(opts.shuffle_test_seed), SHUFFLE_SEED_ROUND)
 
-    filtered_test_cases = []
-    # Populate list of the test cases wanted from the test plan
-    # All test cases have to have unique names
-    if opts.test_plan:
-        test_plan_json = None
-        try:
-            with open(opts.test_plan, "r") as f:
-                test_plan_json = json.load(f)
-        except Exception as e:
-            gt_logger.gt_log_err("loading Test Plan('%s')"% opts.test_plan + str(e))
-
-        if test_plan_json:
-            test_plan = test_plan_json['testplan']
-            gt_logger.gt_log("using Test Plan '%s'"% gt_logger.gt_bright(test_plan['name']))
-            
-            for test_case in test_plan['testcases']:
-                filtered_test_cases.append(test_case['name'])
-
     ### Testing procedures, for each target, for each target's compatible platform
     # In case we are using test spec (switch --test-spec) command line option -t <list_of_targets>
     # is used to enumerate builds from test spec we are supplying
@@ -926,8 +980,7 @@ def main_cli(opts, args, gt_instance_uuid=None):
 
             test_list = test_build.get_tests()
             if opts.test_plan:
-                test_case_list = test_build.get_test_cases_test_name()
-                filtered_ctest_test_list = create_test_plan_test_list(test_list, test_case_list, filtered_test_cases, test_spec)
+                filtered_ctest_test_list = create_test_plan_test_list(test_list, available_test_cases, filtered_test_cases, test_spec)
             else:
                 filtered_ctest_test_list = create_filtered_test_list(test_list, opts.test_by_names, opts.skip_test, test_spec=test_spec)
 
