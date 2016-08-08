@@ -115,14 +115,14 @@ def create_filtered_test_list(ctest_test_list, test_by_names, skip_test, test_sp
     @return
     """
 
-    def filter_names_by_prefix(test_case_name_list, prefix_name):
+    def filter_names_by_prefix(test_binary_name_list, prefix_name):
         """!
-        @param test_case_name_list List of all test cases
+        @param test_binary_name_list List of all test cases
         @param prefix_name Prefix of test name we are looking for
         @result Set with names of test names starting with 'prefix_name'
         """
         result = list()
-        for test_name in test_case_name_list:
+        for test_name in test_binary_name_list:
             if test_name.startswith(prefix_name):
                 result.append(test_name)
         return sorted(result)
@@ -183,35 +183,36 @@ def create_filtered_test_list(ctest_test_list, test_by_names, skip_test, test_sp
 
     return filtered_ctest_test_list
 
-def create_testlink_test_list(test_list, available_test_cases, filtered_test_cases, test_spec):
-    """! Filters test case list (filtered with testlink test plan) and return filtered list.
-    @test_list Dict of Test Objects against their names
-    @available_test_cases List of test cases from test_spec
-    @filtered_test_cases All of the chosen test cases from test plan
+def create_test_plan_test_list(test_binary_list, available_test_cases, chosen_test_cases, test_spec):
+    """! Creates a list of the test binaries to run (filtered by test cases in the test plan)
+    @test_binary_list Dict of Test Binary Objects against their names
+    @available_test_cases List of all of the available test cases
+    @chosen_test_cases All of the chosen test cases from test plan
     @param test_spec Test specification object loaded with --test-spec switch
-    @return A set of tests to run, filtered by test cases
+    @return A set of test binaries to run, filtered by test cases
     """
 
-    filtered_test_list = {}
-    invalid_test_cases = []
+    filtered_test_binary_list = {}
+    not_implemented_test_cases = []
     if not available_test_cases:
         return {}
-    gt_logger.gt_log("test case filter (specified with --testlink-test-plan option)")
+    gt_logger.gt_log("test case filter (specified with --test-plan option)")
 
-    for test_case in filtered_test_cases:
+    for test_case in chosen_test_cases:
         if test_case in available_test_cases:
-            test_name = available_test_cases[test_case]
+            test_binary_name = available_test_cases[test_case]
             gt_logger.gt_log_tab("test '%s' chosen from test case '%s'"% (
-                gt_logger.gt_bright(test_name),
+                gt_logger.gt_bright(test_binary_name),
                 gt_logger.gt_bright(test_case)))
-            if test_name not in filtered_test_list:
-                filtered_test_list[test_name] = test_list[test_name]
+            if test_binary_name not in filtered_test_binary_list:
+                # Add the TestBinary Object to the filtered test list
+                filtered_test_binary_list[test_binary_name] = test_binary_list[test_binary_name]
         else:
-            invalid_test_cases.append(test_case)
+            not_implemented_test_cases.append(test_case)
 
-    if invalid_test_cases:
+    if not_implemented_test_cases:
         gt_logger.gt_log_warn("invalid test case names, test cases do not exist")
-        for test_case in invalid_test_cases:
+        for test_case in not_implemented_test_cases:
             test_spec_name = test_spec.test_spec_filename
             gt_logger.gt_log_warn("test case '%s' not found in '%s' (specified with --test-spec option)"% (
                 gt_logger.gt_bright(test_case),
@@ -220,7 +221,7 @@ def create_testlink_test_list(test_list, available_test_cases, filtered_test_cas
         gt_logger.gt_log_tab("note: see list of available test cases below")
         list_test_cases_for_binaries(test_spec)
 
-    return filtered_test_list
+    return filtered_test_binary_list
 
 
 def main():
@@ -347,9 +348,9 @@ def main():
                     dest='run_app',
                     help='Flash, reset and dump serial from selected binary application')
 
-    parser.add_option('', '--testlink-test-plan',
-                    dest='testlink_test_plan',
-                    help='Testlink Test Plan of test cases to run')
+    parser.add_option('', '--test-plan',
+                    dest='test_plan',
+                    help='Test Plan of test cases to run')
 
     parser.add_option('', '--report-junit',
                     dest='report_junit_file_name',
@@ -419,9 +420,9 @@ def main():
         gt_logger.gt_log(get_hello_string())
 
     # Check for mismatching parameters
-    if opts.testlink_test_plan:
+    if opts.test_plan:
         if opts.test_by_names or opts.skip_test:
-            gt_logger.gt_log_err("when using --testlink-test-plan, -n and -i cannot be specified ")
+            gt_logger.gt_log_err("when using --test-plan, -n and -i cannot be specified ")
             return(-1)
 
     start = time()
@@ -630,10 +631,10 @@ def run_test_thread(test_result_queue, test_queue, opts, mut, build, build_path,
 
         if test_cases_summary:
             passes, failures = test_cases_summary
-            gt_logger.gt_log("test case summary: %d pass%s, %d failur%s"% (passes,
+            gt_logger.gt_log("test case summary: %d pass%s, %d failure%s"% (passes,
                 '' if passes == 1 else 'es',
                 failures,
-                'e' if failures == 1 else 'es'))
+                '' if failures == 1 else 's'))
             if passes != passes_cnt or failures != failures_cnt:
                 gt_logger.gt_log_err("utest test case summary mismatch: utest reported passes and failures miscount!")
                 gt_logger.gt_log_tab("reported by utest: passes = %d, failures %d)"% (passes, failures))
@@ -820,17 +821,17 @@ def main_cli(opts, args, gt_instance_uuid=None):
     filtered_test_cases = []
     # Populate list of the test cases wanted from the test plan
     # All test cases have to have unique names
-    if opts.testlink_test_plan:
+    if opts.test_plan:
         test_plan_json = None
         try:
-            with open(opts.testlink_test_plan, "r") as f:
+            with open(opts.test_plan, "r") as f:
                 test_plan_json = json.load(f)
         except Exception as e:
-            gt_logger.gt_log_err("loading Testlink Test Plan('%s')"% opts.testlink_test_plan + str(e))
+            gt_logger.gt_log_err("loading Test Plan('%s')"% opts.test_plan + str(e))
 
         if test_plan_json:
             test_plan = test_plan_json['testplan']
-            gt_logger.gt_log("using Testlink Test Plan '%s'"% gt_logger.gt_bright(test_plan['name']))
+            gt_logger.gt_log("using Test Plan '%s'"% gt_logger.gt_bright(test_plan['name']))
             
             for test_case in test_plan['testcases']:
                 filtered_test_cases.append(test_case['name'])
@@ -924,9 +925,9 @@ def main_cli(opts, args, gt_instance_uuid=None):
                     test_exec_retcode += 1
 
             test_list = test_build.get_tests()
-            if opts.testlink_test_plan:
+            if opts.test_plan:
                 test_case_list = test_build.get_test_cases_test_name(binary_type=TestBinary.BIN_TYPE_BOOTABLE)
-                filtered_ctest_test_list = create_testlink_test_list(test_list, test_case_list, filtered_test_cases, test_spec)
+                filtered_ctest_test_list = create_test_plan_test_list(test_list, test_case_list, filtered_test_cases, test_spec)
             else:
                 filtered_ctest_test_list = create_filtered_test_list(test_list, opts.test_by_names, opts.skip_test, test_spec=test_spec)
 
@@ -1000,7 +1001,7 @@ def main_cli(opts, args, gt_instance_uuid=None):
 
     # We will execute post test hooks on tests
     for build_name in test_report:
-        test_name_list = []    # All test case names for particular yotta target
+        test_name_list = []    # All test binary names for particular yotta target
         for test_name in test_report[build_name]:
             test = test_report[build_name][test_name]
             # Test was successful

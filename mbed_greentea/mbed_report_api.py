@@ -225,12 +225,13 @@ def exporter_testlink_xml(test_result_ext, filtered_test_cases=None, test_suite_
     @return String containing Testlink XML formatted test result output
     """
 
-    from platform import system
+    #from platform import system
     from StringIO import StringIO
     from xml.sax.saxutils import XMLGenerator
     from xml.sax.xmlreader import AttributesImpl
 
-    host_os = system()
+    # Will add Host OS attribute in the future
+    #host_os = system()
     output = StringIO()
     generator = XMLGenerator(output, 'UTF-8')
     generator.startDocument()
@@ -251,7 +252,8 @@ def exporter_testlink_xml(test_result_ext, filtered_test_cases=None, test_suite_
         'errors': str(errors),
         'failures': str(failures),
         'tests': str(tests),
-        'time': str(time)}))
+        'time': str(time)
+    }))
 
     for target_toolcahin, testsuites in test_result_ext.iteritems():
         for testsuite_name, testsuite in testsuites.iteritems():
@@ -260,9 +262,18 @@ def exporter_testlink_xml(test_result_ext, filtered_test_cases=None, test_suite_
                     output.write("\n\t".expandtabs(4))
                     generator.startElement('testcase', AttributesImpl({
                         'classname': testcase_name,
-                        'host_os': host_os,
                         'name': testcase_name,
-                        'time': str(testcase['duration'])}))
+                        'time': str(testcase['duration'])
+                    }))
+                    if testcase['result'] != 0:
+                        element_name = 'error' if testcase['result'] < 0 else 'failure'
+                        type = 'skipped' if testcase['result'] == -8192 else None
+                        attributes = {}
+                        if type:
+                            attributes['type'] = type
+                        output.write("\n\t\t".expandtabs(4))
+                        generator.startElement(element_name, AttributesImpl(attributes))
+                        output.write("\n\t".expandtabs(4))
                     generator.endElement('testcase')
     output.write("\n")
     generator.endElement('testsuite')

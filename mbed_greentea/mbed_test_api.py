@@ -571,7 +571,7 @@ def get_test_spec(opts):
         test_spec_file_name_list = get_all_test_specs_from_build_dir('.build')
     elif os.path.exists(os.path.join('mbed-os', '.build')):
         # Checking mbed-os/.build directory for test specifications
-        test_spec_file_name_list = get_all_test_specs_from_build_dir(os.path.join(['mbed-os', '.build']))
+        test_spec_file_name_list = get_all_test_specs_from_build_dir(os.path.join('mbed-os', '.build'))
 
     # Actual load and processing of test specification from sources
     if test_spec_file_name:

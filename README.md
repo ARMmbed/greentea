@@ -32,7 +32,7 @@
       * [Executing all tests](#executing-all-tests)
       * [Cherry-pick tests](#cherry-pick-tests)
       * [Cherry-pick group of tests](#cherry-pick-group-of-tests)
-* [Testlink Integration](#testlink-integration)
+* [Test Plan Integration](#test-plan-integration)
   * [Listing Test Cases](#listing-test-cases)
   * [Test Specification with Test Cases](#test-specification-with-test-cases)
   * [Testlink XML Report](#testlink-xml-report)
@@ -645,12 +645,12 @@ $ mbedgt -V -n mbed-drivers-t*
 $ mbedgt -V -n mbed-drivers-t*,tests-mbed_drivers-rtc
 ```
 
-# Testlink Integration
-Greentea has support for using Testlink to automate the running of tests. Testlink creates a `test_plan.json` file, which is input into Greentea using the `--testlink-test-plan <FILE>` command line switch. This tells Greentea which test cases that it should run, which will be checked against the available test cases. It will then choose the correct test binaries, based on the test cases that they contain. If there are test cases specified in the test plan, that Greentea does not know of, then it will report back all of the test cases that it cannot find.
+# Test Plan Integration
+Greentea has support for using Test Plans to automate the running of tests. Test management systems create a `test_plan.json` file, which is input into Greentea using the `--test-plan <FILE>` command line switch. This tells Greentea which test cases that it should run, which will be checked against the available test cases. It will then choose the correct test binaries, based on the test cases that they contain. If there are test cases specified in the test plan, that Greentea does not know of, then it will report back all of the test cases that it cannot find.
 
 Greentea gets the list of test cases from the `test_spec.json` files that it parses, or has input into it. The test cases are specified in an optional field in the `"binaries"` list, inside `"testcases"`.
 
-The results of the tests can be exported in a junit format, that is compatible to input back into Testlink. It will contain only the test cases that were specified in the Test Plan (if there was one), and any errors that might have occurred. This is retrieved by using the command line switch `--report-testlink-xml <FILE>`.
+The results of the tests can be exported in a JUnit XML format, that is made to be input back into the Test management system. It will contain only the test cases that were specified in the Test Plan (if there was one), and any errors that might have occurred. This is retrieved by using the report command line switch, which is likely to be different for different management systems. Currently Testlink is supported using `--report-testlink-xml <FILE>`.
 
 ## Listing Test Cases
 All of the test cases that are found by Greentea can be listed using the command line switch `--list-test-cases`. This will output all of the test binaries that were found, along with their test cases, if they are specified.
