@@ -32,7 +32,7 @@ from mbed_greentea.mbed_coverage_api import coverage_pack_hex_payload
 
 from mbed_greentea.cmake_handlers import list_binaries_for_builds
 from mbed_greentea.cmake_handlers import list_binaries_for_targets
-from mbed_greentea.cmake_handlers import list_test_cases_for_binaries
+from mbed_greentea.cmake_handlers import list_test_cases_for_test_names
 
 
 # Return codes for test script
@@ -582,7 +582,7 @@ def get_test_spec(opts):
             list_binaries_for_builds(test_spec)
             return None, 0
         elif opts.list_test_cases:
-            list_test_cases_for_binaries(test_spec)
+            list_test_cases_for_test_names(test_spec)
             return None, 0
     elif test_spec_file_name_list:
         # Merge multiple test specs into one and keep calm
@@ -592,7 +592,7 @@ def get_test_spec(opts):
             list_binaries_for_builds(test_spec)
             return None, 0
         elif opts.list_test_cases:
-            list_test_cases_for_binaries(test_spec)
+            list_test_cases_for_test_names(test_spec)
             return None, 0
     elif os.path.exists('module.json'):
         # If inside yotta module load module data and generate test spec
@@ -602,7 +602,7 @@ def get_test_spec(opts):
             list_binaries_for_targets()
             return None, 0
         elif opts.list_test_cases:
-            list_test_cases_for_binaries(test_spec)
+            list_test_cases_for_test_names(test_spec)
             return None, 0
         else:
             test_spec = get_test_spec_from_yt_module(opts)

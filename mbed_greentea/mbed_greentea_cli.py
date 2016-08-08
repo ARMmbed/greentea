@@ -53,7 +53,7 @@ from mbed_greentea.mbed_target_info import get_platform_property
 
 from mbed_greentea.cmake_handlers import list_binaries_for_builds
 from mbed_greentea.cmake_handlers import list_binaries_for_targets
-from mbed_greentea.cmake_handlers import list_test_cases_for_binaries
+from mbed_greentea.cmake_handlers import list_test_cases_for_test_names
 
 try:
     import mbed_lstools
@@ -219,7 +219,7 @@ def create_test_plan_test_list(test_binary_list, available_test_cases, chosen_te
                 gt_logger.gt_bright(test_spec_name)))
         gt_logger.gt_log_tab("note: test case names are case sensitive")
         gt_logger.gt_log_tab("note: see list of available test cases below")
-        list_test_cases_for_binaries(test_spec)
+        list_test_cases_for_test_names(test_spec)
 
     return filtered_test_binary_list
 
@@ -926,7 +926,7 @@ def main_cli(opts, args, gt_instance_uuid=None):
 
             test_list = test_build.get_tests()
             if opts.test_plan:
-                test_case_list = test_build.get_test_cases_test_name(binary_type=TestBinary.BIN_TYPE_BOOTABLE)
+                test_case_list = test_build.get_test_cases_test_name()
                 filtered_ctest_test_list = create_test_plan_test_list(test_list, test_case_list, filtered_test_cases, test_spec)
             else:
                 filtered_ctest_test_list = create_filtered_test_list(test_list, opts.test_by_names, opts.skip_test, test_spec=test_spec)
