@@ -211,14 +211,14 @@ def create_test_plan_test_list(test_binary_list, available_test_cases, chosen_te
             not_implemented_test_cases.append(test_case)
 
     if not_implemented_test_cases:
-        gt_logger.gt_log_warn("invalid test case names, test cases do not exist")
+        gt_logger.gt_log_warn("invalid test case names, the following test cases do not exist")
         for test_case in not_implemented_test_cases:
             test_spec_name = test_spec.test_spec_filename
-            gt_logger.gt_log_warn("test case '%s' not found in '%s' (specified with --test-spec option)"% (
+            gt_logger.gt_log_tab("test case '%s' not found in '%s' (specified with --test-spec option)"% (
                 gt_logger.gt_bright(test_case),
                 gt_logger.gt_bright(test_spec_name)))
-        gt_logger.gt_log_tab("note: test case names are case sensitive")
-        gt_logger.gt_log_tab("note: see list of available test cases below")
+        gt_logger.gt_log_warn("note: test case names are case sensitive")
+        gt_logger.gt_log_warn("note: see list of available test cases below")
         list_test_cases_for_test_names(test_spec)
 
     return filtered_test_binary_list
@@ -761,7 +761,7 @@ def main_cli(opts, args, gt_instance_uuid=None):
                 if test_case in all_test_cases:
                     conflicting[build.get_name()].append(test_case)
                 all_test_cases.append(test_case)
-        if conflicting:
+        if all(conflicting.values()):
             for build, test_cases in conflicting.iteritems():
                 gt_logger.gt_log_err("conflicting test cases (name not unique) in build '%s'"% build)
                 for tc in test_cases:
