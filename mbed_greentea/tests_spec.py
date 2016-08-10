@@ -379,6 +379,31 @@ class TestSpec:
                     result.extend(test_cases)
         return set(result)
 
+    def get_test_names_by_test_cases(self):
+        """
+        Gives test cases test names.
+
+        :return: A dictionary of test cases against it's test name/binary
+        """
+        invalid_names = []
+        result = {}
+        for test_build in self.__target_test_spec.values():
+            for test_name, test in test_build.get_tests().iteritems():
+                for test_case in test.get_test_cases():
+                    # Skip test cases with conflicts
+                    if test_case not in invalid_names:
+                        if test_case in result:
+                            if result[test_case] is not test:
+                                if test_case not in invalid_names:
+                                    invalid_names.append(test_case)
+                        else:
+                            result[test_case] = test_name
+
+        if invalid_names:
+            for value in invalid_names:
+                print "TestBuild::get_test_cases_tests - Conflicting test case '%s' - Skipped"% value
+        return result
+
     def get_test_cases_by_test_name(self):
         """
         Gives test cases.

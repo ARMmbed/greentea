@@ -193,6 +193,7 @@ def create_test_plan_test_list(test_binary_list, available_test_cases, chosen_te
     """
 
     filtered_test_binary_list = {}
+    chosen_tests_test_cases = {}
     not_implemented_test_cases = []
     if not available_test_cases:
         return {}
@@ -201,14 +202,19 @@ def create_test_plan_test_list(test_binary_list, available_test_cases, chosen_te
     for test_case in chosen_test_cases:
         if test_case in available_test_cases:
             test_binary_name = available_test_cases[test_case]
-            gt_logger.gt_log_tab("test '%s' chosen from test case '%s'"% (
-                gt_logger.gt_bright(test_binary_name),
-                gt_logger.gt_bright(test_case)))
+            if test_binary_name not in chosen_tests_test_cases:
+                chosen_tests_test_cases[test_binary_name] = []
+            chosen_tests_test_cases[test_binary_name].append(test_case)
             if test_binary_name not in filtered_test_binary_list:
                 # Add the TestBinary Object to the filtered test list
                 filtered_test_binary_list[test_binary_name] = test_binary_list[test_binary_name]
         else:
             not_implemented_test_cases.append(test_case)
+    
+    for test_name, test_cases in chosen_tests_test_cases.iteritems():
+        gt_logger.gt_log_tab("test '%s' chosen from test cases"% gt_logger.gt_bright(test_name))
+        for case in test_cases:
+            gt_logger.gt_log_tab("test case '%s'"% case, 2)
 
     if not_implemented_test_cases:
         gt_logger.gt_log_warn("invalid test case names, the following test cases do not exist")
@@ -733,7 +739,7 @@ def main_cli(opts, args, gt_instance_uuid=None):
     if not test_spec:
         return ret
 
-    available_test_cases = test_spec.get_test_cases()
+    available_test_cases = test_spec.get_test_names_by_test_cases()
     filtered_test_cases = []
     # Populate list of the test cases wanted from the test plan
     # All test cases have to have unique names
