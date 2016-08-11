@@ -273,6 +273,7 @@ def exporter_testlink_xml(test_result_ext, filtered_test_cases=None, test_suite_
                             attributes['type'] = type
                         output.write("\n\t\t".expandtabs(4))
                         generator.startElement(element_name, AttributesImpl(attributes))
+                        generator.endElement(element_name)
                         output.write("\n\t".expandtabs(4))
                     generator.endElement('testcase')
     output.write("\n")
