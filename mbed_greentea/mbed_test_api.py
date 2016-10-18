@@ -32,6 +32,7 @@ from mbed_greentea.mbed_coverage_api import coverage_pack_hex_payload
 
 from mbed_greentea.cmake_handlers import list_binaries_for_builds
 from mbed_greentea.cmake_handlers import list_binaries_for_targets
+from mbed_greentea.cmake_handlers import list_test_cases_for_test_names
 
 
 # Return codes for test script
@@ -588,35 +589,36 @@ def get_test_spec(opts):
         test_spec_file_name_list = get_all_test_specs_from_build_dir(os.path.join(['mbed-os', 'BUILD']))
     elif os.path.exists(os.path.join('mbed-os', '.build')):
         # Checking mbed-os/.build directory for test specifications
-        test_spec_file_name_list = get_all_test_specs_from_build_dir(os.path.join(['mbed-os', '.build']))
+        test_spec_file_name_list = get_all_test_specs_from_build_dir(os.path.join('mbed-os', '.build'))
 
     # Actual load and processing of test specification from sources
     if test_spec_file_name:
         # Test specification from command line (--test-spec) or default test_spec.json will be used
         gt_logger.gt_log("using '%s' from current directory!"% test_spec_file_name)
         test_spec = TestSpec(test_spec_file_name)
-        if opts.list_binaries:
-            list_binaries_for_builds(test_spec)
-            return None, 0
     elif test_spec_file_name_list:
         # Merge multiple test specs into one and keep calm
         gt_logger.gt_log("using multiple test specifications from current directory!")
         test_spec = merge_multiple_test_specifications_from_file_list(test_spec_file_name_list)
-        if opts.list_binaries:
-            list_binaries_for_builds(test_spec)
-            return None, 0
     elif os.path.exists('module.json'):
         # If inside yotta module load module data and generate test spec
         gt_logger.gt_log("using 'module.json' from current directory!")
+        test_spec = get_test_spec_from_yt_module(opts)
         if opts.list_binaries:
             # List available test binaries (names, no extension)
             list_binaries_for_targets()
             return None, 0
-        else:
-            test_spec = get_test_spec_from_yt_module(opts)
     else:
         gt_logger.gt_log_err("greentea should be run inside a Yotta module or --test-spec switch should be used")
         return None, -1
+
+    if opts.list_binaries:
+        list_binaries_for_builds(test_spec)
+        return None, 0
+    elif opts.list_test_cases:
+        list_test_cases_for_test_names(test_spec)
+        return None, 0
+
     return test_spec, 0
 
 def get_test_build_properties(test_spec, test_build_name):

@@ -42,6 +42,7 @@ class TestBinary:
 
         :param path:
         :param binary_type:
+        :param testcases: An array of testcases inside of the binary
         :return:
         """
         assert binary_type in TestBinary.SUPPORTED_BIN_TYPES, \
@@ -64,8 +65,9 @@ class Test:
     """
     KW_TEST_NAME = "name"
     KW_TEST_BINS = "binaries"
+    KW_TEST_TESTCASES = "testcases"
 
-    def __init__(self, name, default_flash_method=None):
+    def __init__(self, name, default_flash_method=None, testcases=[]):
         """
         ctor.
 
@@ -76,6 +78,7 @@ class Test:
         self.__name = name
         self.__default_flash_method = default_flash_method
         self.__binaries_by_flash_method = {}
+        self.__test_cases = testcases
 
     def get_name(self):
         """
@@ -94,6 +97,14 @@ class Test:
         """
         return self.__binaries_by_flash_method.get(binary_type, None)
 
+    def get_test_cases(self):
+        """
+        Gives an array of all test cases.
+
+        :return: An array of test cases
+        """
+        return self.__test_cases
+
     def parse(self, test_json):
         """
         Parse json contents into object.
@@ -108,6 +119,7 @@ class Test:
                 "Binary spec should contain key [%s]" % ",".join(mandatory_keys)
             fm = binary.get(TestBinary.KW_BIN_TYPE, self.__default_flash_method)
             assert fm is not None, "Binary type not specified in build and binary spec."
+            # Check for testcases inside of the binary
             tb = TestBinary(binary[TestBinary.KW_BIN_PATH], fm)
             self.__binaries_by_flash_method[fm] = tb
 
@@ -202,6 +214,44 @@ class TestBuild:
         """
         return self.__tests
 
+    def get_test_cases(self):
+        """
+        Gives all of the test cases for the build.
+
+        :return: Array of all of the test cases
+        """
+        test_cases = []
+        for test in self.__tests.values():
+            test_cases.extend(test.get_test_cases())
+        return test_cases
+
+    def get_test_cases_test_name(self):
+        """
+        Gives test cases dict keyed by test case.
+
+        :return: Dict of test case against test name
+        """
+        conflict_string = "TestBuild::get_test_cases_tests - Conflicting test case '%s' matches '%s' and '%s'"
+        invalid_names = {}
+        result = {}
+        for name, test in self.__tests.iteritems():
+            for test_case in test.get_test_cases():
+                if test_case in result:
+                    if result[test_case] is not name:
+                        if test_case not in invalid_names:
+                            invalid_names[test_case] = conflict_string% (
+                                test_case,
+                                result[test_case],
+                                name)
+                else:
+                    result[test_case] = name
+        if invalid_names:
+            for value in invalid_names.values():
+                print value
+            return {}
+        else:
+            return result
+
     def parse(self, build_spec):
         """
         Parse Test build json.
@@ -211,7 +261,8 @@ class TestBuild:
         """
         assert TestBuild.KW_TESTS in build_spec, "Build spec should contain key '%s'" % TestBuild.KW_TESTS
         for name, test_json in build_spec[TestBuild.KW_TESTS].iteritems():
-            test = Test(name, default_flash_method=self.__default_flash_method)
+            testcases = test_json.get(Test.KW_TEST_TESTCASES, [])
+            test = Test(name, default_flash_method=self.__default_flash_method, testcases=testcases)
             test.parse(test_json)
             self.__tests[name] = test
 
@@ -249,7 +300,7 @@ class TestSpec:
         Load test spec directly from file
 
         :param test_spec_filename: Name of JSON file with TestSpec to load
-        :return: Treu if load was successful
+        :return: True if load was successful
         """
         try:
             with open(test_spec_filename, "r") as f:
@@ -313,6 +364,59 @@ class TestSpec:
         :return:
         """
         return self.__target_test_spec.get(build_name, None)
+
+    def get_test_cases(self):
+        """
+        Gives test cases.
+
+        :return: An array of all of the test cases
+        """
+        result = []
+        for test_build in self.__target_test_spec.values():
+            for test in test_build.get_tests().values():
+                test_cases = test.get_test_cases()
+                if test_cases:
+                    result.extend(test_cases)
+        return set(result)
+
+    def get_test_names_by_test_cases(self):
+        """
+        Gives test cases test names.
+
+        :return: A dictionary of test cases against it's test name/binary
+        """
+        invalid_names = []
+        result = {}
+        for test_build in self.__target_test_spec.values():
+            for test_name, test in test_build.get_tests().iteritems():
+                for test_case in test.get_test_cases():
+                    # Skip test cases with conflicts
+                    if test_case not in invalid_names:
+                        if test_case in result:
+                            if result[test_case] is not test:
+                                if test_case not in invalid_names:
+                                    invalid_names.append(test_case)
+                        else:
+                            result[test_case] = test_name
+
+        if invalid_names:
+            for value in invalid_names:
+                print "TestBuild::get_test_cases_tests - Conflicting test case '%s' - Skipped"% value
+        return result
+
+    def get_test_cases_by_test_name(self):
+        """
+        Gives test cases.
+
+        :return: A dictionary of test names against its test cases
+        """
+        result = {}
+        for test_build in self.__target_test_spec.values():
+            for test in test_build.get_tests().values():
+                test_cases = test.get_test_cases()
+                if test_cases:
+                    result[test.get_name()] = test_cases
+        return result
 
     def add_test_builds(self, name, test_build):
         """

@@ -32,6 +32,10 @@
       * [Executing all tests](#executing-all-tests)
       * [Cherry-pick tests](#cherry-pick-tests)
       * [Cherry-pick group of tests](#cherry-pick-group-of-tests)
+* [Test Plan Integration](#test-plan-integration)
+  * [Listing Test Cases](#listing-test-cases)
+  * [Test Specification with Test Cases](#test-specification-with-test-cases)
+  * [Testlink XML Report](#testlink-xml-report)
 * [Using Greentea with new targets](#using-greentea-with-new-targets)
   * [Greentea and yotta targets](#greentea-and-yotta-targets)
   * [Prototyping support](#prototyping-support)
@@ -639,6 +643,85 @@ $ mbedgt -V -n mbed-drivers-t*
 * Filter all tests with names starting with 'mbed-drivers-t' and test case `tests-mbed_drivers-rtc`
 ```
 $ mbedgt -V -n mbed-drivers-t*,tests-mbed_drivers-rtc
+```
+
+# Test Plan Integration
+Greentea has support for using Test Plans to automate the running of tests. Test management systems create a `test_plan.json` file, which is input into Greentea using the `--test-plan <FILE>` command line switch. This tells Greentea which test cases that it should run, which will be checked against the available test cases. It will then choose the correct test binaries, based on the test cases that they contain. If there are test cases specified in the test plan, that Greentea does not know of, then it will report back all of the test cases that it cannot find, but will continue to run the ones it does know of. If it however comes across test cases that have conflicting names (where the test case name is not unique), it will fail and return the conflicting names.
+
+Greentea gets the list of test cases from the `test_spec.json` files that it parses, or has input into it. The test cases are specified in an optional field in the `"binaries"` list, inside `"testcases"`.
+
+The results of the tests can be exported in a JUnit XML format, that is made to be input back into the Test management system. It will contain only the test cases that were specified in the Test Plan (if there was one), and any errors that might have occurred. This is retrieved by using the report command line switch, which is likely to be different for different management systems. Currently Testlink is supported using `--report-testlink-xml <FILE>`.
+
+## Listing Test Cases
+All of the test cases that are found by Greentea can be listed using the command line switch `--list-test-cases`. This will output all of the test binaries that were found, along with their test cases, if they are specified.
+
+An example of this output is as follows:
+```
+$ mbedgt --list-test-cases
+mbedgt: greentea test automation tool ver. 1.2.0
+mbedgt: using multiple test specifications from current directory!
+        using '.build\tests\K64F\ARM\test_spec.json'
+        using '.build\tests\K64F\GCC_ARM\test_spec.json'
+        using '.build\tests\K64F\IAR\test_spec.json'
+mbedgt: available test cases for test binary '.build/tests/K64F/IAR/features/storage/TESTS/cfstore/flash_set/features-storage-tests-cfstore-flash_set.bin'
+        test case 'FLASH_SET_test_01_start'
+        test case 'FLASH_SET_test_01_end'
+```
+
+## Listing Test Plan
+All of the test cases that are found in the test plan will be output in three different categories Implemented, Not Implemented, and Conflicting using the command line switch `--list-test-plan`. This allows the user to confirm whether the test plan is correct for the current build.
+
+An example of this output is as follows:
+```
+$ mbedgt -V --list-test-plan --test-plan test_plan.json
+mbedgt: greentea test automation tool ver. 1.2.0
+mbedgt: using multiple test specifications from current directory!
+        using '.build\tests\K64F\ARM\test_spec.json'
+        using '.build\tests\K64F\GCC_ARM\test_spec.json'
+        using '.build\tests\K64F\IAR\test_spec.json'
+mbedgt: using Test Plan 'Name'
+mbedgt: implemented test cases
+        test case 'FLASH_SET_test_01_start'
+        test case 'FLASH_SET_test_01_end'
+mbedgt: conflicting test cases (name is not unique)
+        test case 'Repeating Test'
+        test case 'dummy test 2'
+```
+
+## Test Specification with Test Cases
+An example format of `test_spec.json`, that includes the optional field is as follows:
+```json
+{
+  "builds": {
+    "K64F-ARM": {
+      "binary_type": "bootable", 
+      "tests": {
+        "features-storage-tests-cfstore-flash_set": {
+          "binaries": [
+            {
+              "path": ".build/tests/K64F/ARM/features/storage/TESTS/cfstore/flash_set/features-storage-tests-cfstore-flash_set.bin"
+            }
+          ],
+          "testcases": [
+            "FLASH_SET_test_01_start", 
+            "FLASH_SET_test_01_end"
+          ]
+        }
+      }
+    }
+  }
+}
+```
+
+## Testlink XML Report
+An example of the output from using the command line switch `--report-testlink-xml <FILE>` is as follows:
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite failures="0" tests="6" errors="0" time="0.149999856949">
+    <testcase classname="FLASH_SET_test_01_start" host_os="Windows" name="FLASH_SET_test_01_start" time="0.0499999523163"></testcase>
+    <testcase classname="FLASH_SET_test_01_start" host_os="Windows" name="FLASH_SET_test_01_start" time="0.0499999523163"></testcase>
+    <testcase classname="FLASH_SET_test_01_start" host_os="Windows" name="FLASH_SET_test_01_start" time="0.0499999523163"></testcase>
+</testsuite>
 ```
 
 # Using Greentea with new targets

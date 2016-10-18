@@ -21,6 +21,7 @@ Author: Przemyslaw Wirkus <Przemyslaw.wirkus@arm.com>
 
 import os
 import sys
+import json
 import random
 import optparse
 from time import time
@@ -40,6 +41,7 @@ from mbed_greentea.mbed_report_api import exporter_testcase_text
 from mbed_greentea.mbed_report_api import exporter_json
 from mbed_greentea.mbed_report_api import exporter_testcase_junit
 from mbed_greentea.mbed_report_api import exporter_html
+from mbed_greentea.mbed_report_api import exporter_testlink_xml
 from mbed_greentea.mbed_greentea_log import gt_logger
 from mbed_greentea.mbed_greentea_dlm import GREENTEA_KETTLE_PATH
 from mbed_greentea.mbed_greentea_dlm import greentea_get_app_sem
@@ -51,6 +53,7 @@ from mbed_greentea.mbed_target_info import get_platform_property
 
 from mbed_greentea.cmake_handlers import list_binaries_for_builds
 from mbed_greentea.cmake_handlers import list_binaries_for_targets
+from mbed_greentea.cmake_handlers import list_test_cases_for_test_names
 
 try:
     import mbed_lstools
@@ -105,21 +108,21 @@ def get_hello_string():
 
 def create_filtered_test_list(ctest_test_list, test_by_names, skip_test, test_spec=None):
     """! Filters test case list (filtered with switch -n) and return filtered list.
-    @ctest_test_list List iof tests, originally from CTestTestFile.cmake in yotta module. Now comes from test specification
+    @ctest_test_list List of tests, originally from CTestTestFile.cmake in yotta module. Now comes from test specification
     @test_by_names Command line switch -n <test_by_names>
     @skip_test Command line switch -i <skip_test>
     @param test_spec Test specification object loaded with --test-spec switch
     @return
     """
 
-    def filter_names_by_prefix(test_case_name_list, prefix_name):
+    def filter_names_by_prefix(test_binary_name_list, prefix_name):
         """!
-        @param test_case_name_list List of all test cases
+        @param test_binary_name_list List of all test cases
         @param prefix_name Prefix of test name we are looking for
         @result Set with names of test names starting with 'prefix_name'
         """
         result = list()
-        for test_name in test_case_name_list:
+        for test_name in test_binary_name_list:
             if test_name.startswith(prefix_name):
                 result.append(test_name)
         return sorted(result)
@@ -179,6 +182,52 @@ def create_filtered_test_list(ctest_test_list, test_by_names, skip_test, test_sp
             list_binaries_for_targets()
 
     return filtered_ctest_test_list
+
+def create_test_plan_test_list(test_binary_list, available_test_cases, chosen_test_cases, test_spec):
+    """! Creates a list of the test binaries to run (filtered by test cases in the test plan)
+    @test_binary_list Dict of Test Binary Objects against their names
+    @available_test_cases List of all of the available test cases
+    @chosen_test_cases All of the chosen test cases from test plan
+    @param test_spec Test specification object loaded with --test-spec switch
+    @return A set of test binaries to run, filtered by test cases
+    """
+
+    filtered_test_binary_list = {}
+    chosen_tests_test_cases = {}
+    not_implemented_test_cases = []
+    if not available_test_cases:
+        return {}
+    gt_logger.gt_log("test case filter (specified with --test-plan option)")
+
+    for test_case in chosen_test_cases:
+        if test_case in available_test_cases:
+            test_binary_name = available_test_cases[test_case]
+            if test_binary_name not in chosen_tests_test_cases:
+                chosen_tests_test_cases[test_binary_name] = []
+            chosen_tests_test_cases[test_binary_name].append(test_case)
+            if test_binary_name not in filtered_test_binary_list:
+                # Add the TestBinary Object to the filtered test list
+                filtered_test_binary_list[test_binary_name] = test_binary_list[test_binary_name]
+        else:
+            not_implemented_test_cases.append(test_case)
+    
+    for test_name, test_cases in chosen_tests_test_cases.iteritems():
+        gt_logger.gt_log_tab("test '%s' chosen from test cases"% gt_logger.gt_bright(test_name))
+        for case in test_cases:
+            gt_logger.gt_log_tab("test case '%s'"% case, 2)
+
+    if not_implemented_test_cases:
+        gt_logger.gt_log_warn("invalid test case names, the following test cases do not exist")
+        for test_case in not_implemented_test_cases:
+            test_spec_name = test_spec.test_spec_filename
+            gt_logger.gt_log_tab("test case '%s' not found in '%s' (specified with --test-spec option)"% (
+                gt_logger.gt_bright(test_case),
+                gt_logger.gt_bright(test_spec_name)))
+        gt_logger.gt_log_warn("note: test case names are case sensitive")
+        gt_logger.gt_log_warn("note: see list of available test cases below")
+        list_test_cases_for_test_names(test_spec)
+
+    return filtered_test_binary_list
 
 
 def main():
@@ -250,6 +299,18 @@ def main():
                     action="store_true",
                     help='List available binaries')
 
+    parser.add_option('', '--list-test-cases',
+                    dest='list_test_cases',
+                    default=False,
+                    action="store_true",
+                    help='List available test cases inside the binaries')
+
+    parser.add_option('', '--list-test-plan',
+                    dest='list_test_plan',
+                    default=False,
+                    action="store_true",
+                    help='List implemented, not implemented, and conflicting test cases from the specified Test Plan (--test-plan)')
+
     parser.add_option('-g', '--grm',
                     dest='global_resource_mgr',
                     help='Global resource manager service query: platrform name, remote mgr module name, IP address and port, example K64F:module_name:10.2.123.43:3334')
@@ -299,6 +360,10 @@ def main():
                     dest='run_app',
                     help='Flash, reset and dump serial from selected binary application')
 
+    parser.add_option('', '--test-plan',
+                    dest='test_plan',
+                    help='Test Plan of test cases to run')
+
     parser.add_option('', '--report-junit',
                     dest='report_junit_file_name',
                     help='You can log test suite results in form of JUnit compliant XML report')
@@ -310,6 +375,10 @@ def main():
     parser.add_option('', '--report-json',
                     dest='report_json_file_name',
                     help='You can log test suite results to JSON formatted file')
+
+    parser.add_option('', '--report-testlink-xml',
+                    dest='report_testlink_xml_file_name',
+                    help='You can log test suite results to a Testlink XML formatted file')
 
     parser.add_option('', '--report-html',
                     dest='report_html_file_name',
@@ -361,6 +430,15 @@ def main():
     if not opts.version:
         # This string should not appear when fetching plain version string
         gt_logger.gt_log(get_hello_string())
+
+    # Check for mismatching parameters
+    if opts.test_plan:
+        if opts.test_by_names or opts.skip_test:
+            gt_logger.gt_log_err("when using --test-plan, -n and -i cannot be specified")
+            return(-1)
+    elif opts.list_test_plan:
+        gt_logger.gt_log_err("when using --list-test-plan, --test-plan must also be specified")
+        return(-1)
 
     start = time()
     if opts.lock_by_target:
@@ -568,10 +646,10 @@ def run_test_thread(test_result_queue, test_queue, opts, mut, build, build_path,
 
         if test_cases_summary:
             passes, failures = test_cases_summary
-            gt_logger.gt_log("test case summary: %d pass%s, %d failur%s"% (passes,
+            gt_logger.gt_log("test case summary: %d pass%s, %d failure%s"% (passes,
                 '' if passes == 1 else 'es',
                 failures,
-                'e' if failures == 1 else 'es'))
+                '' if failures == 1 else 's'))
             if passes != passes_cnt or failures != failures_cnt:
                 gt_logger.gt_log_err("utest test case summary mismatch: utest reported passes and failures miscount!")
                 gt_logger.gt_log_tab("reported by utest: passes = %d, failures %d)"% (passes, failures))
@@ -662,6 +740,69 @@ def main_cli(opts, args, gt_instance_uuid=None):
     test_spec, ret = get_test_spec(opts)
     if not test_spec:
         return ret
+
+    available_test_cases = test_spec.get_test_names_by_test_cases()
+    filtered_test_cases = []
+    # Populate list of the test cases wanted from the test plan
+    # All test cases have to have unique names
+    if opts.test_plan:
+        test_plan_json = None
+        try:
+            with open(opts.test_plan, "r") as f:
+                test_plan_json = json.load(f)
+        except Exception as e:
+            gt_logger.gt_log_err("loading Test Plan('%s')"% opts.test_plan + str(e))
+
+        if test_plan_json:
+            test_plan = test_plan_json['testplan']
+            gt_logger.gt_log("using Test Plan '%s'"% gt_logger.gt_bright(test_plan['name']))
+            
+            for test_case in test_plan['testcases']:
+                filtered_test_cases.append(test_case['name'])
+
+        # Check for conflicting test cases and fail if any are found
+        conflicting = {}
+        for build in test_spec.get_test_builds():
+            conflicting[build.get_name()] = []
+            all_test_cases = []
+            for test_case in build.get_test_cases():
+                if test_case in all_test_cases:
+                    conflicting[build.get_name()].append(test_case)
+                all_test_cases.append(test_case)
+        if all(conflicting.values()):
+            for build, test_cases in conflicting.iteritems():
+                gt_logger.gt_log_err("conflicting test cases (name not unique) in build '%s'"% build)
+                for tc in test_cases:
+                    gt_logger.gt_log_tab("test case '%s'"% gt_logger.gt_bright(tc))
+            return(-1)
+
+    if opts.list_test_plan:
+        all_found = []
+        implemented = []
+        not_implemented = []
+        conflicting = []
+        for test_case in filtered_test_cases:
+            if test_case in all_found:
+                conflicting.append(test_case)
+            elif test_case not in available_test_cases:
+                not_implemented.append(test_case)
+            else:
+                implemented.append(test_case)
+            all_found.append(test_case)
+
+        if implemented:
+            gt_logger.gt_log("implemented test cases")
+            for tc in implemented:
+                gt_logger.gt_log_tab("test case '%s'"% gt_logger.gt_bright(tc))
+        if not_implemented:
+            gt_logger.gt_log_warn("not implemented test cases")
+            for tc in not_implemented:
+                gt_logger.gt_log_tab("test case '%s'"% gt_logger.gt_bright(tc))
+        if conflicting:
+            gt_logger.gt_log_err("conflicting test cases (name is not unique)")
+            for tc in set(conflicting):
+                gt_logger.gt_log_tab("test case '%s'"% gt_logger.gt_bright(tc))
+        return(0)
 
     # Verbose flag
     verbose = opts.verbose_test_result_only
@@ -848,8 +989,10 @@ def main_cli(opts, args, gt_instance_uuid=None):
                     test_exec_retcode += 1
 
             test_list = test_build.get_tests()
-
-            filtered_ctest_test_list = create_filtered_test_list(test_list, opts.test_by_names, opts.skip_test, test_spec=test_spec)
+            if opts.test_plan:
+                filtered_ctest_test_list = create_test_plan_test_list(test_list, available_test_cases, filtered_test_cases, test_spec)
+            else:
+                filtered_ctest_test_list = create_filtered_test_list(test_list, opts.test_by_names, opts.skip_test, test_spec=test_spec)
 
             gt_logger.gt_log("running %d test%s for platform '%s' and toolchain '%s'"% (
                 len(filtered_ctest_test_list),
@@ -921,7 +1064,7 @@ def main_cli(opts, args, gt_instance_uuid=None):
 
     # We will execute post test hooks on tests
     for build_name in test_report:
-        test_name_list = []    # All test case names for particular yotta target
+        test_name_list = []    # All test binary names for particular yotta target
         for test_name in test_report[build_name]:
             test = test_report[build_name][test_name]
             # Test was successful
@@ -1010,6 +1153,12 @@ def main_cli(opts, args, gt_instance_uuid=None):
             # Generate a HTML page displaying all of the results
             html_report = exporter_html(test_report)
             dump_report_to_text_file(opts.report_html_file_name, html_report)
+
+        if opts.report_testlink_xml_file_name:
+            gt_logger.gt_log("exporting to Testlink XML file '%s'..."% gt_logger.gt_bright(opts.report_testlink_xml_file_name))
+            # Generate a Testlink XML with all of the results
+            testlink_xml_report = exporter_testlink_xml(test_report, filtered_test_cases=filtered_test_cases)
+            dump_report_to_text_file(opts.report_testlink_xml_file_name, testlink_xml_report)
 
         # Final summary
         if test_report:
