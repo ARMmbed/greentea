@@ -21,6 +21,7 @@ import re
 import os
 import sys
 import json
+import string
 from time import time
 from subprocess import Popen, PIPE, STDOUT
 
@@ -236,6 +237,9 @@ def run_host_test(image_path,
             '-f', '"%s"'% image_path,
             ]
 
+    if enum_host_tests_path:
+        cmd += ["-e", '"%s"'% enum_host_tests_path]
+
     if global_resource_mgr:
         # Use global resource manager to execute test
         # Example:
@@ -262,8 +266,6 @@ def run_host_test(image_path,
             cmd += ["--test-cfg", '"%s"' % str(json_test_cfg)]
         if run_app:
             cmd += ["--run"]    # -f stores binary name!
-        if enum_host_tests_path:
-            cmd += ["-e", '"%s"'% enum_host_tests_path]
 
     gt_logger.gt_log_tab("calling mbedhtrun: %s"% " ".join(cmd), print_text=verbose)
     gt_logger.gt_log("mbed-host-test-runner: started")
@@ -293,6 +295,7 @@ def run_host_test(image_path,
     end_time = time()
     testcase_duration = end_time - start_time   # Test case duration from reset to {end}
 
+    htrun_output = get_printable_string(htrun_output)
     result = get_test_result(htrun_output)
     result_test_cases = get_testcase_result(htrun_output)
     test_cases_summary = get_testcase_summary(htrun_output)
@@ -399,6 +402,9 @@ def get_coverage_data(build_path, output):
             except Exception as e:
                 gt_logger.gt_log_err("error while handling GCOV data: " + str(e))
             gt_logger.gt_log_tab("storing %d bytes in '%s'"% (len(bin_gcov_payload), gcov_path))
+
+def get_printable_string(unprintable_string):
+    return filter(lambda x: x in string.printable, unprintable_string)
 
 def get_testcase_summary(output):
     """! Searches for test case summary
