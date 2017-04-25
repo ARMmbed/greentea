@@ -48,7 +48,7 @@ from mbed_greentea.mbed_greentea_dlm import greentea_get_app_sem
 from mbed_greentea.mbed_greentea_dlm import greentea_update_kettle
 from mbed_greentea.mbed_greentea_dlm import greentea_clean_kettle
 from mbed_greentea.mbed_greentea_hooks import GreenteaHooks
-from mbed_greentea.tests_spec import TestBinary
+from mbed_greentea.tests_spec import TestSpec, TestBinary
 from mbed_greentea.mbed_target_info import get_platform_property
 
 from mbed_greentea.cmake_handlers import list_binaries_for_builds
@@ -107,7 +107,7 @@ def get_hello_string():
 
 def create_filtered_test_list(ctest_test_list, test_by_names, skip_test, test_spec=None):
     """! Filters test case list (filtered with switch -n) and return filtered list.
-    @ctest_test_list List iof tests, originally from CTestTestFile.cmake in yotta module. Now comes from test specification
+    @ctest_test_list List of tests, originally from CTestTestFile.cmake in yotta module. Now comes from test specification
     @test_by_names Command line switch -n <test_by_names>
     @skip_test Command line switch -i <skip_test>
     @param test_spec Test specification object loaded with --test-spec switch
@@ -176,7 +176,8 @@ def create_filtered_test_list(ctest_test_list, test_by_names, skip_test, test_sp
         gt_logger.gt_log_tab("note: see list of available test cases below")
         # Print available test suite names (binary names user can use with -n
         if test_spec:
-            list_binaries_for_builds(test_spec)
+            parsed_test_spec = TestSpec(test_spec)
+            list_binaries_for_builds(parsed_test_spec)
         else:
             list_binaries_for_targets()
 
