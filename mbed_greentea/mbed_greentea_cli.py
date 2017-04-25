@@ -881,7 +881,9 @@ def main_cli(opts, args, gt_instance_uuid=None):
                 random.shuffle(filtered_ctest_test_list_keys, lambda: shuffle_random_seed)
 
             for test_name in filtered_ctest_test_list_keys:
-                image_path = filtered_ctest_test_list[test_name].get_binary(binary_type=TestBinary.BIN_TYPE_BOOTABLE).get_path()
+                test_spec_path = os.path.dirname(opts.test_spec)
+                bin_path = filtered_ctest_test_list[test_name].get_binary(binary_type=TestBinary.BIN_TYPE_BOOTABLE).get_path()
+                image_path = os.path.join(test_spec_path, build_path, bin_path)
                 if image_path is None:
                     gt_logger.gt_log_err("Failed to find test binary for test %s flash method %s" % (test_name, 'usb'))
                 else:
