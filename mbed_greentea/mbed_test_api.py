@@ -123,6 +123,7 @@ def run_host_test(image_path,
                   global_resource_mgr=None,
                   num_sync_packtes=None,
                   tags=None,
+                  retry_test=1,
                   run_app=None):
     """! This function runs host test supervisor (executes mbedhtrun) and checks output from host test process.
     @param image_path Path to binary file for flashing
@@ -164,6 +165,26 @@ def run_host_test(image_path,
             gt_logger.gt_log_tab(str(e))
             return None
         return p
+
+    def run_htrun(cmd):
+        htrun_output = str()
+        # run_command will return None if process can't be opened (Issue #134)
+        p = run_command(cmd)
+        if not p:
+            # int value > 0 notifies caller that starting of host test process failed
+            return RUN_HOST_TEST_POPEN_ERROR
+
+        for line in iter(p.stdout.readline, b''):
+            htrun_output += line
+            # When dumping output to file both \r and \n will be a new line
+            # To avoid this "extra new-line" we only use \n at the end
+            if verbose:
+                sys.stdout.write(line.rstrip() + '\n')
+                sys.stdout.flush()
+
+        # Check if process was terminated by signal
+        returncode = p.wait()
+        return returncode, htrun_output
 
     def get_binary_host_tests_dir(binary_path, level=2):
         """! Checks if in binary test group has host_tests directory
@@ -282,31 +303,19 @@ def run_host_test(image_path,
     gt_logger.gt_log_tab("calling mbedhtrun: %s"% " ".join(cmd), print_text=verbose)
     gt_logger.gt_log("mbed-host-test-runner: started")
 
-    htrun_output = str()
-    start_time = time()
+    for retry in range(1, 1 + retry_test):
+        start_time = time()
+        returncode, htrun_output = run_htrun(cmd)
+        end_time = time()
+        if returncode < 0:
+            return returncode
+        elif returncode == 0:
+            break
+        gt_logger.gt_log("retry mbedhtrun {}/{}".format(retry, retry_test))
+    else:
+        gt_logger.gt_log("{} failed after {} count".format(cmd,retry_test))
 
-    # run_command will return None if process can't be opened (Issue #134)
-    p = run_command(cmd)
-    if not p:
-        # int value > 0 notifies caller that starting of host test process failed
-        return RUN_HOST_TEST_POPEN_ERROR
-
-    for line in iter(p.stdout.readline, b''):
-        htrun_output += line
-        # When dumping output to file both \r and \n will be a new line
-        # To avoid this "extra new-line" we only use \n at the end
-        if verbose:
-            sys.stdout.write(line.rstrip() + '\n')
-            sys.stdout.flush()
-
-    # Check if process was terminated by signal
-    returncode = p.wait()
-    if returncode < 0:
-        return returncode
-
-    end_time = time()
     testcase_duration = end_time - start_time   # Test case duration from reset to {end}
-
     htrun_output = get_printable_string(htrun_output)
     result = get_test_result(htrun_output)
     result_test_cases = get_testcase_result(htrun_output)
