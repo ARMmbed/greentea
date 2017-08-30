@@ -270,7 +270,7 @@ def run_host_test(image_path,
         # Example:
         # $ mbedhtrun -p :9600 -f "tests-mbed_drivers-generic_tests.bin" -m K64F --grm raas_client:10.2.203.31:8000
         cmd += ['--grm', global_resource_mgr]
-        cmd += ['-p', "300"]
+        cmd += ['-P', "120"]
     else:
         # Use local resources to execute tests
         # Add extra parameters to host_test
