@@ -456,7 +456,7 @@ def get_testcase_result(output):
     result_test_cases = {}  # Test cases results
     re_tc_start = re.compile(r"^\[(\d+\.\d+)\][^\{]+\{\{(__testcase_start);([^;]+)\}\}")
     re_tc_finish = re.compile(r"^\[(\d+\.\d+)\][^\{]+\{\{(__testcase_finish);([^;]+);(\d+);(\d+)\}\}")
-
+    found_start = found_end = False
     for line in output.splitlines():
         m = re_tc_start.search(line)
         if m:
@@ -475,6 +475,7 @@ def get_testcase_result(output):
             result_test_cases[testcase_id]['passed'] = 0
             result_test_cases[testcase_id]['failed'] = 0
             result_test_cases[testcase_id]['result'] = -4096
+            found_start = True
             continue
 
         m = re_tc_finish.search(line)
@@ -507,7 +508,15 @@ def get_testcase_result(output):
                 result_test_cases[testcase_id]['duration'] = result_test_cases[testcase_id]['time_end'] - result_test_cases[testcase_id]['time_start']
             else:
                 result_test_cases[testcase_id]['duration'] = 0.0
+            found_end = True
 
+        if found_end and not found_start:
+            result_test_cases[testcase_id]['time_start'] = 0
+            result_test_cases[testcase_id]['utest_log'] = "start tag corrupted"
+            found_start = found_end = False
+
+        if found_end and found_start :
+            found_start = found_end = False
     ### Adding missing test cases which were defined with __testcase_name
     # Get test case names reported by utest + test case names
     # This data will be used to process all tests which were not executed
