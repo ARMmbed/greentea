@@ -164,6 +164,9 @@ def run_host_test(image_path,
         return p
 
     def run_htrun(cmd):
+        #detect overflow when running tests
+        re_overflow = re.compile(r"<DAPLink:Overflow>")
+        overflow_detected_rc = 0
         htrun_output = str()
         # run_command will return None if process can't be opened (Issue #134)
         p = run_command(cmd)
@@ -178,10 +181,13 @@ def run_host_test(image_path,
             if verbose:
                 sys.stdout.write(line.rstrip() + '\n')
                 sys.stdout.flush()
+            if re_overflow.search(line):
+                gt_logger.gt_log_err("DAPlink overflow detected : %s" % (line))
+                overflow_detected_rc = 1
 
         # Check if process was terminated by signal
         returncode = p.wait()
-        return returncode, htrun_output
+        return returncode + overflow_detected_rc, htrun_output
 
     def get_binary_host_tests_dir(binary_path, level=2):
         """! Checks if in binary test group has host_tests directory
