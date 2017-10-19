@@ -56,20 +56,6 @@ TARGET_INFO_MAPPING = {
                 "program_cycle_s": 4
             }
     },
-    "NUCLEO_F401RE" : {
-        "yotta_targets": [
-                {
-                    "yotta_target": "st-nucleo-f401re-gcc",
-                    "mbed_toolchain": "GCC_ARM"
-                }
-             ],
-        "properties" : {
-                "binary_type": ".bin",
-                "copy_method": "cp",
-                "reset_method": "default",
-                "program_cycle_s": 4
-            }
-        },
     "NRF51_DK" : {
         "yotta_targets": [
                 {
