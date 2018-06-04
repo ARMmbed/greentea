@@ -32,7 +32,13 @@ $ mbedgt --version
 You can also install it manually via pip.
 
 ```
-pip install mbed-greentea
+sudo -H pip install mbed-greentea
+```
+
+You can update an existing installation of Greentea via pip, too.
+
+```
+sudo -H pip install -U mbed-greentea
 ```
 
 ## Test specification JSON format
