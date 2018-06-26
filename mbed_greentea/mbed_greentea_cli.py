@@ -295,10 +295,10 @@ def main():
 
     parser.add_option('-P', '--polling-timeout',
                       dest='polling_timeout',
-                      default=60,
+                      default=120,
                       metavar="NUMBER",
                       type="int",
-                      help='Timeout in sec for readiness of mount point and serial port of local or remote device. Default 60 sec')
+                      help='Timeout in sec for readiness of mount point and serial port of local or remote device. Default 120 sec')
 
     parser.add_option('', '--tag-filters',
                     dest='tags',
