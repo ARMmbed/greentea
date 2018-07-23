@@ -134,7 +134,7 @@ def run_htrun(cmd, verbose):
         try:
             htrun_output += line.decode('utf-8')
         except UnicodeDecodeError:
-            pass
+            gt_logger.gt_log_err("UnicodeDecodeError encountered!")
         # When dumping output to file both \r and \n will be a new line
         # To avoid this "extra new-line" we only use \n at the end
 
@@ -146,7 +146,7 @@ def run_htrun(cmd, verbose):
             try:
                 sys.stdout.write(line.decode('utf-8').rstrip() + '\n')
             except UnicodeDecodeError:
-                pass
+                gt_logger.gt_log_err("UnicodeDecodeError encountered!")
             sys.stdout.flush()
 
     # Check if process was terminated by signal
