@@ -131,7 +131,10 @@ def run_htrun(cmd, verbose):
     htrun_failure_line = re.compile('\[RXD\] (:\d+::FAIL: .*)')
 
     for line in iter(p.stdout.readline, b''):
-        htrun_output += line.decode('utf-8')
+        try:
+            htrun_output += line.decode('utf-8')
+        except UnicodeDecodeError:
+            gt_logger.gt_log_err("UnicodeDecodeError encountered!")
         # When dumping output to file both \r and \n will be a new line
         # To avoid this "extra new-line" we only use \n at the end
 
@@ -140,7 +143,10 @@ def run_htrun(cmd, verbose):
             gt_logger.gt_log_err(test_error.group(1))
 
         if verbose:
-            sys.stdout.write(line.decode('utf-8').rstrip() + '\n')
+            try:
+                sys.stdout.write(line.decode('utf-8').rstrip() + '\n')
+            except UnicodeDecodeError:
+                gt_logger.gt_log_err("UnicodeDecodeError encountered!")
             sys.stdout.flush()
 
     # Check if process was terminated by signal
