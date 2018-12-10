@@ -60,6 +60,5 @@ setup(name='mbed-greentea',
                         "lockfile",
                         "mock",
                         "six",
-                        "colorama>=0.3,<0.4",
+                        "colorama>=0.3,<0.5",
                         "future"])
-
