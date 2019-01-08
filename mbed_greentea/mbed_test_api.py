@@ -141,11 +141,16 @@ def run_htrun(cmd, verbose):
             gt_logger.gt_log_err(test_error.group(1))
 
         if verbose:
-            sys.stdout.write(decoded_line.rstrip() + '\n')
+            output = decoded_line.rstrip() + '\n'
+            try:
+                sys.stdout.write(output.encode("utf-8"))
+            except TypeError:
+                sys.stdout.write(output)
             sys.stdout.flush()
 
     # Check if process was terminated by signal
     returncode = p.wait()
+
     return returncode, htrun_output
 
 def run_host_test(image_path,
