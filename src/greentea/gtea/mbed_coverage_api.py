@@ -46,7 +46,7 @@ def coverage_dump_file(build_path, path, payload):
     try:
         d, filename = os.path.split(path)
         if not os.path.isabs(d) and not os.path.exists(d):
-            # For a relative path that do not exist. Try adding ./build/<yotta target> prefix
+            # For a relative path that does not exist. Try adding ./build/<target> prefix
             d = build_path
             path = os.path.join(d, filename)
         if not os.path.exists(d):

@@ -89,10 +89,9 @@ def exporter_text(test_result_ext, test_suite_properties=None):
     return result_pt, result_res
 
 
-def exporter_testcase_text(test_result_ext, test_suite_properties=None):
+def exporter_testcase_text(test_result_ext):
     """! Exports test case results to text formatted output
     @param test_result_ext Extended report from Greentea
-    @param test_suite_properties Data from yotta module.json file
     @details This is a human friendly format
     @return Tuple with table of results and result quantity summary string
     """

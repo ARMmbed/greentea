@@ -10,7 +10,6 @@ from .cmake_handlers import list_binaries_for_builds, list_binaries_for_targets
 from .mbed_greentea_log import gt_logger
 
 RET_NO_DEVICES = 1001
-RET_YOTTA_BUILD_FAIL = -1
 LOCAL_HOST_TESTS_DIR = "./test/host_tests"  # Used by mbedhtrun -e <dir>
 
 
@@ -33,7 +32,7 @@ def create_filtered_test_list(
     ctest_test_list, test_by_names, skip_test, test_spec=None
 ):
     """! Filters test case list (filtered with switch -n) and return filtered list.
-    @ctest_test_list List iof tests, originally from CTestTestFile.cmake in yotta module. Now comes from test specification
+    @ctest_test_list List of tests, derived from test specification
     @test_by_names Command line switch -n <test_by_names>
     @skip_test Command line switch -i <skip_test>
     @param test_spec Test specification object loaded with --test-spec switch

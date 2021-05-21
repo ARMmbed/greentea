@@ -179,7 +179,7 @@ class LcovHook(GreenteaCliTestHook):
             "-a ./build/frdm-k64f-gcc/test/test_name.info"
             or will be removed from command
         It is also possible to use it in combination with expand_parameters:
-        expr = "lcov --gcov-tool gcov [(-a <<./build/{yotta_target_name}/{test_name_list}.info>>)] --output-file result.info"
+        expr = "lcov --gcov-tool gcov [(-a <<./build/{target_name}/{test_name_list}.info>>)] --output-file result.info"
         """
         result = expr
         expr_strs_orig = re.findall("\(.*?\)", expr)

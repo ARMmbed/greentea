@@ -68,7 +68,7 @@ def parse_ctesttestfile_line(link_target, binary_type, line, verbose=False):
 
 def list_binaries_for_targets(build_dir="./build", verbose_footer=False):
     """! Prints tests in target directories, only if tests exist.
-    @param build_dir Yotta default build directory where tests will be
+    @param build_dir Default build directory for tests
     @param verbose_footer Prints additional "how to use" Greentea footer
     @details Skips empty / no tests for target directories.
     """

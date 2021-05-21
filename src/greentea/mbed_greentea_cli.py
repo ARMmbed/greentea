@@ -95,7 +95,7 @@ def main():
         "-t",
         "--target",
         dest="list_of_targets",
-        help="You can specify list of yotta targets you want to build. Use comma to separate them."
+        help="You can specify list of targets you want to build. Use comma to separate them."
         + "Note: If --test-spec switch is defined this list becomes optional list of builds you want to filter in your test:"
         + "Comma separated list of builds from test specification. Applicable if --test-spec switch is specified",
     )
@@ -166,7 +166,7 @@ def main():
         "-e",
         "--enum-host-tests",
         dest="enum_host_tests",
-        help="Define directory with yotta module local host tests. Default: ./test/host_tests",
+        help="Define directory with local host tests. Default: ./test/host_tests",
     )
 
     parser.add_option(
@@ -425,8 +425,10 @@ def main():
         help="Prints package version and exits",
     )
 
-    parser.description = """This automated test script is used to test mbed SDK 3.0 on mbed-enabled devices with support from yotta build tool"""
-    parser.epilog = """Example: mbedgt --target frdm-k64f-gcc"""
+    parser.description = (
+        """This automated test script is used to test devices using greentea tests"""
+    )
+    parser.epilog = """Example: gtea --target frdm-k64f-gcc"""
 
     (opts, args) = parser.parse_args()
 
@@ -529,7 +531,6 @@ def run_test_thread(
             reset=reset_method,
             program_cycle_s=program_cycle_s,
             forced_reset_timeout=forced_reset_timeout,
-            digest_source=opts.digest_source,
             json_test_cfg=opts.json_test_configuration,
             enum_host_tests_path=enum_host_tests_path,
             global_resource_mgr=opts.global_resource_mgr,
@@ -1060,7 +1061,6 @@ def main_cli(opts, args, gt_instance_uuid=None):
                     micro=micro,
                     copy_method=copy_method,
                     program_cycle_s=program_cycle_s,
-                    digest_source=opts.digest_source,
                     json_test_cfg=opts.json_test_configuration,
                     run_app=opts.run_app,
                     enum_host_tests_path=enum_host_tests_path,
@@ -1208,7 +1208,7 @@ def main_cli(opts, args, gt_instance_uuid=None):
 
     # We will execute post test hooks on tests
     for build_name in test_report:
-        test_name_list = []  # All test case names for particular yotta target
+        test_name_list = []  # All test case names for particular target
         for test_name in test_report[build_name]:
             test = test_report[build_name][test_name]
             # Test was successful
@@ -1231,7 +1231,7 @@ def main_cli(opts, args, gt_instance_uuid=None):
                 "Failed to find build info for build %s" % build_name
             )
 
-            # Call hook executed for each yotta target, just after all tests are finished
+            # Call hook executed for each target, just after all tests are finished
             build_path = build.get_path()
             build_path_abs = os.path.abspath(build_path)
             # We can execute this test hook just after all tests are finished ('hook_post_test_end')
@@ -1351,7 +1351,7 @@ def main_cli(opts, args, gt_instance_uuid=None):
             print(text_testcase_report)
             gt_logger.gt_log("test case results: " + text_testcase_results)
 
-        # This flag guards 'build only' so we expect only yotta errors
+        # This flag guards 'build only' so we expect only errors
         if test_platforms_match == 0:
             # No tests were executed
             gt_logger.gt_log_warn("no platform/target matching tests were found!")

@@ -487,7 +487,7 @@ def log_mbed_devices_in_table(
 
 
 def get_test_spec(opts):
-    """! Closure encapsulating how we get test specification and load it from file of from yotta module
+    """! Closure encapsulating how we get test specification and load it from file
     @return Returns tuple of (test specification, ret code). Test specification == None if test spec load was not successful
     """
     test_spec = None
@@ -495,10 +495,6 @@ def get_test_spec(opts):
     # Check if test_spec.json file exist, if so we will pick it up as default file and load it
     test_spec_file_name = opts.test_spec
     test_spec_file_name_list = []
-
-    # Note: test_spec.json will have higher priority than module.json file
-    #       so if we are inside directory with module.json and test_spec.json we will use test spec file
-    #       instead of using yotta's module.json file
 
     def get_all_test_specs_from_build_dir(path_to_scan):
         """! Searches for all test_spec.json files
@@ -598,18 +594,9 @@ def get_test_spec(opts):
         if opts.list_binaries:
             list_binaries_for_builds(test_spec)
             return None, 0
-    elif os.path.exists("module.json"):
-        # If inside yotta module load module data and generate test spec
-        gt_logger.gt_log("using 'module.json' from current directory!")
-        if opts.list_binaries:
-            # List available test binaries (names, no extension)
-            list_binaries_for_targets()
-            return None, 0
-        else:
-            test_spec = get_test_spec_from_yt_module(opts)
     else:
         gt_logger.gt_log_err(
-            "greentea should be run inside a Yotta module or --test-spec switch should be used"
+            "No test spec found. Use --test-spec to explicitly select a test spec to use."
         )
         return None, -1
     return test_spec, 0
