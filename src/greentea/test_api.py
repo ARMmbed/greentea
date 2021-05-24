@@ -31,14 +31,13 @@ def run_host_test(
     copy_method=None,
     program_cycle_s=None,
     forced_reset_timeout=None,
-    digest_source=None,
     json_test_cfg=None,
     max_failed_properties=5,
     enum_host_tests_path=None,
     global_resource_mgr=None,
     fast_model_connection=None,
     compare_log=None,
-    num_sync_packtes=None,
+    num_sync_packets=None,
     polling_timeout=None,
     retry_count=1,
     tags=None,
@@ -58,14 +57,11 @@ def run_host_test(
     @param json_test_cfg Additional test configuration file path passed to host tests in JSON format
     @param max_failed_properties After how many unknown properties we will assume test is not ported
     @param enum_host_tests_path Directory where locally defined host tests may reside
-    @param num_sync_packtes sync packets to send for host <---> device communication
+    @param num_sync_packets sync packets to send for host <---> device communication
     @param polling_timeout Timeout in sec for readiness of mount point and serial port of local or remote device
     @param tags Filter list of available devices under test to only run on devices with the provided list
            of tags  [tag-filters tag1,tag]
     @param run_app Run application mode flag (we run application and grab serial port data)
-    @param digest_source if None htrun will be executed. If 'stdin',
-           stdin will be used via StdInObserver or file (if
-           file name was given as switch option)
     @return Tuple with test results, test output, test duration times, test case results, and memory metrics.
             Return int > 0 if running htrun process failed.
             Retrun int < 0 if something went wrong during htrun execution.
@@ -145,18 +141,6 @@ def run_host_test(
             )
 
     gt_logger.gt_log("selecting test case observer...", print_text=verbose)
-    if digest_source:
-        gt_logger.gt_log_tab(
-            "selected digest source: %s" % digest_source, print_text=verbose
-        )
-
-    # Select who will digest test case serial port data
-    if digest_source == "stdin":
-        # When we want to scan stdin for test results
-        raise NotImplementedError
-    elif digest_source is not None:
-        # When we want to open file to scan for test results
-        raise NotImplementedError
 
     # Command executing CLI for host test supervisor (in detect-mode)
     cmd = [
@@ -204,8 +188,8 @@ def run_host_test(
         cmd += ["-R", str(forced_reset_timeout)]
     if json_test_cfg:
         cmd += ["--test-cfg", '"%s"' % str(json_test_cfg)]
-    if num_sync_packtes:
-        cmd += ["--sync", str(num_sync_packtes)]
+    if num_sync_packets:
+        cmd += ["--sync", str(num_sync_packets)]
     if tags:
         cmd += ["--tag-filters", tags]
     if polling_timeout:

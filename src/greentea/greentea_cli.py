@@ -116,15 +116,6 @@ def main():
         help="Only build repository and tests, skips actual test procedures (flashing etc.)",
     )
 
-    parser.add_option(
-        "-S",
-        "--skip-build",
-        action="store_true",
-        dest="skip_yotta_build",
-        default=True,
-        help="Skip calling 'yotta build' on this module",
-    )
-
     copy_methods_str = "Plugin support: " + ", ".join(
         host_tests_plugins.get_plugin_caps("CopyMethod")
     )
@@ -172,24 +163,6 @@ def main():
     )
 
     parser.add_option(
-        "",
-        "--release",
-        dest="build_to_release",
-        default=False,
-        action="store_true",
-        help="If possible force build in release mode (yotta -r).",
-    )
-
-    parser.add_option(
-        "",
-        "--debug",
-        dest="build_to_debug",
-        default=False,
-        action="store_true",
-        help="If possible force build in debug mode (yotta -d).",
-    )
-
-    parser.add_option(
         "-l",
         "--list",
         dest="list_binaries",
@@ -220,13 +193,6 @@ def main():
     parser.add_option("", "--fm", dest="fast_model_connection", help=fm_help)
 
     parser.add_option(
-        "-m",
-        "--map-target",
-        dest="map_platform_to_yt_target",
-        help="List of custom mapping between platform name and yotta target. Comma separated list of YOTTA_TARGET:PLATFORM tuples",
-    )
-
-    parser.add_option(
         "",
         "--use-tids",
         dest="use_target_ids",
@@ -253,7 +219,7 @@ def main():
     parser.add_option(
         "",
         "--sync",
-        dest="num_sync_packtes",
+        dest="num_sync_packets",
         default=5,
         help="Define how many times __sync packet will be sent to device: 0: none; -1: forever; 1,2,3... - number of  times (the default is 5 packets)",
     )
@@ -283,13 +249,6 @@ def main():
         default=False,
         action="store_true",
         help="Use simple resource locking mechanism to run multiple application instances",
-    )
-
-    parser.add_option(
-        "",
-        "--digest",
-        dest="digest_source",
-        help="Redirect input from where test suite should take console input. You can use stdin or file name to get test case console output",
     )
 
     parser.add_option(
@@ -374,30 +333,12 @@ def main():
     )
 
     parser.add_option(
-        "",
-        "--yotta-registry",
-        dest="yotta_search_for_mbed_target",
-        default=False,
-        action="store_true",
-        help="Use on-line yotta registry to search for compatible with connected mbed devices yotta targets. Default: search is done in yotta_targets directory",
-    )
-
-    parser.add_option(
         "-V",
         "--verbose-test-result",
         dest="verbose_test_result_only",
         default=False,
         action="store_true",
         help="Prints test serial output",
-    )
-
-    parser.add_option(
-        "-v",
-        "--verbose",
-        dest="verbose",
-        default=False,
-        action="store_true",
-        help="Verbose mode (prints some extra information)",
     )
 
     parser.add_option(
@@ -529,7 +470,7 @@ def run_test_thread(
             global_resource_mgr=opts.global_resource_mgr,
             fast_model_connection=opts.fast_model_connection,
             compare_log=test["compare_log"],
-            num_sync_packtes=opts.num_sync_packtes,
+            num_sync_packets=opts.num_sync_packets,
             tags=opts.tags,
             retry_count=opts.retry_count,
             polling_timeout=opts.polling_timeout,
@@ -816,43 +757,6 @@ def main_cli(opts, args, gt_instance_uuid=None):
 
     # We will load hooks from JSON file to support extra behaviour during test execution
     greentea_hooks = GreenteaHooks(opts.hooks_json) if opts.hooks_json else None
-
-    # Capture alternative test console inputs, used e.g. in 'yotta test command'
-    if opts.digest_source:
-        enum_host_tests_path = get_local_host_tests_dir(opts.enum_host_tests)
-        host_test_result = run_host_test(
-            None,
-            None,
-            None,
-            None,
-            None,
-            digest_source=opts.digest_source,
-            enum_host_tests_path=enum_host_tests_path,
-            verbose=verbose,
-        )
-
-        # Some error in htrun, abort test execution
-        if isinstance(host_test_result, int):
-            # int(host_test_result) > 0 - Call to htrun failed
-            # int(host_test_result) < 0 - Something went wrong while executing htrun
-            return host_test_result
-
-        # If execution was successful 'run_host_test' return tuple with results
-        (
-            single_test_result,
-            single_test_output,
-            single_testduration,
-            single_timeout,
-            result_test_cases,
-            test_cases_summary,
-            memory_metrics,
-        ) = host_test_result
-        status = (
-            TEST_RESULTS.index(single_test_result)
-            if single_test_result in TEST_RESULTS
-            else -1
-        )
-        return status
 
     ### Query with mbedls for available mbed-enabled devices
     gt_logger.gt_log("detecting connected mbed-enabled devices...")
