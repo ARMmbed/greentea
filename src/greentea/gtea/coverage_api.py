@@ -5,20 +5,6 @@
 
 import os
 
-"""
-def __default_coverage_start_callback(self, key, value, timestamp):
-    # {{__coverage_start;PATH;PAYLOAD}}
-    # PAYLAODED is HEX coded string
-    lcov_path, lcov_payload = value.split(';')
-    try:
-        bin_payload = coverage_pack_hex_payload(lcov_payload)
-        coverage_dump_file(lcov_path, bin_payload)
-
-        self.log("dumped %d bytes to '%s'"% (len(bin_payload), lcov_path))
-    except Exception as e:
-        self.log("LCOV:" + str(e))
-"""
-
 
 def coverage_pack_hex_payload(payload):
     """! Convert a block of hex string data back to binary and return the binary data

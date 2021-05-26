@@ -87,9 +87,7 @@ def list_binaries_for_targets(build_dir="./build", verbose_footer=False):
         result = 0
         for sub_dir in sub_dirs:
             test_list = load_ctest_testsuite(sub_dir, binary_type="")
-            if len(test_list):
-                for test in test_list:
-                    result += 1
+            result += len(test_list)
         return result
 
     if count_tests():
@@ -100,9 +98,8 @@ def list_binaries_for_targets(build_dir="./build", verbose_footer=False):
                 % (target_name, os.path.abspath(os.path.join(build_dir, sub_dir)))
             )
             test_list = load_ctest_testsuite(sub_dir, binary_type="")
-            if len(test_list):
-                for test in sorted(test_list):
-                    gt_logger.gt_log_tab("test '%s'" % test)
+            for test in sorted(test_list):
+                gt_logger.gt_log_tab("test '%s'" % test)
     else:
         gt_logger.gt_log_warn("no tests found in current location")
 

@@ -572,7 +572,7 @@ def run_test_thread(
                     "build_path_abs": build_path_abs,
                     "build_name": build,
                 }
-                greentea_hooks.run_hook_ext("hook_test_end", format)
+                greentea_hooks.run_hook("hook_test_end", format)
 
         # Update report for optional reporting feature
         test_suite_name = test["test_bin"].lower()
@@ -1212,7 +1212,7 @@ def main_cli(opts, args, gt_instance_uuid=None):
                         "build_path": test["build_path"],
                         "build_path_abs": test["build_path_abs"],
                     }
-                    greentea_hooks.run_hook_ext("hook_post_test_end", format)
+                    greentea_hooks.run_hook("hook_post_test_end", format)
         if greentea_hooks:
             build = test_spec.get_test_build(build_name)
             assert build is not None, (
@@ -1228,7 +1228,7 @@ def main_cli(opts, args, gt_instance_uuid=None):
                 "build_path_abs": build_path_abs,
                 "test_name_list": test_name_list,
             }
-            greentea_hooks.run_hook_ext("hook_post_all_test_end", format)
+            greentea_hooks.run_hook("hook_post_all_test_end", format)
 
     # This tool is designed to work in CI
     # We want to return success codes based on tool actions,

@@ -237,10 +237,15 @@ class GreenteaHooks(object):
         return hook_name in self.HOOKS
 
     def run_hook(self, hook_name, format):
-        if hook_name in self.HOOKS:
-            return self.HOOKS[hook_name].run(format)
+        """Run a named hook.
 
-    def run_hook_ext(self, hook_name, format):
+        Args:
+            hook_name: Name of the hook to run.
+            format: Format data to pass to the hook.
+
+        Returns:
+            Return code, or None if hook does not exist.
+        """
         if self.is_hooked_to(hook_name):
-            # We can execute this test hook just after all tests are finished ('hook_post_test_end')
-            self.run_hook(hook_name, format)
+            return self.HOOKS[hook_name].run(format)
+        return None
