@@ -131,12 +131,13 @@ def run_host_test(
 
         if enum_host_tests_path:
             gt_logger.gt_log_tab(
-                "found 'host_tests' directory in: '%s'" % enum_host_tests_path,
+                f"found 'host_tests' directory in: '{enum_host_tests_path}'",
                 print_text=verbose,
             )
         else:
             gt_logger.gt_log_tab(
-                "'host_tests' directory not found: two directory levels above image path checked",
+                "'host_tests' directory not found: two directory levels above "
+                "image path checked",
                 print_text=verbose,
             )
 
@@ -150,7 +151,7 @@ def run_host_test(
         "-p",
         port,
         "-f",
-        '"%s"' % image_path,
+        f'"{image_path}"',
     ]
 
     if enum_host_tests_path:
@@ -187,7 +188,7 @@ def run_host_test(
     if forced_reset_timeout:
         cmd += ["-R", str(forced_reset_timeout)]
     if json_test_cfg:
-        cmd += ["--test-cfg", '"%s"' % str(json_test_cfg)]
+        cmd += ["--test-cfg", f'"{str(json_test_cfg)}"']
     if num_sync_packets:
         cmd += ["--sync", str(num_sync_packets)]
     if tags:
@@ -195,7 +196,7 @@ def run_host_test(
     if polling_timeout:
         cmd += ["-P", str(polling_timeout)]
 
-    gt_logger.gt_log_tab("calling htrun: %s" % " ".join(cmd), print_text=verbose)
+    gt_logger.gt_log_tab(f"calling htrun: {' '.join(cmd)}", print_text=verbose)
     gt_logger.gt_log("host-test-runner: started")
 
     for retry in range(1, 1 + retry_count):
@@ -206,9 +207,9 @@ def run_host_test(
             return returncode
         elif returncode == 0:
             break
-        gt_logger.gt_log("retry htrun {}/{}".format(retry, retry_count))
+        gt_logger.gt_log(f"retry htrun {retry}/{retry_count}")
     else:
-        gt_logger.gt_log("{} failed after {} count".format(cmd, retry_count))
+        gt_logger.gt_log(f"{cmd} failed after {retry_count} count")
 
     testcase_duration = end_time - start_time  # Test case duration from reset to {end}
     htrun_output = get_printable_string(htrun_output)
@@ -231,7 +232,7 @@ def run_host_test(
     get_coverage_data(build_path, htrun_output)
 
     gt_logger.gt_log(
-        "host-test-runner: stopped and returned '%s'" % result, print_text=verbose
+        f"host-test-runner: stopped and returned '{result}'", print_text=verbose
     )
     return (
         result,

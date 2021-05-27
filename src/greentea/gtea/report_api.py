@@ -2,6 +2,8 @@
 # Copyright (c) 2021 Arm Limited and Contributors. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
+"""API to export test results in various formats."""
+from pathlib import Path
 
 
 def export_to_file(file_name, payload):
@@ -10,14 +12,13 @@ def export_to_file(file_name, payload):
     @param payload Data to store inside file
     @return True if report save was successful
     """
-    result = True
     try:
         with open(file_name, "w") as f:
             f.write(payload)
     except IOError as e:
-        print("Exporting report to file failed: %s" % str(e))
-        result = False
-    return result
+        print(f"Exporting report to file failed: {str(e)}")
+        return False
+    return True
 
 
 def exporter_json(test_result_ext, test_suite_properties=None):
@@ -52,9 +53,8 @@ def exporter_text(test_result_ext, test_suite_properties=None):
         "copy_method",
     ]
     pt = PrettyTable(cols, junction_char="|", hrules=HEADER)
-    for col in cols:
-        pt.align[col] = "l"
-    pt.padding_width = 1  # One space between column edges and contents (default)
+    pt.align = "l"
+    pt.padding_width = 1
 
     result_dict = {}  # Used to print test suite results
 
@@ -81,10 +81,7 @@ def exporter_text(test_result_ext, test_suite_properties=None):
 
     result_pt = pt.get_string()
     result_res = " / ".join(
-        [
-            "%s %s" % (value, key)
-            for (key, value) in {k: v for k, v in result_dict.items() if v != 0}.items()
-        ]
+        [f"{value} {key}" for key, value in result_dict.items() if value != 0]
     )
     return result_pt, result_res
 
@@ -157,12 +154,7 @@ def exporter_testcase_text(test_result_ext):
 
     result_pt = pt.get_string()
     result_res = " / ".join(
-        [
-            "%s %s" % (value, key)
-            for (key, value) in {
-                k: v for k, v in result_testcase_dict.items() if v != 0
-            }.items()
-        ]
+        [f"{value} {key}" for key, value in result_testcase_dict.items() if value != 0]
     )
     return result_pt, result_res
 
@@ -233,209 +225,6 @@ def exporter_testcase_junit(test_result_ext, test_suite_properties=None):
     return TestSuite.to_xml_string(test_suites)
 
 
-html_template = """
-<!DOCTYPE html>
-<html>
-    <head>
-        <title>mbed Greentea Results Report</title>
-        <script type="text/javascript">
-            function toggleOverlay(elemStr) {
-                var elem = document.getElementById(elemStr);
-                    if (elem) {
-                        if (elem.style.display == "") {
-                            document.getElementsByTagName("body")[0].style.overflowY = "hidden";
-                            elem.style.display = "block";
-                        } else {
-                            document.getElementsByTagName("body")[0].style.overflowY = "auto";
-                            elem.style.display = "";
-                        }
-                    }
-            }
-
-            function toggleDropdown(elemStr) {
-                var elem = document.getElementById(elemStr);
-                    if (elem) {
-                        if (elem.style.height == "0px" || elem.style.height == "") {
-                            elem.style.height = "auto";
-                            elem.previousElementSibling.textContent = elem.previousElementSibling.textContent.replace("\u25B2", "\u25BC");
-                        } else {
-                            elem.style.height = 0;
-                            elem.previousElementSibling.textContent = elem.previousElementSibling.textContent.replace("\u25BC", "\u25B2");
-                        }
-                    }
-            }
-        </script>
-        <style type="text/css">
-
-            div.container {
-                width: 100%%;
-                border: none;
-            }
-
-            div.results_table {
-                width: 50%%;
-            }
-
-            header, footer {
-                padding: 1em;
-                color: white;
-                background-color: #159ab5;
-                clear: left;
-                text-align: center;
-            }
-
-            body {
-                margin: 0;
-            }
-
-            article {
-                padding: 1em;
-                overflow: hidden;
-            }
-
-            table {
-                font-family: arial, sans-serif;
-                border-collapse: collapse;
-                width: 100%%;
-            }
-
-            td.level_header {
-                background-color: #bbbbbb;
-            }
-
-            td, th {
-                border: none;
-                text-align: left;
-                padding: 8px;
-            }
-
-            tr:nth-child(even) {
-                background-color: #eeeeee;
-            }
-
-            .test-column {
-                padding-right: 15px;
-            }
-
-            .overlay {
-                width: 100%%;
-                height: 100%%;
-                position: fixed;
-                z-index: 1;
-                top: 0;
-                left: 0;
-                background-color: rgb(0,0,0);
-                background-color: rgba(0,0,0, 0.7);
-                overflow-y: scroll;
-                display: none;
-            }
-
-            .overlay-content {
-                position: relative;
-                top: 20px;
-                height: auto;
-                width: 80%%;
-                margin-left: 10%%;
-                margin-right: 10%%;
-                margin-top: 30px;
-                padding: 20px;
-                background-color: white;
-                cursor: default;
-                font-family: "Courier New", Courier, monospace;
-                font-size: 14px;
-                white-space: pre-line;
-            }
-
-            .no-space {
-                margin: 0;
-                padding: 0;
-            }
-
-            .dropdown {
-                border: solid thin black;
-                border-radius: 5px;
-                padding: 8px;
-                margin: 0;
-                cursor: pointer;
-            }
-
-            .dropdown-content {
-                height: 0;
-                max-height: 500px;
-                transition: 0.5s;
-                white-space: pre-line;
-                overflow-y: auto;
-            }
-
-            .sub-dropdown-content {
-                margin-left: 2%%;
-                margin-right: 2%%;
-                max-height: inherit;
-            }
-
-            .output-text {
-                overflow-y: scroll;
-                background-color: #f7f7f7;
-                max-height: 500px;
-            }
-
-            .result {
-                cursor: pointer;
-                border-radius: 15px;
-                padding: 2px 6px 2px 6px;
-            }
-
-            .nowrap {
-                white-space: nowrap;
-            }
-
-            .close-button {
-                color: black;
-                float: right;
-                cursor: pointer;
-                font-size: 20pt;
-            }
-
-            .close-button:hover {
-                color: darkgrey;
-            }
-
-            .test-title-font {
-                font-size: 20pt;
-            }
-
-            .test-result-title-font {
-                font-size: 16pt;
-            }%s
-        </style>
-    </head>
-    <body>
-
-        <div class="container">
-
-        <header>
-           <h1>mbed Greentea Results Report</h1>
-        </header>
-
-        <article>
-
-            <div style="width: 50%%; margin: 0 auto;">
-                <table>
-                <colgroup>
-                    <col width="auto">
-                    <col span="%d" width="50%%">
-                </colgroup>
-                    %s
-                </table>
-            </div>
-
-        </article>
-
-        </div>
-
-    </body>
-</html>"""
-
 TEST_RESULT_COLOURS = {
     "OK": "limegreen",
     "FAIL": "darkorange",
@@ -460,22 +249,18 @@ def get_result_colour_class_css():
     @details Returns a string of the CSS classes that are used to colour the different results
     @return String containing the CSS classes
     """
-
     colour_class_template = """
 
-            .%s {
-                background-color: %s;
-            }"""
+            .result-{} {{
+                background-color: {};
+            }}"""
 
     # Create CSS classes for all of the allocated colours
     css = ""
     for result, colour in TEST_RESULT_COLOURS.items():
-        css += colour_class_template % (
-            "result-%s" % result.lower().replace("_", "-"),
-            colour,
-        )
+        css += colour_class_template.format(result.lower().replace("_", "-"), colour)
 
-    css += colour_class_template % ("result-other", TEST_RESULT_DEFAULT_COLOUR)
+    css += colour_class_template.format("other", TEST_RESULT_DEFAULT_COLOUR)
 
     return css
 
@@ -486,9 +271,8 @@ def get_result_colour_class(result):
     @details Returns a string of the CSS colour class of the result, or returns the default if the result is not found
     @return String containing the CSS colour class
     """
-
     if result in TEST_RESULT_COLOURS:
-        return "result-%s" % result.lower().replace("_", "-")
+        return f"result-{result.lower().replace('_', '-')}"
     else:
         return "result-other"
 
@@ -510,13 +294,12 @@ def get_dropdown_html(
     @details This function will create the HTML for a dropdown menu
     @return String containing the HTML of dropdown menu
     """
-
     dropdown_template = """
-                                <div class="nowrap">
-                                    <p class="dropdown no-space %s" onclick="toggleDropdown('%s')">&#9650 %s</p>
-                                    <div id="%s" class="dropdown-content%s">%s
-                                    </div>
-                                </div>"""
+        <div class="nowrap">
+            <p class="dropdown no-space {}" onclick="toggleDropdown('{}')">&#9650 {}</p>
+            <div id="{}" class="dropdown-content{}">{}
+            </div>
+        </div>"""
 
     dropdown_classes = ""
     if output_text:
@@ -524,13 +307,8 @@ def get_dropdown_html(
     if sub_dropdown:
         dropdown_classes += " sub-dropdown-content"
 
-    return dropdown_template % (
-        title_classes,
-        div_id,
-        dropdown_name,
-        div_id,
-        dropdown_classes,
-        content,
+    return dropdown_template.format(
+        title_classes, div_id, dropdown_name, div_id, dropdown_classes, content,
     )
 
 
@@ -548,17 +326,17 @@ def get_result_overlay_testcase_dropdown(
 
     import datetime
 
-    testcase_result_template = """Result: %s
-                                        Elapsed Time: %.2f
-                                        Start Time: %s
-                                        End Time: %s
-                                        Failed: %d
-                                        Passed: %d
-                                        <br>%s"""
+    testcase_result_template = """Result: {}
+                                        Elapsed Time: {:.2f}
+                                        Start Time: {}
+                                        End Time: {}
+                                        Failed: {}
+                                        Passed: {}
+                                        <br>{}"""
 
     # Create unique ids to reference the divs
-    testcase_div_id = "%s_testcase_result_%d" % (result_div_id, index)
-    testcase_utest_div_id = "%s_testcase_result_%d_utest" % (result_div_id, index)
+    testcase_div_id = f"{result_div_id}_testcase_result_{index}"
+    testcase_utest_div_id = f"{testcase_div_id}_utest"
 
     testcase_utest_log_dropdown = get_dropdown_html(
         testcase_utest_div_id,
@@ -579,7 +357,7 @@ def get_result_overlay_testcase_dropdown(
             testcase_result["time_end"]
         ).strftime("%d-%m-%Y %H:%M:%S.%f")
 
-    testcase_info = testcase_result_template % (
+    testcase_info = testcase_result_template.format(
         testcase_result.get("result_text", "n/a"),
         testcase_result.get("duration", "n/a"),
         time_start,
@@ -592,7 +370,7 @@ def get_result_overlay_testcase_dropdown(
     testcase_class = get_result_colour_class(testcase_result["result_text"])
     testcase_dropdown = get_dropdown_html(
         testcase_div_id,
-        "Testcase: %s<br>" % testcase_result_name,
+        f"Testcase: {testcase_result_name}<br>",
         testcase_info,
         title_classes=testcase_class,
         sub_dropdown=True,
@@ -607,8 +385,7 @@ def get_result_overlay_testcases_dropdown_menu(result_div_id, test_results):
     @details This function will create the HTML for the result overlay's testcases dropdown menu
     @return String containing the HTML test overlay's testcase dropdown menu
     """
-
-    testcase_results_div_id = "%s_testcase" % result_div_id
+    testcase_results_div_id = f"{result_div_id}_testcase"
     testcase_results_info = ""
 
     # Loop through the test cases giving them a number to create a unique id
@@ -636,9 +413,8 @@ def get_result_overlay_dropdowns(result_div_id, test_results):
     @details This function will create the HTML for the dropdown menus of an overlay
     @return String containing the HTML test overlay's dropdowns
     """
-
-    # The HTML for the dropdown containing the ouput of the test
-    result_output_div_id = "%s_output" % result_div_id
+    # The HTML for the dropdown containing the output of the test
+    result_output_div_id = f"{result_div_id}_output"
     result_output_dropdown = get_dropdown_html(
         result_output_div_id,
         "Test Output",
@@ -646,8 +422,7 @@ def get_result_overlay_dropdowns(result_div_id, test_results):
         output_text=True,
     )
 
-    # Add a dropdown for the testcases if they are present
-    if len(test_results) > 0:
+    if len(test_results):
         result_overlay_dropdowns = (
             result_output_dropdown
             + get_result_overlay_testcases_dropdown_menu(result_div_id, test_results)
@@ -668,25 +443,29 @@ def get_result_overlay(result_div_id, test_name, platform, toolchain, test_resul
     @details This function will create the HTML of an overlay to display additional information on a test
     @return String containing the HTML test overlay
     """
-
-    overlay_template = """<div id="%s" class="overlay">
-                            <div class="overlay-content" onclick="event.stopPropagation()">
-                                <p class="no-space">
-                                    <span class="no-space test-title-font"><b>Test: %s <a class="close-button" onclick="toggleOverlay('%s')">x</a></b></span>
-                                    <span class="no-space test-result-title-font">Result: %s</span><br>
-                                    <b>Platform: %s - Toolchain: %s</b>
-                                    Elapsed Time: %.2f seconds
-                                    Build Path: %s
-                                    Absolute Build Path: %s
-                                    Copy Method: %s
-                                    Image Path: %s
-                                </p>%s
-                            </div>
-                        </div>"""
+    overlay_template = """
+    <div id="{}" class="overlay">
+        <div class="overlay-content" onclick="event.stopPropagation()">
+            <p class="no-space">
+                <span class="no-space test-title-font">
+                <b>Test: {}
+                <a class="close-button" onclick="toggleOverlay('{}')">x
+                </a></b>
+                </span>
+                <span class="no-space test-result-title-font">Result: {}</span><br>
+                <b>Platform: {} - Toolchain: {}</b>
+                Elapsed Time: {:.2f} seconds
+                Build Path: {}
+                Absolute Build Path: {}
+                Copy Method: {}
+                Image Path: {}
+            </p>{}
+        </div>
+    </div>"""
 
     overlay_dropdowns = get_result_overlay_dropdowns(result_div_id, test_results)
 
-    return overlay_template % (
+    return overlay_template.format(
         result_div_id,
         test_name,
         result_div_id,
@@ -708,21 +487,20 @@ def exporter_html(test_result_ext, test_suite_properties=None):
     @details This function will create a user friendly HTML report
     @return String containing the HTML output
     """
-
     result_cell_template = """
                 <td>
-                    <div class="result %s" onclick="toggleOverlay('%s')">
-                        <center>%s  -  %s&#37; (%s/%s)</center>
-                        %s
+                    <div class="result {}" onclick="toggleOverlay('{}')">
+                        <center>{}  -  {}&#37; ({}/{})</center>
+                        {}
                     </div>
                 </td>"""
     platform_template = """<tr>
                 <td rowspan="2" class="level_header">
                     <center>Tests</center>
-                </td>%s
+                </td>{}
             </tr>
             <tr>
-                %s
+                {}
             </tr>"""
 
     unique_test_names = set()
@@ -732,8 +510,7 @@ def exporter_html(test_result_ext, test_suite_properties=None):
         # Format of string is <PLATFORM>-<TOOLCHAIN>
         # <PLATFORM> can however contain '-' such as "frdm-k64f"
         # <TOOLCHAIN> is split with '_' fortunately, as in "gcc_arm"
-        toolchain = platform_toolchain.split("-")[-1]
-        platform = platform_toolchain.replace("-%s" % toolchain, "")
+        platform, toolchain = platform_toolchain.rsplit("-", 1)
         if platform in platforms_toolchains:
             platforms_toolchains[platform].append(toolchain)
         else:
@@ -747,37 +524,34 @@ def exporter_html(test_result_ext, test_suite_properties=None):
     toolchain_row = ""
 
     platform_cell_template = """
-                <td colspan="%s" class="level_header">
-                    <center>%s</center>
+                <td colspan="{}" class="level_header">
+                    <center>{}</center>
                 </td>"""
     center_cell_template = """
                 <td class="level_header">
-                    <center>%s</center>
+                    <center>{}</center>
                 </td>"""
 
     for platform, toolchains in platforms_toolchains.items():
-        platform_row += platform_cell_template % (len(toolchains), platform)
+        platform_row += platform_cell_template.format(len(toolchains), platform)
         for toolchain in toolchains:
-            toolchain_row += center_cell_template % toolchain
-    table += platform_template % (platform_row, toolchain_row)
+            toolchain_row += center_cell_template.format(toolchain)
+    table += platform_template.format(platform_row, toolchain_row)
 
     test_cell_template = """
-                <td class="test-column">%s</td>"""
+                <td class="test-column">{}</td>"""
     row_template = """
-            <tr>%s
+            <tr>{}
             </tr>"""
 
-    # Loop through the tests and get the results for the different platforms and toolchains
     for test_name in unique_test_names:
-        this_row = test_cell_template % test_name
+        this_row = test_cell_template.format(test_name)
         for platform, toolchains in platforms_toolchains.items():
             for toolchain in toolchains:
                 test_results = None
 
-                if test_name in test_result_ext["%s-%s" % (platform, toolchain)]:
-                    test_results = test_result_ext["%s-%s" % (platform, toolchain)][
-                        test_name
-                    ]
+                if test_name in test_result_ext[f"{platform}-{toolchain}"]:
+                    test_results = test_result_ext[f"{platform}-{toolchain}"][test_name]
                 else:
                     test_results = {
                         "single_test_result": "NOT_RAN",
@@ -794,34 +568,30 @@ def exporter_html(test_result_ext, test_suite_properties=None):
 
                 test_results["single_test_passes"] = 0
                 test_results["single_test_count"] = 0
-                result_div_id = "target_%s_toolchain_%s_test_%s" % (
-                    platform,
-                    toolchain,
-                    test_name.replace("-", "_"),
+                result_div_id = (
+                    f"target_{platform}_toolchain_{toolchain}_test_"
+                    + test_name.replace("-", "_")
                 )
 
                 result_overlay = get_result_overlay(
                     result_div_id, test_name, platform, toolchain, test_results
                 )
 
-                # Loop through the test cases and count the passes and failures
-                for index, (testcase_result_name, testcase_result) in enumerate(
-                    test_results["testcase_result"].items()
-                ):
+                for testcase_result in test_results["testcase_result"].values():
                     test_results["single_test_passes"] += testcase_result["passed"]
                     test_results["single_test_count"] += 1
 
                 result_class = get_result_colour_class(
                     test_results["single_test_result"]
                 )
-                try:
+                if test_results["single_test_count"]:
                     percent_pass = int(
                         (test_results["single_test_passes"] * 100.0)
                         / test_results["single_test_count"]
                     )
-                except ZeroDivisionError:
+                else:
                     percent_pass = 100
-                this_row += result_cell_template % (
+                this_row += result_cell_template.format(
                     result_class,
                     result_div_id,
                     test_results["single_test_result"],
@@ -831,10 +601,15 @@ def exporter_html(test_result_ext, test_suite_properties=None):
                     result_overlay,
                 )
 
-        table += row_template % this_row
+        table += row_template.format(this_row)
 
     # Add the numbers of columns to make them have the same width
-    return html_template % (get_result_colour_class_css(), len(test_result_ext), table)
+    html_template = (
+        Path(__file__).parent / "templates" / "report_html.tmpl"
+    ).read_text()
+    return html_template.format(
+        get_result_colour_class_css(), len(test_result_ext), table
+    )
 
 
 def exporter_memory_metrics_csv(test_result_ext, test_suite_properties=None):
@@ -851,54 +626,43 @@ def exporter_memory_metrics_csv(test_result_ext, test_suite_properties=None):
         for test_suite_name in test_results:
             test = test_results[test_suite_name]
 
-            if "memory_metrics" in test and test["memory_metrics"]:
+            if test.get("memory_metrics"):
                 memory_metrics = test["memory_metrics"]
 
                 if "max_heap" in memory_metrics:
-                    report_key = "%s_%s_max_heap_usage" % (target_name, test_suite_name)
+                    report_key = f"{target_name}_{test_suite_name}_max_heap_usage"
                     metrics_report[report_key] = memory_metrics["max_heap"]
 
                 if "reserved_heap" in memory_metrics:
-                    report_key = "%s_%s_reserved_heap_usage" % (
-                        target_name,
-                        test_suite_name,
-                    )
+                    report_key = f"{target_name}_{test_suite_name}_reserved_heap_usage"
                     metrics_report[report_key] = memory_metrics["reserved_heap"]
 
                 if "thread_stack_summary" in memory_metrics:
                     thread_stack_summary = memory_metrics["thread_stack_summary"]
 
                     if "max_stack_size" in thread_stack_summary:
-                        report_key = "%s_%s_max_stack_size" % (
-                            target_name,
-                            test_suite_name,
-                        )
+                        report_key = f"{target_name}_{test_suite_name}_max_stack_size"
                         metrics_report[report_key] = thread_stack_summary[
                             "max_stack_size"
                         ]
 
                     if "max_stack_usage" in thread_stack_summary:
-                        report_key = "%s_%s_max_stack_usage" % (
-                            target_name,
-                            test_suite_name,
-                        )
+                        report_key = f"{target_name}_{test_suite_name}_max_stack_usage"
                         metrics_report[report_key] = thread_stack_summary[
                             "max_stack_usage"
                         ]
 
                     if "max_stack_usage_total" in thread_stack_summary:
-                        report_key = "%s_%s_max_stack_usage_total" % (
-                            target_name,
-                            test_suite_name,
+                        report_key = (
+                            f"{target_name}_{test_suite_name}_max_stack_usage_total"
                         )
                         metrics_report[report_key] = thread_stack_summary[
                             "max_stack_usage_total"
                         ]
 
                     if "reserved_stack_total" in thread_stack_summary:
-                        report_key = "%s_%s_reserved_stack_total" % (
-                            target_name,
-                            test_suite_name,
+                        report_key = (
+                            f"{target_name}_{test_suite_name}_reserved_stack_total"
                         )
                         metrics_report[report_key] = thread_stack_summary[
                             "reserved_stack_total"
@@ -907,4 +671,4 @@ def exporter_memory_metrics_csv(test_result_ext, test_suite_properties=None):
     column_names = sorted(metrics_report.keys())
     column_values = [str(metrics_report[x]) for x in column_names]
 
-    return "%s\n%s" % (",".join(column_names), ",".join(column_values))
+    return f"{','.join(column_names)}\n{','.join(column_values)}"

@@ -68,6 +68,7 @@ setup(
         "Topic :: Software Development :: Embedded Systems",
         "Topic :: Software Development :: Testing",
     ),
+    include_package_data=True,
     use_scm_version=True,
     python_requires=python_requires,
     install_requires=requirements,
