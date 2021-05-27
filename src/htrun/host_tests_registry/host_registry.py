@@ -1,4 +1,4 @@
-# Copyright (c) 2018, Arm Limited and affiliates.
+# Copyright (c) 2021, Arm Limited and affiliates.
 # SPDX-License-Identifier: Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -90,7 +90,7 @@ class HostRegistry:
             if host_test.script_location:
                 src_path = host_test.script_location
             else:
-                src_path = 'mbed-host-tests'
+                src_path = 'htrun'
             pt.add_row([name, cls_str, src_path])
         return pt.get_string()
 

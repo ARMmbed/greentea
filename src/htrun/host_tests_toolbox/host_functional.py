@@ -1,4 +1,4 @@
-# Copyright (c) 2018, Arm Limited and affiliates.
+# Copyright (c) 2021, Arm Limited and affiliates.
 # SPDX-License-Identifier: Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -105,12 +105,12 @@ def handle_send_break_cmd(port,
         baudrate = DEFAULT_BAUD_RATE
 
     if verbose:
-        print("mbedhtrun: serial port configuration: %s:%s:%s"% (port, str(baudrate), str(timeout)))
+        print("htrun: serial port configuration: %s:%s:%s"% (port, str(baudrate), str(timeout)))
 
     try:
         serial_port = Serial(port, baudrate=baudrate, timeout=timeout)
     except Exception as e:
-        print("mbedhtrun: %s" % (str(e)))
+        print("htrun: %s" % (str(e)))
         print(json.dumps({
             "port" : port,
             "disk" : disk,
@@ -124,7 +124,7 @@ def handle_send_break_cmd(port,
     # Reset using one of the plugins
     result = host_tests_plugins.call_plugin('ResetMethod', reset_type, serial=serial_port, disk=disk)
     if not result:
-        print("mbedhtrun: reset plugin failed")
+        print("htrun: reset plugin failed")
         print(json.dumps({
             "port" : port,
             "disk" : disk,
@@ -134,7 +134,7 @@ def handle_send_break_cmd(port,
             }, indent=4))
         return False
 
-    print("mbedhtrun: serial dump started (use ctrl+c to break)")
+    print("htrun: serial dump started (use ctrl+c to break)")
     try:
         while True:
             test_output = serial_port.read(512)
@@ -143,7 +143,7 @@ def handle_send_break_cmd(port,
             if "{end}" in test_output:
                 if verbose:
                     print()
-                    print("mbedhtrun: stopped (found '{end}' terminator)")
+                    print("htrun: stopped (found '{end}' terminator)")
                 break
     except KeyboardInterrupt:
         print("ctrl+c break")

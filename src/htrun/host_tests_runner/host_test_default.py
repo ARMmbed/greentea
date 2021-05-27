@@ -1,4 +1,4 @@
-# Copyright (c) 2018, Arm Limited and affiliates.
+# Copyright (c) 2021, Arm Limited and affiliates.
 # SPDX-License-Identifier: Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -111,11 +111,11 @@ class DefaultTestSelector(DefaultTestSelectorBase):
             result = True
             self.logger.prn_inf("host test class: '%s'"% obj_instance.__class__)
 
-            # Check if host test (obj_instance) is derived from mbed_os_tools.test.BaseHostTest()
+            # Check if host test (obj_instance) is derived from htrun.BaseHostTest()
             if not isinstance(obj_instance, BaseHostTest):
                 # In theory we should always get host test objects inheriting from BaseHostTest()
                 # because loader will only load those.
-                self.logger.prn_err("host test must inherit from mbed_os_tools.test.BaseHostTest() class")
+                self.logger.prn_err("host test must inherit from htrun.BaseHostTest() class")
                 result = False
 
             # Check if BaseHostTest.__init__() was called when custom host test is created

@@ -1,4 +1,4 @@
-# Copyright (c) 2018, Arm Limited and affiliates.
+# Copyright (c) 2021, Arm Limited and affiliates.
 # SPDX-License-Identifier: Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -35,7 +35,7 @@ class HostTestPluginResetMethod_pyOCD(HostTestPluginBase):
         """! ctor
         @details We can check module version by referring to version attribute
         import pkg_resources
-        print pkg_resources.require("mbed-host-tests")[0].version
+        print pkg_resources.require("htrun")[0].version
         '2.7'
         """
         HostTestPluginBase.__init__(self)

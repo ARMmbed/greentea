@@ -1,4 +1,4 @@
-# Copyright (c) 2018, Arm Limited and affiliates.
+# Copyright (c) 2021, Arm Limited and affiliates.
 # SPDX-License-Identifier: Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -17,7 +17,7 @@ import json
 import os
 from time import sleep
 from .. import host_tests_plugins as ht_plugins
-from ... import detect
+from mbed_lstools.main import create
 from .. import DEFAULT_BAUD_RATE
 from ..host_tests_logger import HtrunLogger
 
@@ -126,8 +126,8 @@ class Mbed:
             bad_files = set(['FAIL.TXT'])
             # Re-try at max 5 times with 0.5 sec in delay
             for i in range(5):
-                # mbed_os_tools.detect.create() should be done inside the loop. Otherwise it will loop on same data.
-                mbeds = detect.create()
+                # mbed_lstools.main.create() should be done inside the loop. Otherwise it will loop on same data.
+                mbeds = create()
                 mbed_list = mbeds.list_mbeds() #list of mbeds present
                 # get first item in list with a matching target_id, if present
                 mbed_target = next((x for x in mbed_list if x['target_id']==target_id), None)

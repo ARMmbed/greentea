@@ -1,4 +1,4 @@
-# Copyright (c) 2018, Arm Limited and affiliates.
+# Copyright (c) 2021, Arm Limited and affiliates.
 # SPDX-License-Identifier: Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -22,7 +22,7 @@ from sys import stdout
 from time import sleep
 from subprocess import call
 
-from ... import detect
+from mbed_lstools.main import create
 from ..host_tests_logger import HtrunLogger
 
 
@@ -131,9 +131,9 @@ class HostTestPluginBase:
             timeout_step = 0.5
             timeout = int(timeout / timeout_step)
             for i in range(timeout):
-                # mbed_os_tools.detect.create() should be done inside the loop.
+                # mbed_lstools.main.create() should be done inside the loop.
                 # Otherwise it will loop on same data.
-                mbeds = detect.create()
+                mbeds = create()
                 mbed_list = mbeds.list_mbeds() #list of mbeds present
                 # get first item in list with a matching target_id, if present
                 mbed_target = next((x for x in mbed_list if x['target_id']==target_id), None)
@@ -185,8 +185,8 @@ class HostTestPluginBase:
             timeout_step = 0.5
             timeout = int(timeout / timeout_step)
             for i in range(timeout):
-                # mbed_os_tools.detect.create() should be done inside the loop. Otherwise it will loop on same data.
-                mbeds = detect.create()
+                # mbed_lstools.main.create() should be done inside the loop. Otherwise it will loop on same data.
+                mbeds = create()
                 mbed_list = mbeds.list_mbeds() #list of mbeds present
                 # get first item in list with a matching target_id, if present
                 mbed_target = next((x for x in mbed_list if x['target_id']==target_id), None)
