@@ -6,7 +6,7 @@
 import os
 import sys
 import random
-import optparse
+import argparse
 import imp
 import io
 from time import time
@@ -81,10 +81,10 @@ def get_hello_string():
 
 
 def main():
-    """Closure for main_cli() function"""
-    parser = optparse.OptionParser()
+    """Closure for main_cli() function."""
+    parser = argparse.ArgumentParser()
 
-    parser.add_option(
+    parser.add_argument(
         "-t",
         "--target",
         dest="list_of_targets",
@@ -93,21 +93,21 @@ def main():
         + "Comma separated list of builds from test specification. Applicable if --test-spec switch is specified",
     )
 
-    parser.add_option(
+    parser.add_argument(
         "-n",
         "--test-by-names",
         dest="test_by_names",
         help="Runs only test enumerated it this switch. Use comma to separate test case names.",
     )
 
-    parser.add_option(
+    parser.add_argument(
         "-i",
         "--skip-test",
         dest="skip_test",
         help="Skip tests enumerated it this switch. Use comma to separate test case names.",
     )
 
-    parser.add_option(
+    parser.add_argument(
         "-O",
         "--only-build",
         action="store_true",
@@ -119,7 +119,7 @@ def main():
     copy_methods_str = "Plugin support: " + ", ".join(
         host_tests_plugins.get_plugin_caps("CopyMethod")
     )
-    parser.add_option(
+    parser.add_argument(
         "-c",
         "--copy",
         dest="copy_method",
@@ -130,7 +130,7 @@ def main():
     reset_methods_str = "Plugin support: " + ", ".join(
         host_tests_plugins.get_plugin_caps("ResetMethod")
     )
-    parser.add_option(
+    parser.add_argument(
         "-r",
         "--reset",
         dest="reset_method",
@@ -138,23 +138,21 @@ def main():
         metavar="RESET_METHOD",
     )
 
-    parser.add_option(
-        "",
+    parser.add_argument(
         "--parallel",
         dest="parallel_test_exec",
         default=1,
         help="Experimental, you execute test runners for connected to your host DUTs in parallel (speeds up test result collection)",
     )
 
-    parser.add_option(
+    parser.add_argument(
         "-e",
         "--enum-host-tests",
         dest="enum_host_tests",
         help="Define directory with local host tests. Default: ./test/host_tests",
     )
 
-    parser.add_option(
-        "",
+    parser.add_argument(
         "--config",
         dest="verbose_test_configuration_only",
         default=False,
@@ -162,7 +160,7 @@ def main():
         help="Displays connected boards and detected targets and exits.",
     )
 
-    parser.add_option(
+    parser.add_argument(
         "-l",
         "--list",
         dest="list_binaries",
@@ -171,7 +169,7 @@ def main():
         help="List available binaries",
     )
 
-    parser.add_option(
+    parser.add_argument(
         "-g",
         "--grm",
         dest="global_resource_mgr",
@@ -187,19 +185,18 @@ def main():
     try:
         imp.find_module("fm_agent")
     except ImportError:
-        fm_help = optparse.SUPPRESS_HELP
+        fm_help = argparse.SUPPRESS
     else:
         fm_help = "Fast Model Connection: fastmodel name, config name, example FVP_MPS2_M3:DEFAULT"
-    parser.add_option("", "--fm", dest="fast_model_connection", help=fm_help)
+    parser.add_argument("--fm", dest="fast_model_connection", help=fm_help)
 
-    parser.add_option(
-        "",
+    parser.add_argument(
         "--use-tids",
         dest="use_target_ids",
         help="Specify explicitly which devices can be used by Greentea for testing by creating list of allowed Target IDs (use comma separated list)",
     )
 
-    parser.add_option(
+    parser.add_argument(
         "-u",
         "--shuffle",
         dest="shuffle_test_order",
@@ -208,42 +205,38 @@ def main():
         help="Shuffles test execution order",
     )
 
-    parser.add_option(
-        "",
+    parser.add_argument(
         "--shuffle-seed",
         dest="shuffle_test_seed",
         default=None,
         help="Shuffle seed (If you want to reproduce your shuffle order please use seed provided in test summary)",
     )
 
-    parser.add_option(
-        "",
+    parser.add_argument(
         "--sync",
         dest="num_sync_packets",
         default=5,
         help="Define how many times __sync packet will be sent to device: 0: none; -1: forever; 1,2,3... - number of  times (the default is 5 packets)",
     )
 
-    parser.add_option(
+    parser.add_argument(
         "-P",
         "--polling-timeout",
         dest="polling_timeout",
         default=60,
         metavar="NUMBER",
-        type="int",
+        type=int,
         help="Timeout in sec for readiness of mount point and serial port of local or remote device. Default 60 sec",
     )
 
-    parser.add_option(
-        "",
+    parser.add_argument(
         "--tag-filters",
         dest="tags",
         default=None,
         help="Filter list of available devices under test to only run on devices with the provided list of tags  [tag-filters tag1,tag]",
     )
 
-    parser.add_option(
-        "",
+    parser.add_argument(
         "--lock",
         dest="lock_by_target",
         default=False,
@@ -251,64 +244,56 @@ def main():
         help="Use simple resource locking mechanism to run multiple application instances",
     )
 
-    parser.add_option(
+    parser.add_argument(
         "-H",
         "--hooks",
         dest="hooks_json",
         help="Load hooks used drive extra functionality",
     )
 
-    parser.add_option(
-        "",
+    parser.add_argument(
         "--test-spec",
         dest="test_spec",
         help="Test specification generated by build system.",
     )
 
-    parser.add_option(
-        "",
+    parser.add_argument(
         "--test-cfg",
         dest="json_test_configuration",
         help="Pass to host test data with host test configuration",
     )
 
-    parser.add_option(
-        "",
+    parser.add_argument(
         "--run",
         dest="run_app",
         help="Flash, reset and dump serial from selected binary application",
     )
 
-    parser.add_option(
-        "",
+    parser.add_argument(
         "--report-junit",
         dest="report_junit_file_name",
         help="You can log test suite results in form of JUnit compliant XML report",
     )
 
-    parser.add_option(
-        "",
+    parser.add_argument(
         "--report-text",
         dest="report_text_file_name",
         help="You can log test suite results to text file",
     )
 
-    parser.add_option(
-        "",
+    parser.add_argument(
         "--report-json",
         dest="report_json_file_name",
         help="You can log test suite results to JSON formatted file",
     )
 
-    parser.add_option(
-        "",
+    parser.add_argument(
         "--report-html",
         dest="report_html_file_name",
         help="You can log test suite results in the form of a HTML page",
     )
 
-    parser.add_option(
-        "",
+    parser.add_argument(
         "--report-fails",
         dest="report_fails",
         default=False,
@@ -316,8 +301,7 @@ def main():
         help="Prints console outputs for failed tests",
     )
 
-    parser.add_option(
-        "",
+    parser.add_argument(
         "--retry-count",
         dest="retry_count",
         default=1,
@@ -325,14 +309,13 @@ def main():
         help="retry count for individual test failure. By default, there is no retry",
     )
 
-    parser.add_option(
-        "",
+    parser.add_argument(
         "--report-memory-metrics-csv",
         dest="report_memory_metrics_csv_file_name",
         help="You can log test suite memory metrics in the form of a CSV file",
     )
 
-    parser.add_option(
+    parser.add_argument(
         "-V",
         "--verbose-test-result",
         dest="verbose_test_result_only",
@@ -341,8 +324,7 @@ def main():
         help="Prints test serial output",
     )
 
-    parser.add_option(
-        "",
+    parser.add_argument(
         "--plain",
         dest="plain",
         default=False,
@@ -350,8 +332,7 @@ def main():
         help="Do not use colours while logging",
     )
 
-    parser.add_option(
-        "",
+    parser.add_argument(
         "--version",
         dest="version",
         default=False,
@@ -364,16 +345,16 @@ def main():
     )
     parser.epilog = """Example: gtea --target frdm-k64f-gcc"""
 
-    (opts, args) = parser.parse_args()
+    args = parser.parse_args()
 
     cli_ret = 0
 
-    if not opts.version:
+    if not args.version:
         # This string should not appear when fetching plain version string
         gt_logger.gt_log(get_hello_string())
 
     start = time()
-    if opts.lock_by_target:
+    if args.lock_by_target:
         # We are using Greentea proprietary locking mechanism to lock between platforms and targets
         gt_logger.gt_log("using (experimental) simple locking mechanism")
         gt_logger.gt_log_tab("kettle: %s" % GREENTEA_KETTLE_PATH)
@@ -381,7 +362,7 @@ def main():
         with gt_file_sem:
             greentea_update_kettle(gt_instance_uuid)
             try:
-                cli_ret = main_cli(opts, args, gt_instance_uuid)
+                cli_ret = main_cli(args, gt_instance_uuid)
             except KeyboardInterrupt:
                 greentea_clean_kettle(gt_instance_uuid)
                 gt_logger.gt_log_err("ctrl+c keyboard interrupt!")
@@ -396,7 +377,7 @@ def main():
         # Standard mode of operation
         # Other instance must provide mutually exclusive access control to platforms and targets
         try:
-            cli_ret = main_cli(opts, args)
+            cli_ret = main_cli(args)
         except KeyboardInterrupt:
             gt_logger.gt_log_err("ctrl+c keyboard interrupt!")
             return 1  # Keyboard interrupt
@@ -405,7 +386,7 @@ def main():
             gt_logger.gt_log_tab(str(e))
             raise
 
-    if not any([opts.list_binaries, opts.version]):
+    if not any([args.list_binaries, args.version]):
         delta = time() - start  # Test execution time delta
         gt_logger.gt_log("completed in %.2f sec" % delta)
 
@@ -418,7 +399,7 @@ def main():
 
 
 def run_test_thread(
-    test_result_queue, test_queue, opts, dut, build, build_path, greentea_hooks
+    test_result_queue, test_queue, args, dut, build, build_path, greentea_hooks
 ):
     test_exec_retcode = 0
     test_platforms_match = 0
@@ -442,16 +423,16 @@ def run_test_thread(
 
         test_result = "SKIPPED"
 
-        if opts.copy_method:
-            copy_method = opts.copy_method
+        if args.copy_method:
+            copy_method = args.copy_method
         elif not copy_method:
             copy_method = "shell"
 
-        if opts.reset_method:
-            reset_method = opts.reset_method
+        if args.reset_method:
+            reset_method = args.reset_method
 
-        verbose = opts.verbose_test_result_only
-        enum_host_tests_path = get_local_host_tests_dir(opts.enum_host_tests)
+        verbose = args.verbose_test_result_only
+        enum_host_tests_path = get_local_host_tests_dir(args.enum_host_tests)
 
         test_platforms_match += 1
         host_test_result = run_host_test(
@@ -465,15 +446,15 @@ def run_test_thread(
             reset=reset_method,
             program_cycle_s=program_cycle_s,
             forced_reset_timeout=forced_reset_timeout,
-            json_test_cfg=opts.json_test_configuration,
+            json_test_cfg=args.json_test_configuration,
             enum_host_tests_path=enum_host_tests_path,
-            global_resource_mgr=opts.global_resource_mgr,
-            fast_model_connection=opts.fast_model_connection,
+            global_resource_mgr=args.global_resource_mgr,
+            fast_model_connection=args.fast_model_connection,
             compare_log=test["compare_log"],
-            num_sync_packets=opts.num_sync_packets,
-            tags=opts.tags,
-            retry_count=opts.retry_count,
-            polling_timeout=opts.polling_timeout,
+            num_sync_packets=args.num_sync_packets,
+            tags=args.tags,
+            retry_count=args.retry_count,
+            polling_timeout=args.polling_timeout,
             verbose=verbose,
         )
 
@@ -648,7 +629,7 @@ def run_test_thread(
                     % (passes_cnt, failures_cnt)
                 )
 
-        if single_test_result != "OK" and not verbose and opts.report_fails:
+        if single_test_result != "OK" and not verbose and args.report_fails:
             # In some cases we want to print console to see why test failed
             # even if we are not in verbose mode
             gt_logger.gt_log_tab(
@@ -668,7 +649,7 @@ def run_test_thread(
     return
 
 
-def main_cli(opts, args, gt_instance_uuid=None):
+def main_cli(args, gt_instance_uuid=None):
     """! This is main CLI function with all command line parameters
     @details This function also implements CLI workflow depending on CLI parameters inputed
     @return This function doesn't return, it exits to environment with proper success code
@@ -740,37 +721,37 @@ def main_cli(opts, args, gt_instance_uuid=None):
         return parallel_test_exec
 
     # This is how you magically control colours in this piece of art software
-    gt_logger.colorful(not opts.plain)
+    gt_logger.colorful(not args.plain)
 
     # Prints version and exits
-    if opts.version:
+    if args.version:
         print_version()
         return 0
 
     # Load test specification or print warnings / info messages and exit CLI mode
-    test_spec, ret = get_test_spec(opts)
+    test_spec, ret = get_test_spec(args)
     if not test_spec:
         return ret
 
     # Verbose flag
-    verbose = opts.verbose_test_result_only
+    verbose = args.verbose_test_result_only
 
     # We will load hooks from JSON file to support extra behaviour during test execution
-    greentea_hooks = GreenteaHooks(opts.hooks_json) if opts.hooks_json else None
+    greentea_hooks = GreenteaHooks(args.hooks_json) if args.hooks_json else None
 
     ### Query with mbedls for available mbed-enabled devices
     gt_logger.gt_log("detecting connected mbed-enabled devices...")
 
     ### check if argument of --parallel mode is a integer and greater or equal 1
-    parallel_test_exec = get_parallel_value(opts.parallel_test_exec)
+    parallel_test_exec = get_parallel_value(args.parallel_test_exec)
 
     # Detect devices connected to system
     mbeds = mbedls_create()
     mbeds_list = mbeds.list_mbeds(unique_names=True, read_details_txt=True)
 
-    if opts.global_resource_mgr:
+    if args.global_resource_mgr:
         # Mocking available platform requested by --grm switch
-        grm_values = parse_global_resource_mgr(opts.global_resource_mgr)
+        grm_values = parse_global_resource_mgr(args.global_resource_mgr)
         if grm_values:
             gt_logger.gt_log_warn(
                 "entering global resource manager mbed-ls dummy mode!"
@@ -787,18 +768,18 @@ def main_cli(opts, args, gt_instance_uuid=None):
             else:
                 for _ in range(parallel_test_exec):
                     mbeds_list.append(mbeds.get_dummy_platform(grm_platform_name))
-            opts.global_resource_mgr = ":".join([v for v in grm_values[1:] if v])
+            args.global_resource_mgr = ":".join([v for v in grm_values[1:] if v])
             gt_logger.gt_log_tab("adding dummy platform '%s'" % grm_platform_name)
         else:
             gt_logger.gt_log(
                 "global resource manager switch '--grm %s' in wrong format!"
-                % opts.global_resource_mgr
+                % args.global_resource_mgr
             )
             return -1
 
-    if opts.fast_model_connection:
+    if args.fast_model_connection:
         # Mocking available platform requested by --fm switch
-        fm_values = parse_fast_model_connection(opts.fast_model_connection)
+        fm_values = parse_fast_model_connection(args.fast_model_connection)
         if fm_values:
             gt_logger.gt_log_warn(
                 "entering fastmodel connection, mbed-ls dummy simulator mode!"
@@ -807,14 +788,14 @@ def main_cli(opts, args, gt_instance_uuid=None):
             mbeds_list = []
             for _ in range(parallel_test_exec):
                 mbeds_list.append(mbeds.get_dummy_platform(fm_platform_name))
-            opts.fast_model_connection = fm_config_name
+            args.fast_model_connection = fm_config_name
             gt_logger.gt_log_tab(
                 "adding dummy fastmodel platform '%s'" % fm_platform_name
             )
         else:
             gt_logger.gt_log(
                 "fast model connection switch '--fm %s' in wrong format!"
-                % opts.fast_model_connection
+                % args.fast_model_connection
             )
             return -1
 
@@ -833,11 +814,11 @@ def main_cli(opts, args, gt_instance_uuid=None):
 
     ### We can filter in only specific target ids
     accepted_target_ids = None
-    if opts.use_target_ids:
+    if args.use_target_ids:
         gt_logger.gt_log(
             "filtering out target ids not on below list (specified with --use-tids switch)"
         )
-        accepted_target_ids = opts.use_target_ids.split(",")
+        accepted_target_ids = args.use_target_ids.split(",")
         for tid in accepted_target_ids:
             gt_logger.gt_log_tab("accepting target id '%s'" % gt_logger.gt_bright(tid))
 
@@ -861,14 +842,14 @@ def main_cli(opts, args, gt_instance_uuid=None):
     shuffle_random_seed = round(random.random(), SHUFFLE_SEED_ROUND)
 
     # Set shuffle seed if it is provided with command line option
-    if opts.shuffle_test_seed:
-        shuffle_random_seed = round(float(opts.shuffle_test_seed), SHUFFLE_SEED_ROUND)
+    if args.shuffle_test_seed:
+        shuffle_random_seed = round(float(args.shuffle_test_seed), SHUFFLE_SEED_ROUND)
 
     ### Testing procedures, for each target, for each target's compatible platform
     # In case we are using test spec (switch --test-spec) command line option -t <list_of_targets>
     # is used to enumerate builds from test spec we are supplying
     filter_test_builds = (
-        opts.list_of_targets.split(",") if opts.list_of_targets else None
+        args.list_of_targets.split(",") if args.list_of_targets else None
     )
     for test_build in test_spec.get_test_builds(filter_test_builds):
         platform_name = test_build.get_platform()
@@ -877,7 +858,7 @@ def main_cli(opts, args, gt_instance_uuid=None):
             % (
                 gt_logger.gt_bright(platform_name),
                 gt_logger.gt_bright(test_build.get_toolchain()),
-                int(opts.parallel_test_exec),
+                int(args.parallel_test_exec),
             )
         )
 
@@ -917,7 +898,7 @@ def main_cli(opts, args, gt_instance_uuid=None):
             gt_logger.gt_log_tab(line.strip(), print_text=verbose)
 
         # Configuration print mode:
-        if opts.verbose_test_configuration_only:
+        if args.verbose_test_configuration_only:
             continue
 
         ### If we have at least one available device we can proceed
@@ -929,11 +910,11 @@ def main_cli(opts, args, gt_instance_uuid=None):
 
             # Demo mode: --run implementation (already added --run to htrun)
             # We want to pass file name to htrun (--run NAME  =>  -f NAME_ and run only one binary
-            if opts.run_app:
+            if args.run_app:
                 gt_logger.gt_log(
                     "running '%s' for '%s'-'%s'"
                     % (
-                        gt_logger.gt_bright(opts.run_app),
+                        gt_logger.gt_bright(args.run_app),
                         gt_logger.gt_bright(platform_name),
                         gt_logger.gt_bright(test_build.get_toolchain()),
                     )
@@ -944,12 +925,12 @@ def main_cli(opts, args, gt_instance_uuid=None):
                 port = "{}:{}".format(dut["serial_port"], dut["baud_rate"])
                 micro = dut["platform_name"]
                 program_cycle_s = get_platform_property(micro, "program_cycle_s")
-                copy_method = opts.copy_method if opts.copy_method else "shell"
-                enum_host_tests_path = get_local_host_tests_dir(opts.enum_host_tests)
+                copy_method = args.copy_method if args.copy_method else "shell"
+                enum_host_tests_path = get_local_host_tests_dir(args.enum_host_tests)
 
                 test_platforms_match += 1
                 host_test_result = run_host_test(
-                    opts.run_app,
+                    args.run_app,
                     disk,
                     port,
                     build_path,
@@ -957,8 +938,8 @@ def main_cli(opts, args, gt_instance_uuid=None):
                     micro=micro,
                     copy_method=copy_method,
                     program_cycle_s=program_cycle_s,
-                    json_test_cfg=opts.json_test_configuration,
-                    run_app=opts.run_app,
+                    json_test_cfg=args.json_test_configuration,
+                    run_app=args.run_app,
                     enum_host_tests_path=enum_host_tests_path,
                     verbose=True,
                 )
@@ -985,7 +966,7 @@ def main_cli(opts, args, gt_instance_uuid=None):
             test_list = test_build.get_tests()
 
             filtered_ctest_test_list = create_filtered_test_list(
-                test_list, opts.test_by_names, opts.skip_test, test_spec=test_spec
+                test_list, args.test_by_names, args.skip_test, test_spec=test_spec
             )
 
             gt_logger.gt_log(
@@ -1001,7 +982,7 @@ def main_cli(opts, args, gt_instance_uuid=None):
             # Test execution order can be shuffled (also with provided random seed)
             # for test execution reproduction.
             filtered_ctest_test_list_keys = filtered_ctest_test_list.keys()
-            if opts.shuffle_test_order:
+            if args.shuffle_test_order:
                 # We want to shuffle test names randomly
                 random.shuffle(
                     filtered_ctest_test_list_keys, lambda: shuffle_random_seed
@@ -1035,16 +1016,16 @@ def main_cli(opts, args, gt_instance_uuid=None):
             for dut in duts_to_test:
                 # Experimental, parallel test execution
                 if number_of_threads < parallel_test_exec:
-                    args = (
+                    test_args = (
                         test_result_queue,
                         test_queue,
-                        opts,
+                        args,
                         dut,
                         build,
                         build_path,
                         greentea_hooks,
                     )
-                    t = Thread(target=run_test_thread, args=args)
+                    t = Thread(target=run_test_thread, args=test_args)
                     execute_threads.append(t)
                     number_of_threads += 1
 
@@ -1089,7 +1070,7 @@ def main_cli(opts, args, gt_instance_uuid=None):
 
         execute_threads = []
 
-        if opts.verbose_test_configuration_only:
+        if args.verbose_test_configuration_only:
             print(
                 "Example: execute 'gt --target=TARGET_NAME' "
                 "to start testing for TARGET_NAME target"
@@ -1138,7 +1119,7 @@ def main_cli(opts, args, gt_instance_uuid=None):
     # We want to return success codes based on tool actions,
     # only if testes were executed and all passed we want to
     # return 0 (success)
-    if not opts.only_build_tests:
+    if not args.only_build_tests:
         # Prints shuffle seed
         gt_logger.gt_log(
             "shuffle seed: %.*f" % (SHUFFLE_SEED_ROUND, shuffle_random_seed)
@@ -1162,10 +1143,10 @@ def main_cli(opts, args, gt_instance_uuid=None):
             return True
 
         # Reports to JUNIT file
-        if opts.report_junit_file_name:
+        if args.report_junit_file_name:
             gt_logger.gt_log(
                 "exporting to JUNIT file '%s'..."
-                % gt_logger.gt_bright(opts.report_junit_file_name)
+                % gt_logger.gt_bright(args.report_junit_file_name)
             )
             # This test specification will be used by JUnit exporter to populate TestSuite.properties (useful meta-data for Viewer)
             test_suite_properties = {}
@@ -1178,13 +1159,13 @@ def main_cli(opts, args, gt_instance_uuid=None):
             junit_report = exporter_testcase_junit(
                 test_report, test_suite_properties=test_suite_properties
             )
-            dump_report_to_text_file(opts.report_junit_file_name, junit_report)
+            dump_report_to_text_file(args.report_junit_file_name, junit_report)
 
         # Reports to text file
-        if opts.report_text_file_name:
+        if args.report_text_file_name:
             gt_logger.gt_log(
                 "exporting to TEXT '%s'..."
-                % gt_logger.gt_bright(opts.report_text_file_name)
+                % gt_logger.gt_bright(args.report_text_file_name)
             )
             # Useful text reporter for those who do not like to copy paste to files tabale with results
             text_report, text_results = exporter_text(test_report)
@@ -1194,38 +1175,38 @@ def main_cli(opts, args, gt_instance_uuid=None):
             text_final_report = "\n".join(
                 [text_report, text_results, text_testcase_report, text_testcase_results]
             )
-            dump_report_to_text_file(opts.report_text_file_name, text_final_report)
+            dump_report_to_text_file(args.report_text_file_name, text_final_report)
 
         # Reports to JSON file
-        if opts.report_json_file_name:
+        if args.report_json_file_name:
             # We will not print summary and json report together
             gt_logger.gt_log(
                 "exporting to JSON '%s'..."
-                % gt_logger.gt_bright(opts.report_json_file_name)
+                % gt_logger.gt_bright(args.report_json_file_name)
             )
             json_report = exporter_json(test_report)
-            dump_report_to_text_file(opts.report_json_file_name, json_report)
+            dump_report_to_text_file(args.report_json_file_name, json_report)
 
         # Reports to HTML file
-        if opts.report_html_file_name:
+        if args.report_html_file_name:
             gt_logger.gt_log(
                 "exporting to HTML file '%s'..."
-                % gt_logger.gt_bright(opts.report_html_file_name)
+                % gt_logger.gt_bright(args.report_html_file_name)
             )
             # Generate a HTML page displaying all of the results
             html_report = exporter_html(test_report)
-            dump_report_to_text_file(opts.report_html_file_name, html_report)
+            dump_report_to_text_file(args.report_html_file_name, html_report)
 
         # Memory metrics to CSV file
-        if opts.report_memory_metrics_csv_file_name:
+        if args.report_memory_metrics_csv_file_name:
             gt_logger.gt_log(
                 "exporting memory metrics to CSV file '%s'..."
-                % gt_logger.gt_bright(opts.report_memory_metrics_csv_file_name)
+                % gt_logger.gt_bright(args.report_memory_metrics_csv_file_name)
             )
             # Generate a CSV file page displaying all memory metrics
             memory_metrics_csv_report = exporter_memory_metrics_csv(test_report)
             dump_report_to_text_file(
-                opts.report_memory_metrics_csv_file_name, memory_metrics_csv_report
+                args.report_memory_metrics_csv_file_name, memory_metrics_csv_report
             )
 
         # Final summary
