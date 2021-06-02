@@ -2,7 +2,7 @@
 # Copyright (c) 2021 Arm Limited and Contributors. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
-
+"""CLI implementation for Greentea."""
 import os
 import random
 import argparse
@@ -54,7 +54,11 @@ LOCAL_HOST_TESTS_DIR = "./test/host_tests"  # Used by htrun -e <dir>
 
 
 def get_greentea_version():
-    """! Get Greentea (mbed-greentea) Python module version"""
+    """Get Greentea (mbed-greentea) Python module version.
+
+    Returns:
+        String representation of the Greentea version.
+    """
     import pkg_resources  # part of setuptools
 
     version = pkg_resources.require("mbed-greentea")[0].version
@@ -62,12 +66,16 @@ def get_greentea_version():
 
 
 def print_version():
-    """! Print current package version"""
+    """Print current Greentea package version."""
     print(get_greentea_version())
 
 
 def get_hello_string():
-    """! Hello string used as first print"""
+    """Get hello string indicating Greentea version.
+
+    Returns:
+        Hello string with Greentea version.
+    """
     version = get_greentea_version()
     return "greentea test automation tool ver. " + version
 
@@ -80,23 +88,28 @@ def main():
         "-t",
         "--target",
         dest="list_of_targets",
-        help="You can specify list of targets you want to build. Use comma to separate them."
-        + "Note: If --test-spec switch is defined this list becomes optional list of builds you want to filter in your test:"
-        + "Comma separated list of builds from test specification. Applicable if --test-spec switch is specified",
+        help=(
+            "Specify a list of targets to build, using commas to separate them. "
+            "If --test-spec is used, this will filter builds from the given test spec."
+        ),
     )
 
     parser.add_argument(
         "-n",
         "--test-by-names",
         dest="test_by_names",
-        help="Runs only test enumerated it this switch. Use comma to separate test case names.",
+        help=(
+            "Specify a list of tests to run, using commas to separate test case names."
+        ),
     )
 
     parser.add_argument(
         "-i",
         "--skip-test",
         dest="skip_test",
-        help="Skip tests enumerated it this switch. Use comma to separate test case names.",
+        help=(
+            "Specify a list of tests to skip, using commas to separate test case names."
+        ),
     )
 
     parser.add_argument(
@@ -105,7 +118,10 @@ def main():
         action="store_true",
         dest="only_build_tests",
         default=False,
-        help="Only build repository and tests, skips actual test procedures (flashing etc.)",
+        help=(
+            "Skip printing results and creating reports. Useful when only return code "
+            "is needed."
+        ),
     )
 
     copy_methods_str = "Plugin support: " + ", ".join(
@@ -115,7 +131,7 @@ def main():
         "-c",
         "--copy",
         dest="copy_method",
-        help="Copy (flash the target) method selector. " + copy_methods_str,
+        help=f"Copy method selector. {copy_methods_str}",
         metavar="COPY_METHOD",
     )
 
@@ -126,7 +142,7 @@ def main():
         "-r",
         "--reset",
         dest="reset_method",
-        help="Reset method selector. " + reset_methods_str,
+        help=f"Reset method selector. {reset_methods_str}",
         metavar="RESET_METHOD",
     )
 
@@ -134,14 +150,17 @@ def main():
         "--parallel",
         dest="parallel_test_exec",
         default=1,
-        help="Experimental, you execute test runners for connected to your host DUTs in parallel (speeds up test result collection)",
+        help=(
+            "Experimental: execute test runners to your host DUTs in parallel. "
+            "Speeds up test result collection."
+        ),
     )
 
     parser.add_argument(
         "-e",
         "--enum-host-tests",
         dest="enum_host_tests",
-        help="Define directory with local host tests. Default: ./test/host_tests",
+        help="Define directory with local host tests. Default: ./test/host_tests.",
     )
 
     parser.add_argument(
@@ -158,7 +177,7 @@ def main():
         dest="list_binaries",
         default=False,
         action="store_true",
-        help="List available binaries",
+        help="List available binaries.",
     )
 
     parser.add_argument(
@@ -166,10 +185,10 @@ def main():
         "--grm",
         dest="global_resource_mgr",
         help=(
-            'Global resource manager: "<platform name>:'
+            'Global resource manager: "<platform name>: '
             '<remote mgr module>:<host url or IP address>[:<port>]", '
             'Ex. "K64F:module_name:10.2.123.43:3334", '
-            '"K64F:module_name:https://example.com"'
+            '"K64F:module_name:https://example.com".'
         ),
     )
 
@@ -179,13 +198,19 @@ def main():
     except ImportError:
         fm_help = argparse.SUPPRESS
     else:
-        fm_help = "Fast Model Connection: fastmodel name, config name, example FVP_MPS2_M3:DEFAULT"
+        fm_help = (
+            "Use a Fast Model Connection in format fastmodel name:config name. "
+            "Example: FVP_MPS2_M3:DEFAULT."
+        )
     parser.add_argument("--fm", dest="fast_model_connection", help=fm_help)
 
     parser.add_argument(
         "--use-tids",
         dest="use_target_ids",
-        help="Specify explicitly which devices can be used by Greentea for testing by creating list of allowed Target IDs (use comma separated list)",
+        help=(
+            "Specify explicitly which devices can be used by Greentea. Format as a "
+            "comma-separated list of allowed Target IDs (use comma separated list)."
+        ),
     )
 
     parser.add_argument(
@@ -194,21 +219,27 @@ def main():
         dest="shuffle_test_order",
         default=False,
         action="store_true",
-        help="Shuffles test execution order",
+        help="Shuffle test execution order",
     )
 
     parser.add_argument(
         "--shuffle-seed",
         dest="shuffle_test_seed",
         default=None,
-        help="Shuffle seed (If you want to reproduce your shuffle order please use seed provided in test summary)",
+        help=(
+            "Shuffle seed. "
+            "To reproduce previous shuffle order, use seed from test summary"
+        ),
     )
 
     parser.add_argument(
         "--sync",
         dest="num_sync_packets",
         default=5,
-        help="Define how many times __sync packet will be sent to device: 0: none; -1: forever; 1,2,3... - number of  times (the default is 5 packets)",
+        help=(
+            "Define how many times __sync packet will be sent to device: 0: none; -1: "
+            "forever; 1,2,3... - number of  times. Default: 5 packets."
+        ),
     )
 
     parser.add_argument(
@@ -218,63 +249,71 @@ def main():
         default=60,
         metavar="NUMBER",
         type=int,
-        help="Timeout in sec for readiness of mount point and serial port of local or remote device. Default 60 sec",
+        help=(
+            "Timeout in sec for readiness of mount point and serial port of local or "
+            "remote device. Default: 60 sec."
+        ),
     )
 
     parser.add_argument(
         "--tag-filters",
         dest="tags",
         default=None,
-        help="Filter list of available devices under test to only run on devices with the provided list of tags  [tag-filters tag1,tag]",
+        help=(
+            "Specify comma-separated list of tags required for DUTs. "
+            "Available devices without these tags will be filtered out."
+        ),
     )
 
     parser.add_argument(
         "-H",
         "--hooks",
         dest="hooks_json",
-        help="Load hooks used drive extra functionality",
+        help="Load hooks used drive extra functionality.",
     )
 
     parser.add_argument(
         "--test-spec",
         dest="test_spec",
-        help="Test specification generated by build system.",
+        help="Specify test specification generated by build system to use.",
     )
 
     parser.add_argument(
         "--test-cfg",
         dest="json_test_configuration",
-        help="Pass to host test data with host test configuration",
+        help="Pass to host test data with host test configuration.",
     )
 
     parser.add_argument(
         "--run",
         dest="run_app",
-        help="Flash, reset and dump serial from selected binary application",
+        help="Flash, reset and dump serial from selected binary application.",
     )
 
     parser.add_argument(
         "--report-junit",
         dest="report_junit_file_name",
-        help="You can log test suite results in form of JUnit compliant XML report",
+        help=(
+            "Specify file to log test suite results to, as a JUnit compliant XML report"
+        ),
     )
 
     parser.add_argument(
         "--report-text",
         dest="report_text_file_name",
-        help="You can log test suite results to text file",
+        help="Specify a text file to log test suite results to.",
     )
 
     parser.add_argument(
         "--report-json",
         dest="report_json_file_name",
-        help="You can log test suite results to JSON formatted file",
+        help="Specify a JSON formatted file to log test suite results to.",
     )
 
     parser.add_argument(
         "--report-html",
         dest="report_html_file_name",
-        help="You can log test suite results in the form of a HTML page",
+        help="Specify file to log test suite results to, as a HTML page.",
     )
 
     parser.add_argument(
@@ -282,7 +321,7 @@ def main():
         dest="report_fails",
         default=False,
         action="store_true",
-        help="Prints console outputs for failed tests",
+        help="Print console outputs for failed tests.",
     )
 
     parser.add_argument(
@@ -290,13 +329,13 @@ def main():
         dest="retry_count",
         default=1,
         type=int,
-        help="retry count for individual test failure. By default, there is no retry",
+        help="Retry count for individual test failure. By default, there is no retry.",
     )
 
     parser.add_argument(
         "--report-memory-metrics-csv",
         dest="report_memory_metrics_csv_file_name",
-        help="You can log test suite memory metrics in the form of a CSV file",
+        help="Specify CSV file to log test suite memory metrics.",
     )
 
     parser.add_argument(
@@ -305,7 +344,7 @@ def main():
         dest="verbose_test_result_only",
         default=False,
         action="store_true",
-        help="Prints test serial output",
+        help="Print test serial output.",
     )
 
     parser.add_argument(
@@ -313,7 +352,7 @@ def main():
         dest="plain",
         default=False,
         action="store_true",
-        help="Do not use colours while logging",
+        help="Do not use colours while logging.",
     )
 
     parser.add_argument(
@@ -321,11 +360,11 @@ def main():
         dest="version",
         default=False,
         action="store_true",
-        help="Prints package version and exits",
+        help="Prints package version and exits.",
     )
 
     parser.description = (
-        """This automated test script is used to test devices using greentea tests"""
+        """This automated test script is used to test devices using greentea tests."""
     )
     parser.epilog = """Example: gtea --target frdm-k64f-gcc"""
 
@@ -365,6 +404,17 @@ def main():
 def run_test_thread(
     test_result_queue, test_queue, args, dut, build, build_path, greentea_hooks
 ):
+    """Run all tests in queue.
+
+    Args:
+        test_result_queue: Queue for test results to be put into.
+        test_queue: Queue of tests to be ran on the DUT.
+        args: Arguments from the CLI.
+        dut: Device under test to execute tests on.
+        build: Name of the build in progress.
+        build_path: Path to the build directory.
+        greentea_hooks: GreenteaHook specifying hook to execute after completion.
+    """
     test_exec_retcode = 0
     test_platforms_match = 0
     test_report = {}
@@ -471,7 +521,8 @@ def run_test_thread(
         if not test_cases_summary and not result_test_cases:
             gt_logger.gt_log_warn("test case summary event not found")
             gt_logger.gt_log_tab(
-                "no test case report present, assuming test suite to be a single test case!"
+                "no test case report present, "
+                "assuming test suite to be a single test case!"
             )
 
             # We will map test suite result to test case to
@@ -489,22 +540,16 @@ def run_test_thread(
             gt_logger.gt_log_tab("test case: %s" % test_case_name)
 
             # Test case result: OK, FAIL or ERROR
-            tc_result_text = {
-                "OK": "OK",
-                "FAIL": "FAIL",
-            }.get(single_test_result, "ERROR")
+            tc_result_text = {"OK": "OK", "FAIL": "FAIL"}.get(
+                single_test_result, "ERROR"
+            )
 
             # Test case integer success code OK, FAIL and ERROR: (0, >0, <0)
-            tc_result = {
-                "OK": 0,
-                "FAIL": 1024,
-                "ERROR": -1024,
-            }.get(tc_result_text, "-2048")
+            tc_result = {"OK": 0, "FAIL": 1024, "ERROR": -1024}.get(tc_result_text)
 
-            # Test case passes and failures: (1 pass, 0 failures) or (0 passes, 1 failure)
-            tc_passed, tc_failed = {
-                0: (1, 0),
-            }.get(tc_result, (0, 1))
+            # Test case passes and failures: (1 pass, 0 failures)
+            # or (0 passes, 1 failure)
+            tc_passed, tc_failed = {0: (1, 0)}.get(tc_result, (0, 1))
 
             # Test case report build for whole binary
             # Add test case made from test suite result to test case report
@@ -583,7 +628,8 @@ def run_test_thread(
             )
             if passes != passes_cnt or failures != failures_cnt:
                 gt_logger.gt_log_err(
-                    "utest test case summary mismatch: utest reported passes and failures miscount!"
+                    "utest test case summary mismatch: "
+                    "utest reported passes and failures miscount!"
                 )
                 gt_logger.gt_log_tab(
                     "reported by utest: passes = %d, failures %d)" % (passes, failures)
@@ -597,7 +643,8 @@ def run_test_thread(
             # In some cases we want to print console to see why test failed
             # even if we are not in verbose mode
             gt_logger.gt_log_tab(
-                "test failed, reporting console output (specified with --report-fails option)"
+                "test failed, reporting console output "
+                "(specified with --report-fails option)"
             )
             print()
             print(single_test_output)
@@ -614,19 +661,25 @@ def run_test_thread(
 
 
 def main_cli(args, gt_instance_uuid=None):
-    """! This is main CLI function with all command line parameters
-    @details This function also implements CLI workflow depending on CLI parameters inputed
-    @return This function doesn't return, it exits to environment with proper success code
+    """Run main CLI function with all command line parameters.
+
+    Implements CLI workflow depending on inputed arguments.
+
+    Returns:
+        None, exits to environment with success code.
     """
 
     def filter_ready_devices(duts_list):
-        """! Filters list of DUTs to check if all DUTs are correctly detected with mbed-ls module.
-        @details This function logs a lot to help users figure out root cause of their problems
-        @param mbeds_list List of DUTs to verify
-        @return Tuple of (MUTS detected correctly, DUTs not detected fully)
+        """Filter list of DUTs to check if correctly detected.
+
+        Args:
+            duts_list List of DUTs to verify
+
+        Returns:
+            Tuple of DUTs detected correctly, DUTs not detected fully.
         """
-        ready_devices = []  # Devices which can be used (are fully detected)
-        not_ready_devices = []  # Devices which can't be used (are not fully detected)
+        ready_devices = []
+        not_ready_devices = []
 
         required_dut_props = [
             "target_id",
@@ -642,14 +695,15 @@ def main_cli(args, gt_instance_uuid=None):
         for dut in duts_list:
             for prop in required_dut_props:
                 if not dut[prop]:
-                    # Adding DUT to NOT DETECTED FULLY list
                     if dut not in not_ready_devices:
                         not_ready_devices.append(dut)
                         gt_logger.gt_log_err(
-                            "mbed-ls was unable to enumerate correctly all properties of the device!"
+                            "mbed-ls was unable to enumerate correctly all properties "
+                            "of the device!"
                         )
                         gt_logger.gt_log_tab(
-                            "check with 'mbedls -j' command if all properties of your device are enumerated properly"
+                            "check with 'mbedls -j' command if all properties of your "
+                            "device are enumerated properly"
                         )
 
                     gt_logger.gt_log_err(
@@ -661,17 +715,21 @@ def main_cli(args, gt_instance_uuid=None):
                         )
                     if prop == "mount_point":
                         gt_logger.gt_log_tab(
-                            "check if your OS can detect and mount mbed device mount point!"
+                            "check if your OS can detect and "
+                            "mount the device's mount point!"
                         )
             else:
-                # Adding MUT to DETECTED CORRECTLY list
                 ready_devices.append(dut)
         return (ready_devices, not_ready_devices)
 
     def get_parallel_value(value):
-        """! Get correct value for parallel switch (--parallel)
-        @param value Value passed from --parallel
-        @return Refactored version of parallel number
+        """Get allowed value for --parallel.
+
+        Args:
+            value: String with number of executions in parallel allowed.
+
+        Returns:
+            Value as int, or 1 if value was not valid.
         """
         try:
             parallel_test_exec = int(value)
@@ -703,10 +761,10 @@ def main_cli(args, gt_instance_uuid=None):
     # We will load hooks from JSON file to support extra behaviour during test execution
     greentea_hooks = GreenteaHooks(args.hooks_json) if args.hooks_json else None
 
-    ### Query with mbedls for available mbed-enabled devices
+    # Query with mbedls for available mbed-enabled devices
     gt_logger.gt_log("detecting connected mbed-enabled devices...")
 
-    ### check if argument of --parallel mode is a integer and greater or equal 1
+    # check if argument of --parallel mode is a integer and greater or equal 1
     parallel_test_exec = get_parallel_value(args.parallel_test_exec)
 
     # Detect devices connected to system
@@ -776,11 +834,11 @@ def main_cli(args, gt_instance_uuid=None):
         gt_logger.gt_log_err("no compatible devices detected")
         return RET_NO_DEVICES
 
-    ### We can filter in only specific target ids
+    # We can filter in only specific target ids
     accepted_target_ids = None
     if args.use_target_ids:
         gt_logger.gt_log(
-            "filtering out target ids not on below list (specified with --use-tids switch)"
+            "filtering out target ids not on below list (specified with --use-tids)"
         )
         accepted_target_ids = args.use_target_ids.split(",")
         for tid in accepted_target_ids:
@@ -809,26 +867,27 @@ def main_cli(args, gt_instance_uuid=None):
     if args.shuffle_test_seed:
         shuffle_random_seed = round(float(args.shuffle_test_seed), SHUFFLE_SEED_ROUND)
 
-    ### Testing procedures, for each target, for each target's compatible platform
-    # In case we are using test spec (switch --test-spec) command line option -t <list_of_targets>
-    # is used to enumerate builds from test spec we are supplying
+    # Testing procedures, for each target, for each target's compatible platform
+    # When using test spec (switch --test-spec) command line option -t <list_of_targets>
+    # is used to enumerate builds from test spec supplied
     filter_test_builds = (
         args.list_of_targets.split(",") if args.list_of_targets else None
     )
     for test_build in test_spec.get_test_builds(filter_test_builds):
         platform_name = test_build.get_platform()
         gt_logger.gt_log(
-            "processing target '%s' toolchain '%s' compatible platforms... (note: switch set to --parallel %d)"
+            "processing target '%s' toolchain '%s' compatible platforms..."
+            "(note: switch set to --parallel %d)"
             % (
                 gt_logger.gt_bright(platform_name),
                 gt_logger.gt_bright(test_build.get_toolchain()),
-                int(args.parallel_test_exec),
+                parallel_test_exec,
             )
         )
 
         baudrate = test_build.get_baudrate()
 
-        ### Select DUTs to test from list of available MUTS to start testing
+        # Select DUTs to test from list of available DUTs to start testing
         dut = None
         number_of_parallel_instances = 1
         duts_to_test = []  # DUTs to actually be tested
@@ -850,7 +909,7 @@ def main_cli(args, gt_instance_uuid=None):
 
                 dut = dev
                 if dev not in duts_to_test:
-                    # We will only add unique devices to list of devices "for testing" in this test run
+                    # Only add unique devices to the list to test
                     duts_to_test.append(dev)
                 if number_of_parallel_instances < parallel_test_exec:
                     number_of_parallel_instances += 1
@@ -865,7 +924,7 @@ def main_cli(args, gt_instance_uuid=None):
         if args.verbose_test_configuration_only:
             continue
 
-        ### If we have at least one available device we can proceed
+        # If we have at least one available device we can proceed
         if dut:
             target_platforms_match += 1
 
@@ -873,7 +932,7 @@ def main_cli(args, gt_instance_uuid=None):
             build_path = test_build.get_path()
 
             # Demo mode: --run implementation (already added --run to htrun)
-            # We want to pass file name to htrun (--run NAME  =>  -f NAME_ and run only one binary
+            # Pass file name to htrun (--run NAME  =>  -f NAME_ and run only one binary)
             if args.run_app:
                 gt_logger.gt_log(
                     "running '%s' for '%s'-'%s'"
@@ -911,7 +970,7 @@ def main_cli(args, gt_instance_uuid=None):
                 # Some error in htrun, abort test execution
                 if isinstance(host_test_result, int):
                     # int(host_test_result) > 0 - Call to htrun failed
-                    # int(host_test_result) < 0 - Something went wrong while executing htrun
+                    # int(host_test_result) < 0 - Error while executing htrun
                     return host_test_result
 
                 # If execution was successful 'run_host_test' return tuple with results
@@ -1051,7 +1110,6 @@ def main_cli(args, gt_instance_uuid=None):
                 test_name_list.append(test_name)
                 # Call hook executed for each test, just after all tests are finished
                 if greentea_hooks:
-                    # We can execute this test hook just after all tests are finished ('hook_post_test_end')
                     format = {
                         "test_name": test_name,
                         "test_bin_name": test["test_bin_name"],
@@ -1069,7 +1127,6 @@ def main_cli(args, gt_instance_uuid=None):
             # Call hook executed for each target, just after all tests are finished
             build_path = build.get_path()
             build_path_abs = os.path.abspath(build_path)
-            # We can execute this test hook just after all tests are finished ('hook_post_test_end')
             format = {
                 "build_path": build_path,
                 "build_path_abs": build_path_abs,
@@ -1078,8 +1135,8 @@ def main_cli(args, gt_instance_uuid=None):
             greentea_hooks.run_hook("hook_post_all_test_end", format)
 
     # This tool is designed to work in CI
-    # We want to return success codes based on tool actions,
-    # only if testes were executed and all passed we want to
+    # We want to only return success codes based on tool actions,
+    # only if tests were executed and all passed we want to
     # return 0 (success)
     if not args.only_build_tests:
         # Prints shuffle seed
@@ -1088,10 +1145,14 @@ def main_cli(args, gt_instance_uuid=None):
         )
 
         def dump_report_to_text_file(filename, content):
-            """! Closure for report dumps to text files
-            @param filename Name of destination file
-            @parm content Text content of the file to write
-            @return True if write was successful, else return False
+            """Closure for report dumps to text files.
+
+            Args:
+                filename: Name of destination file.
+                content: Text content of the file to write.
+
+            Returns:
+                True if write was successful, else False.
             """
             try:
                 with io.open(
@@ -1110,7 +1171,8 @@ def main_cli(args, gt_instance_uuid=None):
                 "exporting to JUNIT file '%s'..."
                 % gt_logger.gt_bright(args.report_junit_file_name)
             )
-            # This test specification will be used by JUnit exporter to populate TestSuite.properties (useful meta-data for Viewer)
+            # This test specification will be used by JUnit exporter to populate
+            # TestSuite.properties (useful meta-data for Viewer)
             test_suite_properties = {}
             for target_name in test_report:
                 test_build_properties = get_test_build_properties(
@@ -1123,13 +1185,12 @@ def main_cli(args, gt_instance_uuid=None):
             )
             dump_report_to_text_file(args.report_junit_file_name, junit_report)
 
-        # Reports to text file
+        # Reports results table to text file
         if args.report_text_file_name:
             gt_logger.gt_log(
                 "exporting to TEXT '%s'..."
                 % gt_logger.gt_bright(args.report_text_file_name)
             )
-            # Useful text reporter for those who do not like to copy paste to files tabale with results
             text_report, text_results = exporter_text(test_report)
             text_testcase_report, text_testcase_results = exporter_testcase_text(
                 test_report

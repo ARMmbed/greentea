@@ -2,14 +2,18 @@
 # Copyright (c) 2021 Arm Limited and Contributors. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
-
+"""Functions to handle coverage."""
 import os
 
 
 def coverage_pack_hex_payload(payload):
-    """! Convert a block of hex string data back to binary and return the binary data
-    @param payload String with hex encoded ascii data, e.g.: '6164636772...'
-    @return bytearray with payload with data
+    """Convert a block of hex string data back to binary.
+
+    Args:
+        payload: String with hex encoded ascii data, e.g.: '6164636772...'.
+
+    Returns:
+        Bytearray of payload data.
     """
     # This payload might be packed with dot compression
     # where byte value 0x00 is coded as ".", and not as "00"
@@ -23,16 +27,20 @@ def coverage_pack_hex_payload(payload):
 
 
 def coverage_dump_file(build_path, path, payload):
-    """! Creates file and dumps payload to it on specified path (even if path doesn't exist)
-    @param path Path to file
-    @param payload Binary data to store in a file
-    @return True if operation was completed
+    """Create file and dump payload at path.
+
+    Args:
+        path: Path to file.
+        payload: Binary data to store in a file.
+
+    Returns:
+        True if operation was completed, else False.
     """
     result = True
     try:
         d, filename = os.path.split(path)
         if not os.path.isabs(d) and not os.path.exists(d):
-            # For a relative path that does not exist. Try adding ./build/<target> prefix
+            # For a relative path that does not exist try adding ./build/<target> prefix
             d = build_path
             path = os.path.join(d, filename)
         if not os.path.exists(d):

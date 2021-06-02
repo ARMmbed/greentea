@@ -14,7 +14,7 @@ except ImportError:
 
 
 class GreenTeaSimpleLockLogger(object):
-    """Simple locking printing mechanism."""
+    """Thread-safe printing mechanism."""
 
     # Colors used by color(ama) terminal component
     DIM = str()

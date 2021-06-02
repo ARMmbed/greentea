@@ -2,6 +2,7 @@
 # Copyright (c) 2021 Arm Limited and Contributors. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
+"""API for htrun from Greentea."""
 import os
 from time import time
 
@@ -32,7 +33,6 @@ def run_host_test(
     program_cycle_s=None,
     forced_reset_timeout=None,
     json_test_cfg=None,
-    max_failed_properties=5,
     enum_host_tests_path=None,
     global_resource_mgr=None,
     fast_model_connection=None,
@@ -43,39 +43,51 @@ def run_host_test(
     tags=None,
     run_app=None,
 ):
-    """! This function runs host test supervisor (executes htrun) and checks output from host test process.
-    @param image_path Path to binary file for flashing
-    @param disk Currently mounted mbed-enabled devices disk (mount point)
-    @param port Currently mounted mbed-enabled devices serial port (console)
-    @param duration Test case timeout
-    @param micro Mbed-enabled device name
-    @param reset Reset type
-    @param forced_reset_timeout Reset timeout (sec)
-    @param verbose Verbose mode flag
-    @param copy_method Copy method type (name)
-    @param program_cycle_s Wait after flashing delay (sec)
-    @param json_test_cfg Additional test configuration file path passed to host tests in JSON format
-    @param max_failed_properties After how many unknown properties we will assume test is not ported
-    @param enum_host_tests_path Directory where locally defined host tests may reside
-    @param num_sync_packets sync packets to send for host <---> device communication
-    @param polling_timeout Timeout in sec for readiness of mount point and serial port of local or remote device
-    @param tags Filter list of available devices under test to only run on devices with the provided list
-           of tags  [tag-filters tag1,tag]
-    @param run_app Run application mode flag (we run application and grab serial port data)
-    @return Tuple with test results, test output, test duration times, test case results, and memory metrics.
-            Return int > 0 if running htrun process failed.
-            Retrun int < 0 if something went wrong during htrun execution.
+    """Run host test supervisor (executes htrun) and check output from process.
+
+    Args:
+        image_path: Path to binary file for flashing.
+        disk: Currently mounted devices disk (mount point).
+        port: Currently mounted devices serial port (console).
+        build_path: Path to build directory.
+        target_id: Target ID to pass to htrun.
+        duration: Test case timeout.
+        micro: Device name.
+        reset: Reset type.
+        verbose: Verbose mode flag.
+        copy_method: Copy method type (name).
+        program_cycle_s: Duration to delay after flashing (sec).
+        forced_reset_timeout: Reset timeout (sec).
+        json_test_cfg: Additional test config JSON file path passed to host tests.
+        enum_host_tests_path: Directory where locally defined host tests may reside.
+        global_resource_mgr: Use global resource manager to execute in htrun.
+        fast_model_connection: Define a fast model connection to use.
+        compare_log: Enable --compare-log flag in htrun.
+        num_sync_packets: Sync packets to send for host <---> device communication.
+        polling_timeout: Timeout (sec) for readiness of mount point and serial port.
+        retry_count: Number of times to retry. Defaults to 1.
+        tags: List of tag-filters, to only run on devices with these tags.
+        run_app: Run application mode flag, run application and grab serial port data.
+
+    Returns:
+        Tuple of test results, test output, test duration times, test case results,
+        and memory metrics.
+        Return int > 0 if running htrun process failed.
+        Retrun int < 0 if something went wrong during htrun execution.
     """
 
     def get_binary_host_tests_dir(binary_path, level=2):
-        """! Checks if in binary test group has host_tests directory
-        @param binary_path Path to binary in test specification
-        @param level How many directories above test host_tests dir exists
-        @return Path to host_tests dir in group binary belongs too, None if not found
+        """Check if hosts_tests directory in binary test group.
+
+        Args:
+            binary_path: Path to binary in test specification.
+            level: Number of directories above test to check for host_tests dir.
+
+        Returns:
+            Path to host_tests dir in group binary belongs to, or None.
         """
         try:
             binary_path_norm = os.path.normpath(binary_path)
-            current_path_norm = os.path.normpath(os.getcwd())
             host_tests_path = binary_path_norm.split(os.sep)[:-level] + ["host_tests"]
             build_dir_candidates = ["BUILD", ".build"]
             idx = None
@@ -113,11 +125,11 @@ def run_host_test(
         #   deep: ./build/tests/compiler/toolchain
         # * Binary is inside test group.
         #   For example: <app>/tests/test_group_name/test_dir/*,cpp.
-        # * We will search for directory called host_tests on the level of test group (level=2)
-        #   or on the level of tests directory (level=3).
+        # * We will search for directory called host_tests on the level of test group
+        #   (level=2) or on the level of tests directory (level=3).
         #
-        # If host_tests directory is found above test code will will pass it to htrun using
-        # switch -e <path_to_host_tests_dir>
+        # If host_tests directory is found above test code will will pass it to
+        #   htrun using switch -e <path_to_host_tests_dir>
         gt_logger.gt_log(
             "checking for 'host_tests' directory above image directory structure",
             print_text=verbose,
@@ -160,7 +172,8 @@ def run_host_test(
     if global_resource_mgr:
         # Use global resource manager to execute test
         # Example:
-        # $ htrun -p :9600 -f "tests-mbed_drivers-generic_tests.bin" -m K64F --grm raas_client:10.2.203.31:8000
+        # $ htrun -p :9600 -f "tests-mbed_drivers-generic_tests.bin" -m K64F
+        # --grm raas_client:10.2.203.31:8000
         cmd += ["--grm", global_resource_mgr]
     else:
         # Use local resources to execute tests
@@ -179,7 +192,8 @@ def run_host_test(
     if fast_model_connection:
         # Use simulator resource manager to execute test
         # Example:
-        # $ htrun -f "tests-mbed_drivers-generic_tests.elf" -m FVP_MPS2_M3 --fm DEFAULT
+        # $ htrun -f "tests-mbed_drivers-generic_tests.elf" -m FVP_MPS2_M3
+        # --fm DEFAULT
         cmd += ["--fm", fast_model_connection]
     if compare_log:
         cmd += ["--compare-log", compare_log]
@@ -211,7 +225,7 @@ def run_host_test(
     else:
         gt_logger.gt_log(f"{cmd} failed after {retry_count} count")
 
-    testcase_duration = end_time - start_time  # Test case duration from reset to {end}
+    testcase_duration = end_time - start_time
     htrun_output = get_printable_string(htrun_output)
     result = get_test_result(htrun_output)
     result_test_cases = get_testcase_result(htrun_output)

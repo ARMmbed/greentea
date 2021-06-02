@@ -2,18 +2,16 @@
 # Copyright (c) 2021 Arm Limited and Contributors. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
-
-"""
-This module defines the attributes of the
-PyPI package for the Greentea CLI and host-tests runner (htrun)
-"""
-
+"""PyPI Package definition for Greentea CLI and host-tests runner (htrun)."""
 import os
 from io import open
 from distutils.core import setup
 from setuptools import find_packages
 
-DESCRIPTION = "The Greentea CLI and host-tests runner (htrun) is a collection of tools that enable automated testing on Mbed enabled platforms"
+DESCRIPTION = (
+    "The Greentea CLI and host-tests runner (htrun) is a collection of tools "
+    "that enable automated testing on Mbed enabled platforms."
+)
 OWNER_NAMES = "Mbed team"
 OWNER_EMAILS = "support@mbed.com"
 
@@ -21,11 +19,13 @@ repository_dir = os.path.dirname(__file__)
 
 
 def read(fname):
-    """
-    Utility function to cat in a file (used for the README)
-    @param fname: the name of the file to read,
-    relative to the directory containing this file
-    @return: The string content of the opened file
+    """Read the string content of a file.
+
+    Args:
+        name: the name of the file to read relative to this file's directory.
+
+    Returns:
+        String content of the opened file.
     """
     with open(os.path.join(repository_dir, fname), mode="r") as f:
         return f.read()

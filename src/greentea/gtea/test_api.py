@@ -2,7 +2,7 @@
 # Copyright (c) 2021 Arm Limited and Contributors. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
-
+"""Functions for extracting data from test outputs."""
 import re
 import os
 import sys
@@ -63,15 +63,18 @@ TEST_RESULT_MAPPING = {
 }
 
 
-# This value is used to tell caller than run_host_test function failed while invoking htrun
-# Just a value greater than zero
+# Return code when invoking htrun fails
 RUN_HOST_TEST_POPEN_ERROR = 1729
 
 
 def get_test_result(output):
-    """! Parse test 'output' data
-    @details If test result not found returns by default TEST_RESULT_TIMEOUT value
-    @return Returns found test result
+    """Parse test 'output' data.
+
+    Args:
+        output: Test result output data to parse.
+
+    Returns:
+        Test result, or TEST_RESULT_TIMEOUT value.
     """
     re_detect = re.compile(r"\{result;([\w+_]*)\}")
 
@@ -86,9 +89,13 @@ def get_test_result(output):
 
 
 def run_command(cmd):
-    """! Runs command and prints proc stdout on screen
-    @paran cmd List with command line to execute e.g. ['ls', '-l]
-    @return Value returned by subprocess.Popen, if failed return None
+    """Run command with Popen.
+
+    Args:
+        cmd: List with command line to execute e.g. ['ls', '-l].
+
+    Returns:
+        Value returned by subprocess.Popen, None if fails.
     """
     try:
         p = Popen(cmd, stdout=PIPE, stderr=STDOUT)
@@ -100,15 +107,21 @@ def run_command(cmd):
 
 
 def run_htrun(cmd, verbose):
-    # detect overflow when running tests
-    htrun_output = str()
-    # run_command will return None if process can't be opened (Issue #134)
-    p = run_command(cmd)
-    if not p:
-        # int value > 0 notifies caller that starting of host test process failed
-        return RUN_HOST_TEST_POPEN_ERROR
+    """Call htrun command.
 
-    htrun_failure_line = re.compile("\[RXD\] (:\d+::FAIL: .*)")
+    Args:
+        cmd: Command to call.
+        verbose: Flag for outputting from htrun to stdout.
+
+    Returns:
+        Tuple of popen return code and htrun output.
+    """
+    htrun_output = str()
+    p = run_command(cmd)
+    if p is None:
+        return RUN_HOST_TEST_POPEN_ERROR, None
+
+    htrun_failure_line = re.compile(r"\[RXD\] (:\d+::FAIL: .*)")
 
     for line in iter(p.stdout.readline, b""):
         decoded_line = line.decode("utf-8", "replace")
@@ -143,23 +156,26 @@ def run_htrun(cmd, verbose):
 
 
 def get_testcase_count_and_names(output):
-    """Fetches from log utest events with test case count (__testcase_count) and test case names (__testcase_name)*
+    """Fetch events from log with test case count and test case names.
 
-    @details
     Example test case count + names prints
     [1467197417.34][HTST][INF] host test detected: default_auto
     [1467197417.36][CONN][RXD] {{__testcase_count;2}}
-    [1467197417.36][CONN][INF] found KV pair in stream: {{__testcase_count;2}}, queued...
+    [...] found KV pair in stream: {{__testcase_count;2}}, queued...
     [1467197417.39][CONN][RXD] >>> Running 2 test cases...
     [1467197417.43][CONN][RXD] {{__testcase_name;C strings: strtok}}
-    [1467197417.43][CONN][INF] found KV pair in stream: {{__testcase_name;C strings: strtok}}, queued...
+    [...] found KV pair in stream: {{__testcase_name;C strings: strtok}}, queued...
     [1467197417.47][CONN][RXD] {{__testcase_name;C strings: strpbrk}}
-    [1467197417.47][CONN][INF] found KV pair in stream: {{__testcase_name;C strings: strpbrk}}, queued...
+    [...] found KV pair in stream: {{__testcase_name;C strings: strpbrk}}, queued...
     [1467197417.52][CONN][RXD] >>> Running case #1: 'C strings: strtok'...
     [1467197417.56][CONN][RXD] {{__testcase_start;C strings: strtok}}
-    [1467197417.56][CONN][INF] found KV pair in stream: {{__testcase_start;C strings: strtok}}, queued...
+    [...] found KV pair in stream: {{__testcase_start;C strings: strtok}}, queued...
 
-    @return Tuple with (test case count, list of test case names in order of appearance)
+    Args:
+        output: htrun output to extract count and names from.
+
+    Returns:
+        Tuple of test case count, list of test case names in order of appearance.
     """
     testcase_count = 0
     testcase_names = []
@@ -172,12 +188,10 @@ def get_testcase_count_and_names(output):
     )
 
     for line in output.splitlines():
-
         m = re_tc_names.search(line)
         if m:
             testcase_names.append(m.group(5))
             continue
-
         m = re_tc_count.search(line)
         if m:
             testcase_count = m.group(5)
@@ -186,21 +200,24 @@ def get_testcase_count_and_names(output):
 
 
 def get_testcase_utest(output, test_case_name):
-    """Fetches from log all prints for given utest test case (from being print to end print)
+    """Fetch all prints for given utest test case.
 
-    @details
     Example test case prints
     [1455553765.52][CONN][RXD] >>> Running case #1: 'Simple Test'...
     [1455553765.52][CONN][RXD] {{__testcase_start;Simple Test}}
-    [1455553765.52][CONN][INF] found KV pair in stream: {{__testcase_start;Simple Test}}, queued...
+    [...] found KV pair in stream: {{__testcase_start;Simple Test}}, queued...
     [1455553765.58][CONN][RXD] Simple test called
     [1455553765.58][CONN][RXD] {{__testcase_finish;Simple Test;1;0}}
-    [1455553765.58][CONN][INF] found KV pair in stream: {{__testcase_finish;Simple Test;1;0}}, queued...
+    [...] found KV pair in stream: {{__testcase_finish;Simple Test;1;0}}, queued...
     [1455553765.70][CONN][RXD] >>> 'Simple Test': 1 passed, 0 failed
 
-    @return log lines between start and end test case print
-    """
+    Args:
+        output: htrun output to extract from.
+        test_case_name: Name of the test case to search for.
 
+    Returns:
+        List of lines in log between start and end prints for test case.
+    """
     # Return string with all non-alphanumerics backslashed;
     # this is useful if you want to match an arbitrary literal
     # string that may have regular expression metacharacters in it.
@@ -238,8 +255,16 @@ def get_testcase_utest(output, test_case_name):
 
 
 def get_coverage_data(build_path, output):
-    # Example GCOV output
-    # [1456840876.73][CONN][RXD] {{__coverage_start;c:\Work\core-util/source/PoolAllocator.cpp.gcda;6164636772393034c2733f32...a33e...b9}}
+    r"""Get gcov data from htrun output and write to file.
+
+    Example GCOV output
+    [1456840876.73][CONN][RXD] {{__coverage_start;c:\Work\core-util/source/
+    PoolAllocator.cpp.gcda;6164636772393034c2733f32...a33e...b9}}
+
+    Args:
+        build_path: Path to build directory.
+        output: htrun output to process.
+    """
     gt_logger.gt_log("checking for GCOV data...")
     re_gcov = re.compile(
         r"^\[(\d+\.\d+)\][^\{]+\{\{(__coverage_start);([^;]+);([^}]+)\}\}$"
@@ -259,16 +284,28 @@ def get_coverage_data(build_path, output):
 
 
 def get_printable_string(unprintable_string):
+    """Remove unprintable characters from a string.
+
+    Args:
+        unprintable_string: String to process.
+
+    Returns:
+        String with unprintable characters removed.
+    """
     return "".join(filter(lambda x: x in string.printable, unprintable_string))
 
 
 def get_testcase_summary(output):
-    """! Searches for test case summary
+    """Parse test case summary.
 
-    String to find:
-    [1459246276.95][CONN][INF] found KV pair in stream: {{__testcase_summary;7;1}}, queued...
+    Example string to parse:
+    [...][CONN][INF] found KV pair in stream: {{__testcase_summary;7;1}}, queued...
 
-    @return Tuple of (passed, failed) or None if no summary found
+    Args:
+        output: htrun output to process.
+
+    Returns:
+        Tuple of passed and failed counts, None if no summary found.
     """
     re_tc_summary = re.compile(
         r"^\[(\d+\.\d+)\][^\{]+\{\{(__testcase_summary);(\d+);(\d+)\}\}"
@@ -282,6 +319,14 @@ def get_testcase_summary(output):
 
 
 def get_testcase_result(output):
+    """Parse test case results.
+
+    Args:
+        output: htrun output to process.
+
+    Return:
+        Dictionary containing test case results.
+    """
     result_test_cases = {}  # Test cases results
     re_tc_start = re.compile(r"^\[(\d+\.\d+)\][^\{]+\{\{(__testcase_start);([^;]+)\}\}")
     re_tc_finish = re.compile(
@@ -348,7 +393,7 @@ def get_testcase_result(output):
                     "utest_log"
                 ] = "__testcase_start tag not found."
 
-    ### Adding missing test cases which were defined with __testcase_name
+    # Adding missing test cases which were defined with __testcase_name
     # Get test case names reported by utest + test case names
     # This data will be used to process all tests which were not executed
     # do their status can be set to SKIPPED (e.g. in JUnit)
@@ -371,13 +416,16 @@ def get_testcase_result(output):
 
 
 def get_memory_metrics(output):
-    """! Searches for test case memory metrics
+    """Parse for test case memory metrics.
 
-    String to find:
-    [1477505660.40][CONN][INF] found KV pair in stream: {{max_heap_usage;2284}}, queued...
+    Example string to parse:
+    [...][CONN][INF] found KV pair in stream: {{max_heap_usage;2284}}, queued...
 
-    @return Tuple of (max heap usage, thread info list), where thread info list
-    is a list of dictionaries with format {entry, arg, max_stack, stack_size}
+    Args:
+        output: htrun output to parse.
+
+    Returns:
+        Tuple of max heap usage and list of dicts: {entry, arg, max_stack, stack_size}.
     """
     max_heap_usage = None
     reserved_heap = None
@@ -389,7 +437,8 @@ def get_memory_metrics(output):
         r"^\[(\d+\.\d+)\][^\{]+\{\{(reserved_heap);(\d+)\}\}"
     )
     re_tc_thread_info = re.compile(
-        r"^\[(\d+\.\d+)\][^\{]+\{\{(__thread_info);\"([A-Fa-f0-9\-xX]+)\",(\d+),(\d+)\}\}"
+        r"^\[(\d+\.\d+)\][^\{]+\{\{(__thread_info);\""
+        r"([A-Fa-f0-9\-xX]+)\",(\d+),(\d+)\}\}"
     )
     for line in output.splitlines():
         m = re_tc_max_heap_usage.search(line)
@@ -425,7 +474,15 @@ def get_memory_metrics(output):
     return max_heap_usage, reserved_heap, thread_info_list
 
 
-def get_thread_with_max_stack_size(thread_stack_info):
+def get_thread_stack_info_summary(thread_stack_info):
+    """Get thread stack size summary.
+
+    Args:
+        thread_stack_info: List of stack info to search through.
+
+    Returns:
+        Stack info summary dictionary.
+    """
     max_thread_stack_size = 0
     max_thread = None
     max_stack_usage_total = 0
@@ -436,19 +493,11 @@ def get_thread_with_max_stack_size(thread_stack_info):
             max_thread = cur_thread_stack_info
         max_stack_usage_total += cur_thread_stack_info["max_stack"]
         reserved_stack_total += cur_thread_stack_info["stack_size"]
-    max_thread["max_stack_usage_total"] = max_stack_usage_total
-    max_thread["reserved_stack_total"] = reserved_stack_total
-    return max_thread
-
-
-def get_thread_stack_info_summary(thread_stack_info):
-
-    max_thread_info = get_thread_with_max_stack_size(thread_stack_info)
     summary = {
-        "max_stack_size": max_thread_info["stack_size"],
-        "max_stack_usage": max_thread_info["max_stack"],
-        "max_stack_usage_total": max_thread_info["max_stack_usage_total"],
-        "reserved_stack_total": max_thread_info["reserved_stack_total"],
+        "max_stack_size": max_thread["stack_size"],
+        "max_stack_usage": max_thread["max_stack"],
+        "max_stack_usage_total": max_stack_usage_total,
+        "reserved_stack_total": reserved_stack_total,
     }
     return summary
 
@@ -463,10 +512,14 @@ def log_devices_in_table(
         "target_id",
     ],
 ):
-    """! Print table of muts using prettytable
-    @param muts List of MUTs to print in table
-    @param cols Columns used to for a table, required for each mut
-    @return string with formatted prettytable
+    """Print table of DUTs using prettytable.
+
+    Args:
+        muts: List of MUTs to print in table.
+        cols: Columns used to for a table, required for each DUT.
+
+    Returns:
+        String with formatted prettytable.
     """
     from prettytable import PrettyTable, HEADER
 
@@ -485,19 +538,24 @@ def log_devices_in_table(
 
 
 def get_test_spec(opts):
-    """! Closure encapsulating how we get test specification and load it from file
-    @return Returns tuple of (test specification, ret code). Test specification == None if test spec load was not successful
+    """Closure encapsulating how we get test specification and load it from file.
+
+    Returns:
+        Tuple (test specification, ret code), Test specification == None if load fails.
     """
     test_spec = None
 
-    # Check if test_spec.json file exist, if so we will pick it up as default file and load it
     test_spec_file_name = opts.test_spec
     test_spec_file_name_list = []
 
     def get_all_test_specs_from_build_dir(path_to_scan):
-        """! Searches for all test_spec.json files
-        @param path_to_scan Directory path used to recursively search for test_spec.json
-        @result List of locations of test_spec.json
+        """Search for all test_spec.json files.
+
+        Args:
+            path_to_scan: Directory path used to recursively search for test_spec.json.
+
+        Returns:
+            List of locations of test_spec.json.
         """
         return [
             os.path.join(dp, f)
@@ -507,16 +565,24 @@ def get_test_spec(opts):
         ]
 
     def merge_multiple_test_specifications_from_file_list(test_spec_file_name_list):
-        """! For each file in test_spec_file_name_list merge all test specifications into one
-        @param test_spec_file_name_list List of paths to different test specifications
-        @return TestSpec object with all test specification data inside
+        """Merge all test specifications into one.
+
+        Args:
+            test_spec_file_name_list: List of paths to test specifications.
+
+        Returns:
+            TestSpec object with all test specification data inside
         """
 
         def copy_builds_between_test_specs(source, destination):
-            """! Copies build key-value pairs between two test_spec dicts
-            @param source Source dictionary
-            @param destination Dictionary with will be applied with 'builds' key-values
-            @return Dictionary with merged source
+            """Copy build key-value pairs between two test_spec dicts.
+
+            Args:
+                source: Source dictionary.
+                destination: Dictionary which will be updated from source.
+
+            Returns:
+                Dictionary with merged source.
             """
             result = destination.copy()
             if "builds" in source and "builds" in destination:
@@ -577,7 +643,7 @@ def get_test_spec(opts):
 
     # Actual load and processing of test specification from sources
     if test_spec_file_name:
-        # Test specification from command line (--test-spec) or default test_spec.json will be used
+        # Test specification from command line (--test-spec) or default test_spec.json
         gt_logger.gt_log("using '%s' from current directory!" % test_spec_file_name)
         test_spec = TestSpec(test_spec_file_name)
         if opts.list_binaries:
@@ -594,13 +660,22 @@ def get_test_spec(opts):
             return None, 0
     else:
         gt_logger.gt_log_err(
-            "No test spec found. Use --test-spec to explicitly select a test spec to use."
+            "No test spec found. Use --test-spec to explicitly select a test spec."
         )
         return None, -1
     return test_spec, 0
 
 
 def get_test_build_properties(test_spec, test_build_name):
+    """Get properties of a test_build.
+
+    Args:
+        test_spec: Test specification to get the test build from.
+        test_build_name: Name of the test build to get.
+
+    Returns:
+        Dictionary with name, toolchain, and target, or None.
+    """
     result = dict()
     test_builds = test_spec.get_test_builds(filter_by_names=[test_build_name])
     if test_builds:
@@ -614,9 +689,13 @@ def get_test_build_properties(test_spec, test_build_name):
 
 
 def parse_global_resource_mgr(global_resource_mgr):
-    """! Parses --grm switch with global resource manager info
-    @details K64F:module_name:10.2.123.43:3334
-    @return tuple wity four elements from GRM or None if error
+    """Parse --grm switch with global resource manager info.
+
+    Args:
+        global_resource_mgr: Input GRM such as K64F:module_name:10.2.123.43:3334.
+
+    Returns:
+        Tuple of GRM elements, or None.
     """
     try:
         platform_name, module_name, leftover = global_resource_mgr.split(":", 2)
@@ -624,23 +703,28 @@ def parse_global_resource_mgr(global_resource_mgr):
 
         try:
             ip_name, port_name = parts
-            _ = int(port_name)
+            int(port_name)
         except ValueError:
             # No valid port was found, so assume no port was supplied
             ip_name = leftover
             port_name = None
 
-    except ValueError as e:
-        return False
+    except ValueError:
+        return None
     return platform_name, module_name, ip_name, port_name
 
 
 def parse_fast_model_connection(fast_model_connection):
-    """! Parses --fm switch with simulator resource manager info
-    @details FVP_MPS2_M3:DEFAULT
+    """Parse --fm switch with simulator resource manager info.
+
+    Args:
+        fast_model_connection: FM info, such as FVP_MPS2_M3:DEFAULT.
+
+    Returns:
+        Tuple of platform name and config name, or None.
     """
     try:
         platform_name, config_name = fast_model_connection.split(":")
-    except ValueError as e:
-        return False
+    except ValueError:
+        return None
     return platform_name, config_name

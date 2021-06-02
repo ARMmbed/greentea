@@ -3,14 +3,21 @@
 # SPDX-License-Identifier: Apache-2.0
 #
 """API to export test results in various formats."""
+import json
+import datetime
+
 from pathlib import Path
 
 
 def export_to_file(file_name, payload):
-    """! Simple file dump used to store reports on disk
-    @param file_name Report file name (with path if needed)
-    @param payload Data to store inside file
-    @return True if report save was successful
+    """Dump payload to a given file.
+
+    Args:
+        file_name: Report file name or path.
+        payload: Data to store inside file.
+
+    Returns:
+        True if report save was successful, else False.
     """
     try:
         with open(file_name, "w") as f:
@@ -21,12 +28,15 @@ def export_to_file(file_name, payload):
     return True
 
 
-def exporter_json(test_result_ext, test_suite_properties=None):
-    """! Exports test results to indented JSON format
-    @details This is a machine friendly format
-    """
-    import json
+def exporter_json(test_result_ext):
+    """Export test results to indented JSON format.
 
+    Args:
+        test_result_ext: Extended report from Greentea.
+
+    Returns:
+        JSON-formatted string representation of data.
+    """
     for target in test_result_ext.values():
         for suite in target.values():
             try:
@@ -36,14 +46,17 @@ def exporter_json(test_result_ext, test_suite_properties=None):
     return json.dumps(test_result_ext, indent=4)
 
 
-def exporter_text(test_result_ext, test_suite_properties=None):
-    """! Exports test results to text formatted output
-    @details This is a human friendly format
-    @return Tuple with table of results and result quantity summary string
+def exporter_text(test_result_ext):
+    """Export test results to formatted text output.
+
+    Args:
+        test_result_ext: Extended report from Greentea.
+
+    Returns:
+        Tuple of table of results and result quantity summary string.
     """
     from prettytable import PrettyTable, HEADER
 
-    # TODO: export to text, preferably to PrettyTable (SQL like) format
     cols = [
         "target",
         "platform_name",
@@ -87,14 +100,16 @@ def exporter_text(test_result_ext, test_suite_properties=None):
 
 
 def exporter_testcase_text(test_result_ext):
-    """! Exports test case results to text formatted output
-    @param test_result_ext Extended report from Greentea
-    @details This is a human friendly format
-    @return Tuple with table of results and result quantity summary string
+    """Export test case results to text formatted output.
+
+    Args:
+        test_result_ext: Extended report from Greentea.
+
+    Returns:
+        Tuple with table of results and result quantity summary string.
     """
     from prettytable import PrettyTable, HEADER
 
-    # TODO: export to text, preferably to PrettyTable (SQL like) format
     cols = [
         "target",
         "platform_name",
@@ -106,9 +121,8 @@ def exporter_testcase_text(test_result_ext):
         "elapsed_time (sec)",
     ]
     pt = PrettyTable(cols, junction_char="|", hrules=HEADER)
-    for col in cols:
-        pt.align[col] = "l"
-    pt.padding_width = 1  # One space between column edges and contents (default)
+    pt.align = "l"
+    pt.padding_width = 1
 
     result_testcase_dict = {}  # Used to print test case results
 
@@ -160,11 +174,14 @@ def exporter_testcase_text(test_result_ext):
 
 
 def exporter_testcase_junit(test_result_ext, test_suite_properties=None):
-    """! Export test results in JUnit XML compliant format
-    @param test_result_ext Extended report from Greentea
-    @param test_spec Dictionary of test build names to test suite properties
-    @details This function will import junit_xml library to perform report conversion
-    @return String containing Junit XML formatted test result output
+    """Export test results in JUnit XML compliant format.
+
+    Args:
+        test_result_ext: Extended report from Greentea.
+        test_spec: Dictionary of test build names to test suite properties.
+
+    Returns:
+        String containing Junit XML formatted test result output.
     """
     from junit_xml import TestSuite, TestCase
 
@@ -236,18 +253,17 @@ TEST_RESULT_COLOURS = {
     "IOERR_SERIAL": "DarkSalmon",
     "TIMEOUT": "DarkKhaki",
     "NO_IMAGE": "DarkSalmon",
-    "NOT_RAN": "grey"
-    # 'MBED_ASSERT': "",
-    # 'BUILD_FAILED': "",
+    "NOT_RAN": "grey",
 }
 
 TEST_RESULT_DEFAULT_COLOUR = "lavender"
 
 
 def get_result_colour_class_css():
-    """! Get the CSS for the colour classes
-    @details Returns a string of the CSS classes that are used to colour the different results
-    @return String containing the CSS classes
+    """Get the CSS for the colour classes.
+
+    Returns:
+        String of the CSS classes that are used to colour the different results.
     """
     colour_class_template = """
 
@@ -266,10 +282,13 @@ def get_result_colour_class_css():
 
 
 def get_result_colour_class(result):
-    """! Get the CSS colour class representing the result
-    @param result The result of the test
-    @details Returns a string of the CSS colour class of the result, or returns the default if the result is not found
-    @return String containing the CSS colour class
+    """Get the CSS colour class representing the result.
+
+    Args:
+        result: The result of the test.
+
+    Returns:
+        String of the CSS colour class of the result, or default if unknown.
     """
     if result in TEST_RESULT_COLOURS:
         return f"result-{result.lower().replace('_', '-')}"
@@ -285,14 +304,17 @@ def get_dropdown_html(
     output_text=False,
     sub_dropdown=False,
 ):
-    """! Get the HTML for a dropdown menu
-    @param title_classes A space separated string of css classes on the title
-    @param div_id The id of the dropdowns menus inner div
-    @param dropdown_name The name on the dropdown menu
-    @param dropdown_classes A space separated string of css classes on the inner div
-    @param content The content inside of the dropdown menu
-    @details This function will create the HTML for a dropdown menu
-    @return String containing the HTML of dropdown menu
+    """Get the HTML for a dropdown menu.
+
+    Args:
+        title_classes: A space separated string of CSS classes on the title.
+        div_id: The id of the dropdowns menus inner div.
+        dropdown_name: The name on the dropdown menu.
+        dropdown_classes: A space separated string of css classes on the inner div.
+        content: The content inside of the dropdown menu.
+
+    Returns:
+        String containing the HTML of dropdown menu.
     """
     dropdown_template = """
         <div class="nowrap">
@@ -308,24 +330,29 @@ def get_dropdown_html(
         dropdown_classes += " sub-dropdown-content"
 
     return dropdown_template.format(
-        title_classes, div_id, dropdown_name, div_id, dropdown_classes, content,
+        title_classes,
+        div_id,
+        dropdown_name,
+        div_id,
+        dropdown_classes,
+        content,
     )
 
 
 def get_result_overlay_testcase_dropdown(
     result_div_id, index, testcase_result_name, testcase_result
 ):
-    """! Get the HTML for an individual testcase dropdown
-    @param result_div_id The div id used for the test
-    @param index The index of the testcase for the divs unique id
-    @param testcase_result_name The name of the testcase
-    @param testcase_result The results of the testcase
-    @details This function will create the HTML for a testcase dropdown
-    @return String containing the HTML of the testcases dropdown
+    """Get the HTML for an individual testcase dropdown.
+
+    Args:
+        result_div_id: The div id used for the test.
+        index: The index of the testcase for the divs unique ID.
+        testcase_result_name: The name of the testcase.
+        testcase_result: The results of the testcase.
+
+    Returns:
+        String containing the HTML of the testcases dropdown
     """
-
-    import datetime
-
     testcase_result_template = """Result: {}
                                         Elapsed Time: {:.2f}
                                         Start Time: {}
@@ -379,11 +406,14 @@ def get_result_overlay_testcase_dropdown(
 
 
 def get_result_overlay_testcases_dropdown_menu(result_div_id, test_results):
-    """! Get the HTML for a test overlay's testcase dropdown menu
-    @param result_div_id The div id used for the test
-    @param test_results The results of the test
-    @details This function will create the HTML for the result overlay's testcases dropdown menu
-    @return String containing the HTML test overlay's testcase dropdown menu
+    """Get the HTML for a test overlay's testcase dropdown menu.
+
+    Args:
+        result_div_id: The div id used for the test.
+        test_results: The results of the test.
+
+    Returns:
+        String containing the HTML test overlay's testcase dropdown menu.
     """
     testcase_results_div_id = f"{result_div_id}_testcase"
     testcase_results_info = ""
@@ -407,11 +437,14 @@ def get_result_overlay_testcases_dropdown_menu(result_div_id, test_results):
 
 
 def get_result_overlay_dropdowns(result_div_id, test_results):
-    """! Get the HTML for a test overlay's dropdown menus
-    @param result_div_id The div id used for the test
-    @param test_results The results of the test
-    @details This function will create the HTML for the dropdown menus of an overlay
-    @return String containing the HTML test overlay's dropdowns
+    """Get the HTML for a test overlay's dropdown menus.
+
+    Args:
+        result_div_id: The div ID used for the test.
+        test_results: The results of the test.
+
+    Returns:
+        String containing the HTML test dropdown menu overlay.
     """
     # The HTML for the dropdown containing the output of the test
     result_output_div_id = f"{result_div_id}_output"
@@ -434,14 +467,17 @@ def get_result_overlay_dropdowns(result_div_id, test_results):
 
 
 def get_result_overlay(result_div_id, test_name, platform, toolchain, test_results):
-    """! Get the HTML for a test's overlay
-    @param result_div_id The div id used for the test
-    @param test_name The name of the test the overlay is for
-    @param platform The name of the platform the test was performed on
-    @param toolchain The name of toolchain the test was performed on
-    @param test_results The results of the test
-    @details This function will create the HTML of an overlay to display additional information on a test
-    @return String containing the HTML test overlay
+    """Get the HTML for a test's overlay.
+
+    Args:
+        result_div_id: The div ID used for the test.
+        test_name: The name of the test the overlay is for.
+        platform: The name of the platform the test was performed on.
+        toolchain: The name of toolchain the test was performed on.
+        test_results: The results of the test.
+
+    Returns:
+        String containing the HTML test overlay for the test.
     """
     overlay_template = """
     <div id="{}" class="overlay">
@@ -481,11 +517,14 @@ def get_result_overlay(result_div_id, test_name, platform, toolchain, test_resul
     )
 
 
-def exporter_html(test_result_ext, test_suite_properties=None):
-    """! Export test results as HTML
-    @param test_result_ext Extended report from Greentea
-    @details This function will create a user friendly HTML report
-    @return String containing the HTML output
+def exporter_html(test_result_ext):
+    """Export test results as HTML.
+
+    Args:
+        test_result_ext: Extended report from Greentea.
+
+    Returns:
+        String of the HTML output of the test report.
     """
     result_cell_template = """
                 <td>
@@ -612,13 +651,15 @@ def exporter_html(test_result_ext, test_suite_properties=None):
     )
 
 
-def exporter_memory_metrics_csv(test_result_ext, test_suite_properties=None):
-    """! Export memory metrics as CSV
-    @param test_result_ext Extended report from Greentea
-    @details This function will create a CSV file that is parsable via CI software
-    @return String containing the CSV output
-    """
+def exporter_memory_metrics_csv(test_result_ext):
+    """Export memory metrics as CSV.
 
+    Args:
+        test_result_ext: Extended report from Greentea.
+
+    Returns:
+        String containing the CSV output, parsable by CI.
+    """
     metrics_report = {}
 
     for target_name in test_result_ext:

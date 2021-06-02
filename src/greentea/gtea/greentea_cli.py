@@ -2,7 +2,7 @@
 # Copyright (c) 2021 Arm Limited and Contributors. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
-
+"""Functions used by Greentea CLI."""
 import os
 import fnmatch
 
@@ -14,11 +14,16 @@ LOCAL_HOST_TESTS_DIR = "./test/host_tests"  # Used by htrun -e <dir>
 
 
 def get_local_host_tests_dir(path):
-    """! Forms path to local host tests. Performs additional basic checks if directory exists etc."""
-    # If specified path exist return path
+    """Create path to local host tests.
+
+    Args:
+        path: Path to check if local host test directory.
+
+    Returns:
+        path if exists and is dir, else default if exists and is dir, else None.
+    """
     if path and os.path.exists(path) and os.path.isdir(path):
         return path
-    # If specified path is not set or doesn't exist returns default path
     if (
         not path
         and os.path.exists(LOCAL_HOST_TESTS_DIR)
