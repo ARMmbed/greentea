@@ -1,4 +1,4 @@
-# Copyright (c) 2018, Arm Limited and affiliates.
+# Copyright (c) 2021, Arm Limited and affiliates.
 # SPDX-License-Identifier: Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -49,7 +49,7 @@ class HostTestPluginPowerCycleResetMethod(HostTestPluginBase):
         @return Capability call return value
         """
         if 'target_id' not in kwargs or not kwargs['target_id']:
-            self.print_plugin_error("Error: This plugin requires mbed target_id")
+            self.print_plugin_error("Error: This plugin requires unique target_id")
             return False
 
         if 'device_info' not in kwargs or type(kwargs['device_info']) is not dict:

@@ -22,19 +22,17 @@ from .. import DEFAULT_BAUD_RATE
 from ..host_tests_logger import HtrunLogger
 
 
-class Mbed:
-    """! Base class for a host driven test
+class TargetBase:
+    """! TargetBase class for a host driven test
     @details This class stores information about things like disk, port, serial speed etc.
              Class is also responsible for manipulation of serial port between host and mbed device
     """
     def __init__(self, options):
         """ ctor
         """
-        # For compatibility with old mbed. We can use command line options for Mbed object
-        # or we can pass options directly from .
         self.options = options
-        self.logger = HtrunLogger('MBED')
-        # Options related to copy / reset mbed device
+        self.logger = HtrunLogger('Greentea')
+        # Options related to copy / reset the connected target device
         self.port = self.options.port
         self.mcu = self.options.micro
         self.disk = self.options.disk
@@ -126,8 +124,8 @@ class Mbed:
             bad_files = set(['FAIL.TXT'])
             # Re-try at max 5 times with 0.5 sec in delay
             for i in range(5):
-                # mbed_lstools.main.create() should be done inside the loop. Otherwise it will loop on same data.
-                mbeds = create()
+                # mbed_os_tools.detect.create() should be done inside the loop. Otherwise it will loop on same data.
+                mbeds = detect.create()
                 mbed_list = mbeds.list_mbeds() #list of mbeds present
                 # get first item in list with a matching target_id, if present
                 mbed_target = next((x for x in mbed_list if x['target_id']==target_id), None)
@@ -203,7 +201,7 @@ class Mbed:
         """! Copy file depending on method you want to use. Handles exception
              and return code from shell copy commands.
         @return Returns result from copy plugin
-        @details Method which is actually copying image to mbed
+        @details Method which is actually copying image to connected target
         """
         # image_path - Where is binary with target's firmware
 

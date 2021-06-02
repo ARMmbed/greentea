@@ -77,7 +77,7 @@ class HostTestPluginBase:
         """!
         @return Returns true if plugin works (supportes) under certain OS
         @os_name String describing OS.
-                 See self.mbed_os_support() and self.mbed_os_info()
+                 See self.host_os_support() and self.host_os_info()
         @details In some cases a plugin will not work under particular OS
                  mainly because command / software used to implement plugin
                  functionality is not available e.g. on MacOS or Linux.
@@ -241,7 +241,7 @@ class HostTestPluginBase:
             self.print_plugin_error(str(e))
         return result
 
-    def mbed_os_info(self):
+    def host_os_info(self):
         """! Returns information about host OS
         @return Returns tuple with information about OS and host platform
         """
@@ -252,13 +252,13 @@ class HostTestPluginBase:
                   sys.platform)
         return result
 
-    def mbed_os_support(self):
+    def host_os_support(self):
         """! Function used to determine host OS
         @return Returns None if host OS is unknown, else string with name
         @details This function should be ported for new OS support
         """
         result = None
-        os_info = self.mbed_os_info()
+        os_info = self.host_os_info()
         if (os_info[0] == 'nt' and os_info[1] == 'Windows'):
             result = 'Windows7'
         elif (os_info[0] == 'posix' and os_info[1] == 'Linux' and ('Ubuntu' in os_info[3])):

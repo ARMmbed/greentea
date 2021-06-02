@@ -99,11 +99,11 @@ class DefaultTestSelector(DefaultTestSelectorBase):
 
     def is_host_test_obj_compatible(self, obj_instance):
         """! Check if host test object loaded is actually host test class
-             derived from 'mbed_os_tools.test.BaseHostTest()'
+             derived from 'htrun.BaseHostTest()'
              Additionaly if host test class implements custom ctor it should
              call BaseHostTest().__Init__()
         @param obj_instance Instance of host test derived class
-        @return True if obj_instance is derived from mbed_os_tools.test.BaseHostTest()
+        @return True if obj_instance is derived from htrun.BaseHostTest()
                 and BaseHostTest.__init__() was called, else return False
         """
         result = False
@@ -162,9 +162,9 @@ class DefaultTestSelector(DefaultTestSelectorBase):
         # Create device info here as it may change after restart.
         config = {
             "digest" : "serial",
-            "port" : self.mbed.port,
-            "baudrate" : self.mbed.serial_baud,
-            "mcu" : self.mbed.mcu,
+            "port" : self.target.port,
+            "baudrate" : self.target.serial_baud,
+            "mcu" : self.target.mcu,
             "program_cycle_s" : self.options.program_cycle_s,
             "reset_type" : self.options.forced_reset_type,
             "target_id" : self.options.target_id,
@@ -173,7 +173,7 @@ class DefaultTestSelector(DefaultTestSelectorBase):
             "forced_reset_timeout" : self.options.forced_reset_timeout,
             "sync_behavior" : self.options.sync_behavior,
             "platform_name" : self.options.micro,
-            "image_path" : self.mbed.image_path,
+            "image_path" : self.target.image_path,
             "skip_reset": self.options.skip_reset,
             "tags" : self.options.tag_filters,
             "sync_timeout": self.options.sync_timeout
@@ -295,7 +295,7 @@ class DefaultTestSelector(DefaultTestSelectorBase):
                         self.test_supervisor = self.registry.get_host_test(value)
 
                         # Check if host test object loaded is actually host test class
-                        # derived from 'mbed_os_tools.test.BaseHostTest()'
+                        # derived from 'htrun.BaseHostTest()'
                         # Additionaly if host test class implements custom ctor it should
                         # call BaseHostTest().__Init__()
                         if self.test_supervisor and self.is_host_test_obj_compatible(self.test_supervisor):
@@ -384,7 +384,7 @@ class DefaultTestSelector(DefaultTestSelectorBase):
                         elif value == DefaultTestSelector.RESET_TYPE_HW_RST:
                             self.logger.prn_inf("Performing hard reset.")
                             # request hardware reset
-                            self.mbed.hw_reset()
+                            self.target.hw_reset()
                         else:
                             self.logger.prn_err("Invalid reset type (%s). Supported types [%s]." %
                                                 (value, ", ".join([DefaultTestSelector.RESET_TYPE_HW_RST,
@@ -526,7 +526,7 @@ class DefaultTestSelector(DefaultTestSelectorBase):
                 self.logger.prn_inf("copy image onto target... SKIPPED!")
             else:
                 self.logger.prn_inf("copy image onto target...")
-                result = self.mbed.copy_image()
+                result = self.target.copy_image()
                 if not result:
                     result = self.RESULT_IOERR_COPY
                     return self.get_test_result_int(result)

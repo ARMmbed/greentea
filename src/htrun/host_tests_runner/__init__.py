@@ -1,4 +1,4 @@
-# Copyright (c) 2018, Arm Limited and affiliates.
+# Copyright (c) 2021, Arm Limited and affiliates.
 # SPDX-License-Identifier: Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -13,7 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""! @package mbed-host-test-runner
+"""! @package greentea-host-test-runner
 
 This package contains basic host test implementation with algorithms to flash and reset device.
 Functionality can be overridden by set of plugins which can provide specialised flashing and reset implementations.
@@ -22,4 +22,4 @@ Functionality can be overridden by set of plugins which can provide specialised 
 
 from pkg_resources import get_distribution
 
-__version__ = get_distribution("mbed-os-tools").version
+__version__ = get_distribution("greentea").version

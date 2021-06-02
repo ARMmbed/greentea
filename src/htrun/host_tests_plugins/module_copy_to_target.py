@@ -1,4 +1,4 @@
-# Copyright (c) 2018, Arm Limited and affiliates.
+# Copyright (c) 2021, Arm Limited and affiliates.
 # SPDX-License-Identifier: Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -18,8 +18,8 @@ from shutil import copy
 from .host_test_plugins import HostTestPluginBase
 
 
-class HostTestPluginCopyMethod_Mbed(HostTestPluginBase):
-    """ Generic flashing method for mbed-enabled devices (by copy)
+class HostTestPluginCopyMethod_Target(HostTestPluginBase):
+    """ Generic flashing method for Mbed enabled platforms (by copy)
     """
 
     def __init__(self):
@@ -27,11 +27,11 @@ class HostTestPluginCopyMethod_Mbed(HostTestPluginBase):
         """
         HostTestPluginBase.__init__(self)
 
-    def generic_mbed_copy(self, image_path, destination_disk):
-        """! Generic mbed copy method for "mbed enabled" devices.
+    def generic_target_copy(self, image_path, destination_disk):
+        """! Generic target copy method for "Mbed enabled" devices.
 
         @param image_path Path to binary file to be flashed
-        @param destination_disk Path to destination (mbed mount point)
+        @param destination_disk Path to destination (target mount point)
 
         @details It uses standard python shutil function to copy image_file (target specific binary) to device's disk.
 
@@ -49,7 +49,7 @@ class HostTestPluginCopyMethod_Mbed(HostTestPluginBase):
         return result
 
     # Plugin interface
-    name = 'HostTestPluginCopyMethod_Mbed'
+    name = 'HostTestPluginCopyMethod_Target'
     type = 'CopyMethod'
     stable = True
     capabilities = ['shutil', 'default']
@@ -89,11 +89,11 @@ class HostTestPluginCopyMethod_Mbed(HostTestPluginBase):
                     # available in result (_, destination_disk) of check_mount_point_ready
                     mount_res, destination_disk = self.check_mount_point_ready(destination_disk, target_id=self.target_id, timeout=pooling_timeout)  # Blocking
                     if mount_res:
-                        result = self.generic_mbed_copy(image_path, destination_disk)
+                        result = self.generic_target_copy(image_path, destination_disk)
         return result
 
 
 def load_plugin():
     """ Returns plugin available in this module
     """
-    return HostTestPluginCopyMethod_Mbed()
+    return HostTestPluginCopyMethod_Target()

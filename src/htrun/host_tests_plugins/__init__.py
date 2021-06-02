@@ -1,4 +1,4 @@
-# Copyright (c) 2018, Arm Limited and affiliates.
+# Copyright (c) 2021, Arm Limited and affiliates.
 # SPDX-License-Identifier: Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -13,7 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""! @package mbed-host-test-plugins
+"""! @package greentea-host-test-plugins
 
 This package contains plugins used by host test to reset, flash devices etc.
 This package can be extended with new packages to add more generic functionality
@@ -24,9 +24,9 @@ from . import host_test_registry
 
 # This plugins provide 'flashing' and 'reset' methods to host test scripts
 from . import module_copy_shell
-from . import module_copy_mbed
-from . import module_reset_mbed
-from . import module_power_cycle_mbed
+from . import module_copy_to_target
+from . import module_reset_target
+from . import module_power_cycle_target
 from . import module_copy_pyocd
 from . import module_reset_pyocd
 
@@ -48,9 +48,9 @@ HOST_TEST_PLUGIN_REGISTRY = host_test_registry.HostTestRegistry()
 
 # Static plugin registration
 # Some plugins are commented out if they are not stable or not commonly used
-HOST_TEST_PLUGIN_REGISTRY.register_plugin(module_copy_mbed.load_plugin())
+HOST_TEST_PLUGIN_REGISTRY.register_plugin(module_copy_to_target.load_plugin())
 HOST_TEST_PLUGIN_REGISTRY.register_plugin(module_copy_shell.load_plugin())
-HOST_TEST_PLUGIN_REGISTRY.register_plugin(module_reset_mbed.load_plugin())
+HOST_TEST_PLUGIN_REGISTRY.register_plugin(module_reset_target.load_plugin())
 HOST_TEST_PLUGIN_REGISTRY.register_plugin(module_copy_pyocd.load_plugin())
 
 # Extra platforms support
@@ -60,7 +60,7 @@ HOST_TEST_PLUGIN_REGISTRY.register_plugin(module_copy_silabs.load_plugin())
 HOST_TEST_PLUGIN_REGISTRY.register_plugin(module_reset_silabs.load_plugin())
 HOST_TEST_PLUGIN_REGISTRY.register_plugin(module_copy_stlink.load_plugin())
 HOST_TEST_PLUGIN_REGISTRY.register_plugin(module_reset_stlink.load_plugin())
-HOST_TEST_PLUGIN_REGISTRY.register_plugin(module_power_cycle_mbed.load_plugin())
+HOST_TEST_PLUGIN_REGISTRY.register_plugin(module_power_cycle_target.load_plugin())
 HOST_TEST_PLUGIN_REGISTRY.register_plugin(module_reset_pyocd.load_plugin())
 HOST_TEST_PLUGIN_REGISTRY.register_plugin(module_reset_ublox.load_plugin())
 HOST_TEST_PLUGIN_REGISTRY.register_plugin(module_copy_ublox.load_plugin())

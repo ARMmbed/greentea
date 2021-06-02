@@ -23,8 +23,7 @@ from io import open
 from distutils.core import setup
 from setuptools import find_packages
 
-
-DESCRIPTION = "The Greentea CLI and host-tests runner (htrun) is a collection of tools that enable automated testing on mbed-enabled platforms"
+DESCRIPTION = "The Greentea CLI and host-tests runner (htrun) is a collection of tools that enable automated testing on Mbed enabled platforms"
 OWNER_NAMES = 'Mbed team'
 OWNER_EMAILS = 'support@mbed.com'
 
@@ -64,7 +63,7 @@ setup(name='mbed-greentea',
       test_suite='test',
       entry_points={
           "console_scripts":
-              ["mbedgt=mbed_greentea.mbed_greentea_cli:main", 
+              ["gt=greentea.greentea_cli:main", 
                "htrun=htrun.htrun:main"],
       },
       classifiers=(

@@ -18,10 +18,10 @@ import pkg_resources
 from .host_test_plugins import HostTestPluginBase
 
 
-class HostTestPluginResetMethod_Mbed(HostTestPluginBase):
+class HostTestPluginResetMethod_Target(HostTestPluginBase):
 
     # Plugin interface
-    name = 'HostTestPluginResetMethod_Mbed'
+    name = 'HostTestPluginResetMethod_Target'
     type = 'ResetMethod'
     stable = True
     capabilities = ['default']
@@ -128,4 +128,4 @@ class HostTestPluginResetMethod_Mbed(HostTestPluginBase):
 def load_plugin():
     """! Returns plugin available in this module
     """
-    return HostTestPluginResetMethod_Mbed()
+    return HostTestPluginResetMethod_Target()

@@ -16,7 +16,7 @@
 
 """! @package htrun
 
-Flash, reset and  perform host supervised tests on mbed platforms.
+Flash, reset and  perform host supervised tests on Mbed enabled platforms.
 Write your own programs (import this package) or use 'htrun'
 command line tool instead.
 
@@ -78,7 +78,7 @@ def init_host_test_cli_params():
         "-t",
         "--target-id",
         dest="target_id",
-        help="Unique Target Id or mbed platform",
+        help="Unique Target Id",
         metavar="TARGET_ID",
     )
 
@@ -360,7 +360,7 @@ def init_host_test_cli_params():
     )
 
     parser.description = (
-        """Flash, reset and perform host supervised tests on mbed platforms"""
+        """Flash, reset and perform host supervised tests on Mbed enabled platforms"""
     )
     parser.epilog = (
         """Example: htrun -d E: -p COM5 -f "test.bin" -C 4 -c shell -m K64F"""

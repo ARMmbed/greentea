@@ -1,4 +1,4 @@
-# Copyright (c) 2018, Arm Limited and affiliates.
+# Copyright (c) 2021, Arm Limited and affiliates.
 # SPDX-License-Identifier: Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -14,7 +14,7 @@
 # limitations under the License.
 
 from sys import stdout
-from .mbed_base import Mbed
+from .target_base import TargetBase
 from . import __version__
 
 
@@ -87,7 +87,7 @@ class Test(HostTestResults):
         """ ctor
         """
         HostTestResults.__init__(self)
-        self.mbed = Mbed(options)
+        self.target = TargetBase(options)
 
     def run(self):
         """ Test runner for host test. This function will start executing

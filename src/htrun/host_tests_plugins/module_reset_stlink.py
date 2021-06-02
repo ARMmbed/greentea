@@ -1,4 +1,4 @@
-# Copyright (c) 2018, Arm Limited and affiliates.
+# Copyright (c) 2021, Arm Limited and affiliates.
 # SPDX-License-Identifier: Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -40,7 +40,7 @@ class HostTestPluginResetMethod_Stlink(HostTestPluginBase):
         """
         # If no OS name provided use host OS name
         if not os_name:
-            os_name = self.mbed_os_support()
+            os_name = self.host_os_support()
 
         # This plugin only works on Windows
         if os_name and os_name.startswith('Windows'):
