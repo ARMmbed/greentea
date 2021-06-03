@@ -43,9 +43,11 @@ class TestBinary(object):
         :param binary_type:
         :return:
         """
-        assert binary_type in TestBinary.SUPPORTED_BIN_TYPES, (
-            "Binary type %s not supported. Supported types [%s]"
-            % (binary_type, ", ".join(TestBinary.SUPPORTED_BIN_TYPES))
+        assert (
+            binary_type in TestBinary.SUPPORTED_BIN_TYPES
+        ), "Binary type %s not supported. Supported types [%s]" % (
+            binary_type,
+            ", ".join(TestBinary.SUPPORTED_BIN_TYPES),
         )
         self.__path = path
         self.__flash_method = binary_type
@@ -118,9 +120,9 @@ class Test(object):
             ), "Binary spec should contain key [%s]" % ",".join(mandatory_keys)
             fm = binary.get(TestBinary.KW_BIN_TYPE, self.__default_flash_method)
             assert fm is not None, "Binary type not specified in build and binary spec."
-            tb = TestBinary(binary[TestBinary.KW_BIN_PATH],
-                            fm,
-                            binary.get(TestBinary.KW_COMP_LOG))
+            tb = TestBinary(
+                binary[TestBinary.KW_BIN_PATH], fm, binary.get(TestBinary.KW_COMP_LOG)
+            )
             self.__binaries_by_flash_method[fm] = tb
 
     def add_binary(self, path, binary_type, compare_log=None):
@@ -131,9 +133,9 @@ class Test(object):
         :param binary_type:
         :return:
         """
-        self.__binaries_by_flash_method[binary_type] = TestBinary(path,
-                                                                  binary_type,
-                                                                  compare_log)
+        self.__binaries_by_flash_method[binary_type] = TestBinary(
+            path, binary_type, compare_log
+        )
 
 
 class TestBuild(object):
@@ -298,9 +300,11 @@ class TestSpec(object):
                 TestBuild.KW_BAUD_RATE,
                 TestBuild.KW_BUILD_BASE_PATH,
             ]
-            assert set(mandatory_keys).issubset(set(build.keys())), (
-                "Build spec should contain keys [%s]. It has [%s]"
-                % (",".join(mandatory_keys), ",".join(build.keys()))
+            assert set(mandatory_keys).issubset(
+                set(build.keys())
+            ), "Build spec should contain keys [%s]. It has [%s]" % (
+                ",".join(mandatory_keys),
+                ",".join(build.keys()),
             )
             platform = build[TestBuild.KW_PLATFORM]
             toolchain = build[TestBuild.KW_TOOLCHAIN]

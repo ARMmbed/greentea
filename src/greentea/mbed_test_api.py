@@ -56,30 +56,33 @@ from mbed_os_tools.test.mbed_test_api import (
     gt_logger,
 )
 
-def run_host_test(image_path,
-                  disk,
-                  port,
-                  build_path,
-                  target_id,
-                  duration=10,
-                  micro=None,
-                  reset=None,
-                  verbose=False,
-                  copy_method=None,
-                  program_cycle_s=None,
-                  forced_reset_timeout=None,
-                  digest_source=None,
-                  json_test_cfg=None,
-                  max_failed_properties=5,
-                  enum_host_tests_path=None,
-                  global_resource_mgr=None,
-                  fast_model_connection=None,
-                  compare_log=None,
-                  num_sync_packtes=None,
-                  polling_timeout=None,
-                  retry_count=1,
-                  tags=None,
-                  run_app=None):
+
+def run_host_test(
+    image_path,
+    disk,
+    port,
+    build_path,
+    target_id,
+    duration=10,
+    micro=None,
+    reset=None,
+    verbose=False,
+    copy_method=None,
+    program_cycle_s=None,
+    forced_reset_timeout=None,
+    digest_source=None,
+    json_test_cfg=None,
+    max_failed_properties=5,
+    enum_host_tests_path=None,
+    global_resource_mgr=None,
+    fast_model_connection=None,
+    compare_log=None,
+    num_sync_packtes=None,
+    polling_timeout=None,
+    retry_count=1,
+    tags=None,
+    run_app=None,
+):
     """! This function runs host test supervisor (executes mbedhtrun) and checks output from host test process.
     @param image_path Path to binary file for flashing
     @param disk Currently mounted mbed-enabled devices disk (mount point)
@@ -116,8 +119,8 @@ def run_host_test(image_path,
         try:
             binary_path_norm = os.path.normpath(binary_path)
             current_path_norm = os.path.normpath(os.getcwd())
-            host_tests_path = binary_path_norm.split(os.sep)[:-level] + ['host_tests']
-            build_dir_candidates = ['BUILD', '.build']
+            host_tests_path = binary_path_norm.split(os.sep)[:-level] + ["host_tests"]
+            build_dir_candidates = ["BUILD", ".build"]
             idx = None
 
             for build_dir_candidate in build_dir_candidates:
@@ -126,15 +129,19 @@ def run_host_test(image_path,
                     break
 
             if idx is None:
-                msg = 'The following directories were not in the path: %s' % (', '.join(build_dir_candidates))
+                msg = "The following directories were not in the path: %s" % (
+                    ", ".join(build_dir_candidates)
+                )
                 raise Exception(msg)
 
             # Cut /<build dir>/tests/TOOLCHAIN/TARGET
-            host_tests_path = host_tests_path[:idx] + host_tests_path[idx+4:]
+            host_tests_path = host_tests_path[:idx] + host_tests_path[idx + 4 :]
             host_tests_path = os.sep.join(host_tests_path)
         except Exception as e:
-            gt_logger.gt_log_warn("there was a problem while looking for host_tests directory")
-            gt_logger.gt_log_tab("level %d, path: %s"% (level, binary_path))
+            gt_logger.gt_log_warn(
+                "there was a problem while looking for host_tests directory"
+            )
+            gt_logger.gt_log_tab("level %d, path: %s" % (level, binary_path))
             gt_logger.gt_log_tab(str(e))
             return None
 
@@ -154,7 +161,10 @@ def run_host_test(image_path,
         #
         # If host_tests directory is found above test code will will pass it to mbedhtrun using
         # switch -e <path_to_host_tests_dir>
-        gt_logger.gt_log("checking for 'host_tests' directory above image directory structure", print_text=verbose)
+        gt_logger.gt_log(
+            "checking for 'host_tests' directory above image directory structure",
+            print_text=verbose,
+        )
         test_group_ht_path = get_binary_host_tests_dir(image_path, level=2)
         TESTS_dir_ht_path = get_binary_host_tests_dir(image_path, level=3)
         if test_group_ht_path:
@@ -163,16 +173,24 @@ def run_host_test(image_path,
             enum_host_tests_path = TESTS_dir_ht_path
 
         if enum_host_tests_path:
-            gt_logger.gt_log_tab("found 'host_tests' directory in: '%s'"% enum_host_tests_path, print_text=verbose)
+            gt_logger.gt_log_tab(
+                "found 'host_tests' directory in: '%s'" % enum_host_tests_path,
+                print_text=verbose,
+            )
         else:
-            gt_logger.gt_log_tab("'host_tests' directory not found: two directory levels above image path checked", print_text=verbose)
+            gt_logger.gt_log_tab(
+                "'host_tests' directory not found: two directory levels above image path checked",
+                print_text=verbose,
+            )
 
     gt_logger.gt_log("selecting test case observer...", print_text=verbose)
     if digest_source:
-        gt_logger.gt_log_tab("selected digest source: %s"% digest_source, print_text=verbose)
+        gt_logger.gt_log_tab(
+            "selected digest source: %s" % digest_source, print_text=verbose
+        )
 
     # Select who will digest test case serial port data
-    if digest_source == 'stdin':
+    if digest_source == "stdin":
         # When we want to scan stdin for test results
         raise NotImplementedError
     elif digest_source is not None:
@@ -180,20 +198,24 @@ def run_host_test(image_path,
         raise NotImplementedError
 
     # Command executing CLI for host test supervisor (in detect-mode)
-    cmd = ["mbedhtrun",
-            '-m', micro,
-            '-p', port,
-            '-f', '"%s"'% image_path,
-            ]
+    cmd = [
+        "mbedhtrun",
+        "-m",
+        micro,
+        "-p",
+        port,
+        "-f",
+        '"%s"' % image_path,
+    ]
 
     if enum_host_tests_path:
-        cmd += ["-e", '"%s"'% enum_host_tests_path]
+        cmd += ["-e", '"%s"' % enum_host_tests_path]
 
     if global_resource_mgr:
         # Use global resource manager to execute test
         # Example:
         # $ mbedhtrun -p :9600 -f "tests-mbed_drivers-generic_tests.bin" -m K64F --grm raas_client:10.2.203.31:8000
-        cmd += ['--grm', global_resource_mgr]
+        cmd += ["--grm", global_resource_mgr]
     else:
         # Use local resources to execute tests
         # Add extra parameters to host_test
@@ -206,15 +228,15 @@ def run_host_test(image_path,
         if reset:
             cmd += ["-r", reset]
         if run_app:
-            cmd += ["--run"]    # -f stores binary name!
+            cmd += ["--run"]  # -f stores binary name!
 
     if fast_model_connection:
         # Use simulator resource manager to execute test
         # Example:
         # $ mbedhtrun -f "tests-mbed_drivers-generic_tests.elf" -m FVP_MPS2_M3 --fm DEFAULT
-        cmd += ['--fm', fast_model_connection]
+        cmd += ["--fm", fast_model_connection]
     if compare_log:
-        cmd += ['--compare-log', compare_log]
+        cmd += ["--compare-log", compare_log]
     if program_cycle_s:
         cmd += ["-C", str(program_cycle_s)]
     if forced_reset_timeout:
@@ -222,7 +244,7 @@ def run_host_test(image_path,
     if json_test_cfg:
         cmd += ["--test-cfg", '"%s"' % str(json_test_cfg)]
     if num_sync_packtes:
-        cmd += ["--sync",str(num_sync_packtes)]
+        cmd += ["--sync", str(num_sync_packtes)]
     if tags:
         cmd += ["--tag-filters", tags]
     if polling_timeout:
@@ -243,7 +265,7 @@ def run_host_test(image_path,
     else:
         gt_logger.gt_log("{} failed after {} count".format(cmd, retry_count))
 
-    testcase_duration = end_time - start_time   # Test case duration from reset to {end}
+    testcase_duration = end_time - start_time  # Test case duration from reset to {end}
     htrun_output = get_printable_string(htrun_output)
     result = get_test_result(htrun_output)
     result_test_cases = get_testcase_result(htrun_output)
@@ -259,9 +281,19 @@ def run_host_test(image_path,
         "max_heap": max_heap,
         "reserved_heap": reserved_heap,
         "thread_stack_info": thread_stack_info,
-        "thread_stack_summary": thread_stack_summary
+        "thread_stack_summary": thread_stack_summary,
     }
     get_coverage_data(build_path, htrun_output)
 
-    gt_logger.gt_log("mbed-host-test-runner: stopped and returned '%s'"% result, print_text=verbose)
-    return (result, htrun_output, testcase_duration, duration, result_test_cases, test_cases_summary, memory_metrics)
+    gt_logger.gt_log(
+        "mbed-host-test-runner: stopped and returned '%s'" % result, print_text=verbose
+    )
+    return (
+        result,
+        htrun_output,
+        testcase_duration,
+        duration,
+        result_test_cases,
+        test_cases_summary,
+        memory_metrics,
+    )

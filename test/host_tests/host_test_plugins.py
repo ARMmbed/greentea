@@ -15,10 +15,12 @@
 
 import unittest
 
-from htrun.host_tests_plugins.module_reset_target import HostTestPluginResetMethod_Target
+from htrun.host_tests_plugins.module_reset_target import (
+    HostTestPluginResetMethod_Target,
+)
+
 
 class HostOSDetectionTestCase(unittest.TestCase):
-
     def setUp(self):
         self.plugin_reset_target = HostTestPluginResetMethod_Target()
 
@@ -37,5 +39,5 @@ class HostOSDetectionTestCase(unittest.TestCase):
         self.assertEqual(3.0, self.plugin_reset_target.get_pyserial_version("3.0.1"))
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

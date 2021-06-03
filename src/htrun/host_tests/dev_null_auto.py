@@ -15,6 +15,7 @@
 
 from .. import BaseHostTest
 
+
 class DevNullTest(BaseHostTest):
 
     __result = None

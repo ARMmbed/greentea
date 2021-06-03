@@ -63,7 +63,7 @@ def parse_ctesttestfile_line(link_target, binary_type, line, verbose=False):
     add_test(mbed-test-ticker "mbed-test-ticker")
     add_test(mbed-test-hello "mbed-test-hello")
     """
-    add_test_pattern = r'[adtesADTES_]{8}\([\w\d_-]+ \"([\w\d_-]+)\"'
+    add_test_pattern = r"[adtesADTES_]{8}\([\w\d_-]+ \"([\w\d_-]+)\""
     re_ptrn = re.compile(add_test_pattern)
     if line.lower().startswith("add_test"):
         m = re_ptrn.search(line)

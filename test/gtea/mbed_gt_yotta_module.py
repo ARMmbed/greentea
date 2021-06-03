@@ -18,7 +18,6 @@ from mbed_os_tools.test.mbed_yotta_module_parse import YottaModule
 
 
 class YOttaConfigurationParse(unittest.TestCase):
-
     def setUp(self):
         # greentea-client defined in 'dependencies' and 'testDependencies'
         self.YOTTA_MODULE_LONG = {
@@ -34,8 +33,8 @@ class YOttaConfigurationParse(unittest.TestCase):
                 "test",
                 "asynchronous",
                 "async",
-                "mbed-official"
-                ],
+                "mbed-official",
+            ],
             "author": "Niklas Hauser <niklas.hauser@arm.com>",
             "license": "Apache-2.0",
             "dependencies": {
@@ -43,12 +42,9 @@ class YOttaConfigurationParse(unittest.TestCase):
                 "core-util": "^1.0.1",
                 "compiler-polyfill": "^1.2.0",
                 "mbed-drivers": "~0.12.0",
-                "greentea-client": "^0.1.2"
-                },
-            "testDependencies": {
-                "unity": "^2.0.1",
-                "greentea-client": "^0.1.2"
-                }
+                "greentea-client": "^0.1.2",
+            },
+            "testDependencies": {"unity": "^2.0.1", "greentea-client": "^0.1.2"},
         }
 
         # greentea-client defined in 'dependencies'
@@ -65,8 +61,8 @@ class YOttaConfigurationParse(unittest.TestCase):
                 "test",
                 "asynchronous",
                 "async",
-                "mbed-official"
-                ],
+                "mbed-official",
+            ],
             "author": "Niklas Hauser <niklas.hauser@arm.com>",
             "license": "Apache-2.0",
             "dependencies": {
@@ -74,11 +70,11 @@ class YOttaConfigurationParse(unittest.TestCase):
                 "core-util": "^1.0.1",
                 "compiler-polyfill": "^1.2.0",
                 "mbed-drivers": "~0.12.0",
-                "greentea-client": "^0.1.2"
-                },
+                "greentea-client": "^0.1.2",
+            },
             "testDependencies": {
                 "unity": "^2.0.1",
-                }
+            },
         }
 
         # greentea-client defined in 'testDependencies'
@@ -95,20 +91,17 @@ class YOttaConfigurationParse(unittest.TestCase):
                 "test",
                 "asynchronous",
                 "async",
-                "mbed-official"
-                ],
+                "mbed-official",
+            ],
             "author": "Niklas Hauser <niklas.hauser@arm.com>",
             "license": "Apache-2.0",
             "dependencies": {
                 "minar": "^1.0.0",
                 "core-util": "^1.0.1",
                 "compiler-polyfill": "^1.2.0",
-                "mbed-drivers": "~0.12.0"
-                },
-            "testDependencies": {
-                "unity": "^2.0.1",
-                "greentea-client": "^0.1.2"
-                }
+                "mbed-drivers": "~0.12.0",
+            },
+            "testDependencies": {"unity": "^2.0.1", "greentea-client": "^0.1.2"},
         }
 
         # No dependency to greentea-client
@@ -125,19 +118,17 @@ class YOttaConfigurationParse(unittest.TestCase):
                 "test",
                 "asynchronous",
                 "async",
-                "mbed-official"
-                ],
+                "mbed-official",
+            ],
             "author": "Niklas Hauser <niklas.hauser@arm.com>",
             "license": "Apache-2.0",
             "dependencies": {
                 "minar": "^1.0.0",
                 "core-util": "^1.0.1",
                 "compiler-polyfill": "^1.2.0",
-                "mbed-drivers": "~0.12.0"
-                },
-            "testDependencies": {
-                "unity": "^2.0.1"
-                }
+                "mbed-drivers": "~0.12.0",
+            },
+            "testDependencies": {"unity": "^2.0.1"},
         }
 
         # Yotta module itself is 'greentea-client'
@@ -145,27 +136,17 @@ class YOttaConfigurationParse(unittest.TestCase):
             "name": "greentea-client",
             "version": "0.1.6",
             "description": "greentea client for mbed devices.",
-            "keywords": [
-                "greentea",
-                "greentea-client",
-                "mbedgt"
-                ],
+            "keywords": ["greentea", "greentea-client", "mbedgt"],
             "author": "Przemyslaw.Wirkus <Przemyslaw.Wirkus@arm.com>",
             "homepage": "https://github.com/ARMmbed/greentea-client",
             "repository": {
                 "url": "git@github.com:ARMmbed/greentea-client.git",
-                "type": "git"
+                "type": "git",
             },
             "license": "Apache-2.0",
-            "dependencies": {
-            },
-            "testDependencies": {
-                "utest": "^1.10.0",
-                "unity": "^2.0.0"
-            }
+            "dependencies": {},
+            "testDependencies": {"utest": "^1.10.0", "unity": "^2.0.0"},
         }
-
-
 
     def tearDown(self):
         pass
@@ -173,23 +154,28 @@ class YOttaConfigurationParse(unittest.TestCase):
     def test_get_name(self):
         yotta_module = YottaModule()
         # Modules using Greentea >= v0.2.0
-        for module_json in [self.YOTTA_MODULE_LONG,
-                            self.YOTTA_MODULE_LONG_IN_DEP,
-                            self.YOTTA_MODULE_LONG_IN_TESTDEP,
-                            self.YOTTA_MODULE_LONG_NO_DEP]:
+        for module_json in [
+            self.YOTTA_MODULE_LONG,
+            self.YOTTA_MODULE_LONG_IN_DEP,
+            self.YOTTA_MODULE_LONG_IN_TESTDEP,
+            self.YOTTA_MODULE_LONG_NO_DEP,
+        ]:
             yotta_module.set_yotta_module(module_json)
-            self.assertEqual('utest', yotta_module.get_name())
+            self.assertEqual("utest", yotta_module.get_name())
 
         # 'greentea-client' module itself
         yotta_module.set_yotta_module(self.GREENTEA_CLIENT_MODULE)
-        self.assertEqual('greentea-client', yotta_module.get_name())
+        self.assertEqual("greentea-client", yotta_module.get_name())
 
     def test_get_dict_items(self):
         yotta_module = YottaModule()
 
         yotta_module.set_yotta_module(self.YOTTA_MODULE_LONG)
-        self.assertEqual('Simple test harness with unity and greentea integration.', yotta_module.get_data().get('description'))
-        self.assertEqual('Apache-2.0', yotta_module.get_data().get('license'))
+        self.assertEqual(
+            "Simple test harness with unity and greentea integration.",
+            yotta_module.get_data().get("description"),
+        )
+        self.assertEqual("Apache-2.0", yotta_module.get_data().get("license"))
 
     def test_check_greentea_client_in_dep(self):
         yotta_module = YottaModule()
@@ -222,5 +208,5 @@ class YOttaConfigurationParse(unittest.TestCase):
         self.assertFalse(yotta_module.check_greentea_client())
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

@@ -13,7 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-#Greentea Host Tests Runner
+# Greentea Host Tests Runner
 from multiprocessing import freeze_support
 from htrun import init_host_test_cli_params
 from htrun.host_tests_runner.host_test_default import DefaultTestSelector
@@ -29,8 +29,9 @@ def main():
     result = 0
     cli_params = init_host_test_cli_params()
 
-    if cli_params.version:         # --version
-        import pkg_resources    # part of setuptools
+    if cli_params.version:  # --version
+        import pkg_resources  # part of setuptools
+
         version = pkg_resources.require("htrun")[0].version
         print(version)
     elif cli_params.send_break_cmd:  # -b with -p PORT (and optional -r RESET_TYPE)
@@ -39,7 +40,7 @@ def main():
             disk=cli_params.disk,
             reset_type=cli_params.forced_reset_type,
             baudrate=cli_params.baud_rate,
-            verbose=cli_params.verbose
+            verbose=cli_params.verbose,
         )
     else:
         test_selector = DefaultTestSelector(cli_params)

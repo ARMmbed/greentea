@@ -25,23 +25,23 @@ simple_test_spec = {
             "base_path": "./.build/K64F/ARM",
             "baud_rate": 115200,
             "tests": {
-                "mbed-drivers-test-generic_tests":{
-                    "binaries":[
+                "mbed-drivers-test-generic_tests": {
+                    "binaries": [
                         {
                             "binary_type": "bootable",
-                            "path": "./.build/K64F/ARM/mbed-drivers-test-generic_tests.bin"
+                            "path": "./.build/K64F/ARM/mbed-drivers-test-generic_tests.bin",
                         }
                     ]
                 },
-                "mbed-drivers-test-c_strings":{
-                    "binaries":[
+                "mbed-drivers-test-c_strings": {
+                    "binaries": [
                         {
                             "binary_type": "bootable",
-                            "path": "./.build/K64F/ARM/mbed-drivers-test-c_strings.bin"
+                            "path": "./.build/K64F/ARM/mbed-drivers-test-c_strings.bin",
                         }
                     ]
-                }
-            }
+                },
+            },
         },
         "K64F-GCC": {
             "platform": "K64F",
@@ -49,24 +49,21 @@ simple_test_spec = {
             "base_path": "./.build/K64F/GCC_ARM",
             "baud_rate": 9600,
             "tests": {
-                "mbed-drivers-test-generic_tests":{
-                    "binaries":[
+                "mbed-drivers-test-generic_tests": {
+                    "binaries": [
                         {
                             "binary_type": "bootable",
-                            "path": "./.build/K64F/GCC_ARM/mbed-drivers-test-generic_tests.bin"
+                            "path": "./.build/K64F/GCC_ARM/mbed-drivers-test-generic_tests.bin",
                         }
                     ]
                 }
-
-            }
-        }
-
+            },
+        },
     }
 }
 
 
 class TestsSpecFunctionality(unittest.TestCase):
-
     def setUp(self):
         self.ts_2_builds = simple_test_spec
 
@@ -96,7 +93,10 @@ class TestsSpecFunctionality(unittest.TestCase):
 
         test = build.get_tests()["tests-example-1"]
         self.assertEqual(test.get_name(), "tests-example-1")
-        self.assertEqual(test.get_binary().get_path(), "./BUILD/K64F/ARM/tests-mbedmicro-rtos-mbed-mail.bin")
+        self.assertEqual(
+            test.get_binary().get_path(),
+            "./BUILD/K64F/ARM/tests-mbedmicro-rtos-mbed-mail.bin",
+        )
 
         self.assertIs(type(test_builds), list)
         self.assertEqual(len(test_builds), 2)
@@ -158,8 +158,8 @@ class TestsSpecFunctionality(unittest.TestCase):
         self.assertEqual(len(test_builds_names), 2)
         self.assertIs(type(test_builds_names), list)
 
-        self.assertIn('K64F-ARM', test_builds_names)
-        self.assertIn('K64F-GCC', test_builds_names)
+        self.assertIn("K64F-ARM", test_builds_names)
+        self.assertIn("K64F-GCC", test_builds_names)
 
     def test_get_test_build(self):
         self.test_spec = TestSpec()
@@ -170,8 +170,8 @@ class TestsSpecFunctionality(unittest.TestCase):
         self.assertEqual(len(test_builds_names), 2)
         self.assertIs(type(test_builds_names), list)
 
-        self.assertNotEqual(None, self.test_spec.get_test_build('K64F-ARM'))
-        self.assertNotEqual(None, self.test_spec.get_test_build('K64F-GCC'))
+        self.assertNotEqual(None, self.test_spec.get_test_build("K64F-ARM"))
+        self.assertNotEqual(None, self.test_spec.get_test_build("K64F-GCC"))
 
     def test_get_build_properties(self):
         self.test_spec = TestSpec()
@@ -182,18 +182,18 @@ class TestsSpecFunctionality(unittest.TestCase):
         self.assertEqual(len(test_builds_names), 2)
         self.assertIs(type(test_builds_names), list)
 
-        k64f_arm = self.test_spec.get_test_build('K64F-ARM')
-        k64f_gcc = self.test_spec.get_test_build('K64F-GCC')
+        k64f_arm = self.test_spec.get_test_build("K64F-ARM")
+        k64f_gcc = self.test_spec.get_test_build("K64F-GCC")
 
         self.assertNotEqual(None, k64f_arm)
         self.assertNotEqual(None, k64f_gcc)
 
-        self.assertEqual('K64F', k64f_arm.get_platform())
-        self.assertEqual('ARM', k64f_arm.get_toolchain())
+        self.assertEqual("K64F", k64f_arm.get_platform())
+        self.assertEqual("ARM", k64f_arm.get_toolchain())
         self.assertEqual(115200, k64f_arm.get_baudrate())
 
-        self.assertEqual('K64F', k64f_gcc.get_platform())
-        self.assertEqual('GCC_ARM', k64f_gcc.get_toolchain())
+        self.assertEqual("K64F", k64f_gcc.get_platform())
+        self.assertEqual("GCC_ARM", k64f_gcc.get_toolchain())
         self.assertEqual(9600, k64f_gcc.get_baudrate())
 
     def test_get_test_builds_properties(self):
@@ -202,29 +202,30 @@ class TestsSpecFunctionality(unittest.TestCase):
         test_builds = self.test_spec.get_test_builds()
         test_builds_names = [x.get_name() for x in self.test_spec.get_test_builds()]
 
-        self.assertIn('K64F-ARM', test_builds_names)
-        self.assertIn('K64F-GCC', test_builds_names)
+        self.assertIn("K64F-ARM", test_builds_names)
+        self.assertIn("K64F-GCC", test_builds_names)
 
     def test_get_test_builds_names_filter_by_names(self):
         self.test_spec = TestSpec()
         self.test_spec.parse(self.ts_2_builds)
 
-        filter_by_names = ['K64F-ARM']
+        filter_by_names = ["K64F-ARM"]
         test_builds = self.test_spec.get_test_builds(filter_by_names=filter_by_names)
         test_builds_names = [x.get_name() for x in test_builds]
         self.assertEqual(len(test_builds_names), 1)
-        self.assertIn('K64F-ARM', test_builds_names)
+        self.assertIn("K64F-ARM", test_builds_names)
 
-        filter_by_names = ['K64F-GCC']
+        filter_by_names = ["K64F-GCC"]
         test_builds = self.test_spec.get_test_builds(filter_by_names=filter_by_names)
         test_builds_names = [x.get_name() for x in test_builds]
         self.assertEqual(len(test_builds_names), 1)
-        self.assertIn('K64F-GCC', test_builds_names)
+        self.assertIn("K64F-GCC", test_builds_names)
 
-        filter_by_names = ['SOME-PLATFORM-NAME']
+        filter_by_names = ["SOME-PLATFORM-NAME"]
         test_builds = self.test_spec.get_test_builds(filter_by_names=filter_by_names)
         test_builds_names = [x.get_name() for x in test_builds]
         self.assertEqual(len(test_builds_names), 0)
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     unittest.main()

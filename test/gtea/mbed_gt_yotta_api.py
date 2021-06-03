@@ -18,6 +18,7 @@ import tempfile
 import unittest
 from mbed_os_tools.test import mbed_yotta_api
 
+
 def generate_paths_and_write(data):
     # Generate some dummy temp directories
     curr_dir = os.getcwd()
@@ -25,10 +26,16 @@ def generate_paths_and_write(data):
     temp1_dir = os.mkdir(os.path.join(temp0_dir, "yotta_targets"))
     temp2_dir = os.mkdir(os.path.join(temp0_dir, "yotta_targets", "target_name"))
 
-    with open(os.path.join(os.path.join(temp0_dir, "yotta_targets", "target_name"), "target.json"), "w") as f:
+    with open(
+        os.path.join(
+            os.path.join(temp0_dir, "yotta_targets", "target_name"), "target.json"
+        ),
+        "w",
+    ) as f:
         f.write(data)
 
     return temp0_dir
+
 
 class YottaApiFunctionality(unittest.TestCase):
     def setUp(self):
@@ -38,10 +45,14 @@ class YottaApiFunctionality(unittest.TestCase):
         pass
 
     def test_build_with_yotta_invalid_target_name(self):
-        res, ret = mbed_yotta_api.build_with_yotta("invalid_name", True, build_to_debug=True)
+        res, ret = mbed_yotta_api.build_with_yotta(
+            "invalid_name", True, build_to_debug=True
+        )
         self.assertEqual(res, False)
 
-        res, ret = mbed_yotta_api.build_with_yotta("invalid_name", True, build_to_release=True)
+        res, ret = mbed_yotta_api.build_with_yotta(
+            "invalid_name", True, build_to_release=True
+        )
         self.assertEqual(res, False)
 
     def test_get_platform_name_from_yotta_target_invalid_target_file(self):

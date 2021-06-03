@@ -17,6 +17,7 @@
 import uuid
 from .. import BaseHostTest
 
+
 class EchoTest(BaseHostTest):
 
     __result = None

@@ -23,6 +23,7 @@ import unittest
 from mock import patch
 from mbed_os_tools.test import mbed_report_api
 
+
 class GreenteaReportApiFunctionality(unittest.TestCase):
     def setUp(self):
         self.test_case_data = {
@@ -35,7 +36,7 @@ class GreenteaReportApiFunctionality(unittest.TestCase):
                             "time_end": 3.00,
                             "result_text": "FAIL",
                             "passed": 10,
-                            "failed": 10
+                            "failed": 10,
                         },
                         "case-2": {
                             "duration": 1.00,
@@ -43,7 +44,7 @@ class GreenteaReportApiFunctionality(unittest.TestCase):
                             "time_end": 3.00,
                             "result_text": "SKIPPED",
                             "passed": 10,
-                            "failed": 10
+                            "failed": 10,
                         },
                         "case-3": {
                             "duration": 1.00,
@@ -51,11 +52,11 @@ class GreenteaReportApiFunctionality(unittest.TestCase):
                             "time_end": 3.00,
                             "result_text": "?",
                             "passed": 10,
-                            "failed": 10
+                            "failed": 10,
                         },
                     },
                     "single_test_output": "OK",
-                    "platform_name": "K64F"
+                    "platform_name": "K64F",
                 }
             }
         }
@@ -63,38 +64,32 @@ class GreenteaReportApiFunctionality(unittest.TestCase):
         self.test_suite_data = {
             "K64F-ARM": {
                 "test-1": {
-                    "testcase_result": {
-                        "build_path": ".."
-                    },
+                    "testcase_result": {"build_path": ".."},
                     "single_test_output": "OK",
                     "single_test_result": "OK",
                     "platform_name": "K64F",
                     "elapsed_time": 1.2,
-                    "copy_method": "shell"
+                    "copy_method": "shell",
                 },
                 "test-2": {
-                    "testcase_result": {
-                        "build_path": ".."
-                    },
+                    "testcase_result": {"build_path": ".."},
                     "single_test_output": "OK",
                     "single_test_result": "OK",
                     "platform_name": "K64F",
                     "elapsed_time": 1.2,
-                    "copy_method": "shell"
-                }
+                    "copy_method": "shell",
+                },
             },
             "N32F-ARM": {
                 "test-3": {
-                    "testcase_result": {
-                        "build_path": ".."
-                    },
+                    "testcase_result": {"build_path": ".."},
                     "single_test_output": "OK",
                     "single_test_result": "OK",
                     "platform_name": "N32F",
                     "elapsed_time": 1.2,
-                    "copy_method": "shell"
+                    "copy_method": "shell",
                 }
-            }
+            },
         }
 
     def tearDown(self):
@@ -102,7 +97,7 @@ class GreenteaReportApiFunctionality(unittest.TestCase):
 
     def test_export_to_file(self):
         # Invalid filepath
-        payload  = "PAYLOAD"
+        payload = "PAYLOAD"
         filepath = "."
 
         old_stdout = sys.stdout
@@ -119,13 +114,12 @@ class GreenteaReportApiFunctionality(unittest.TestCase):
         result = mbed_report_api.export_to_file(temp_file[1], payload)
         self.assertTrue(result)
 
-        with open(temp_file[1], 'r') as f:
+        with open(temp_file[1], "r") as f:
             read_data = f.read()
 
         self.assertEqual(read_data, payload)
         os.close(temp_file[0])
         os.remove(temp_file[1])
-
 
     def test_exporter_text(self):
         result, result_ = mbed_report_api.exporter_text(self.test_suite_data)
@@ -160,6 +154,7 @@ class GreenteaReportApiFunctionality(unittest.TestCase):
         self.assertIsNotNone(result)
 
         from xml.etree import ElementTree as ET
+
         xml = ET.fromstring(result)
 
         self.assertEqual(xml.tag, "testsuites")

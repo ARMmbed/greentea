@@ -17,8 +17,8 @@ import unittest
 
 from htrun import get_plugin_caps
 
-class BasicHostTestsTestCase(unittest.TestCase):
 
+class BasicHostTestsTestCase(unittest.TestCase):
     def setUp(self):
         pass
 
@@ -30,5 +30,5 @@ class BasicHostTestsTestCase(unittest.TestCase):
         self.assertIs(type(d), dict)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

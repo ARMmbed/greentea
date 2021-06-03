@@ -28,29 +28,29 @@ test_spec_def = {
             "base_path": "./.build/K64F/ARM",
             "baud_rate": 115200,
             "tests": {
-                "mbed-drivers-test-generic_tests":{
-                    "binaries":[
+                "mbed-drivers-test-generic_tests": {
+                    "binaries": [
                         {
                             "binary_type": "bootable",
-                            "path": "./.build/K64F/ARM/mbed-drivers-test-generic_tests.bin"
+                            "path": "./.build/K64F/ARM/mbed-drivers-test-generic_tests.bin",
                         }
                     ]
                 },
-                "mbed-drivers-test-c_strings":{
-                    "binaries":[
+                "mbed-drivers-test-c_strings": {
+                    "binaries": [
                         {
                             "binary_type": "bootable",
-                            "path": "./.build/K64F/ARM/mbed-drivers-test-c_strings.bin"
+                            "path": "./.build/K64F/ARM/mbed-drivers-test-c_strings.bin",
                         }
                     ]
-                }
-            }
+                },
+            },
         }
     }
 }
 
-class GreenteaCliFunctionality(unittest.TestCase):
 
+class GreenteaCliFunctionality(unittest.TestCase):
     def setUp(self):
         pass
 
@@ -119,39 +119,46 @@ class GreenteaCliFunctionality(unittest.TestCase):
         test_spec.parse(test_spec_def)
         test_build = test_spec.get_test_builds()[0]
 
-        test_list = mbed_greentea_cli.create_filtered_test_list(test_build.get_tests(),
-                                                                'mbed-drivers-test-generic_*',
-                                                                None,
-                                                                test_spec=test_spec)
-        self.assertEqual(set(test_list.keys()), set(['mbed-drivers-test-generic_tests']))
+        test_list = mbed_greentea_cli.create_filtered_test_list(
+            test_build.get_tests(),
+            "mbed-drivers-test-generic_*",
+            None,
+            test_spec=test_spec,
+        )
+        self.assertEqual(
+            set(test_list.keys()), set(["mbed-drivers-test-generic_tests"])
+        )
 
-        test_list = mbed_greentea_cli.create_filtered_test_list(test_build.get_tests(),
-                                                                '*_strings',
-                                                                None,
-                                                                test_spec=test_spec)
-        self.assertEqual(set(test_list.keys()), set(['mbed-drivers-test-c_strings']))
+        test_list = mbed_greentea_cli.create_filtered_test_list(
+            test_build.get_tests(), "*_strings", None, test_spec=test_spec
+        )
+        self.assertEqual(set(test_list.keys()), set(["mbed-drivers-test-c_strings"]))
 
-        test_list = mbed_greentea_cli.create_filtered_test_list(test_build.get_tests(),
-                                                                'mbed*s',
-                                                                None,
-                                                                test_spec=test_spec)
-        expected = set(['mbed-drivers-test-c_strings', 'mbed-drivers-test-generic_tests'])
+        test_list = mbed_greentea_cli.create_filtered_test_list(
+            test_build.get_tests(), "mbed*s", None, test_spec=test_spec
+        )
+        expected = set(
+            ["mbed-drivers-test-c_strings", "mbed-drivers-test-generic_tests"]
+        )
         self.assertEqual(set(test_list.keys()), expected)
 
-        test_list = mbed_greentea_cli.create_filtered_test_list(test_build.get_tests(),
-                                                                '*-drivers-*',
-                                                                None,
-                                                                test_spec=test_spec)
-        expected = set(['mbed-drivers-test-c_strings', 'mbed-drivers-test-generic_tests'])
+        test_list = mbed_greentea_cli.create_filtered_test_list(
+            test_build.get_tests(), "*-drivers-*", None, test_spec=test_spec
+        )
+        expected = set(
+            ["mbed-drivers-test-c_strings", "mbed-drivers-test-generic_tests"]
+        )
         self.assertEqual(set(test_list.keys()), expected)
 
         # Should be case insensitive
-        test_list = mbed_greentea_cli.create_filtered_test_list(test_build.get_tests(),
-                                                                '*-DRIVERS-*',
-                                                                None,
-                                                                test_spec=test_spec)
-        expected = set(['mbed-drivers-test-c_strings', 'mbed-drivers-test-generic_tests'])
+        test_list = mbed_greentea_cli.create_filtered_test_list(
+            test_build.get_tests(), "*-DRIVERS-*", None, test_spec=test_spec
+        )
+        expected = set(
+            ["mbed-drivers-test-c_strings", "mbed-drivers-test-generic_tests"]
+        )
         self.assertEqual(set(test_list.keys()), expected)
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     unittest.main()

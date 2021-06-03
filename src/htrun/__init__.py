@@ -250,7 +250,7 @@ def init_host_test_cli_params():
         fm_help = SUPPRESS_HELP
     else:
         fm_help = (
-            'Fast Model connection, This option requires mbed-fastmodel-agent '
+            "Fast Model connection, This option requires mbed-fastmodel-agent "
             'module installed, list CONFIGs via "mbedfm"'
         )
     parser.add_option(

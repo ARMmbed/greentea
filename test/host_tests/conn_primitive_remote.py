@@ -63,7 +63,6 @@ class RemoteModuleMock(object):
 
 
 class ConnPrimitiveRemoteTestCase(unittest.TestCase):
-
     def setUp(self):
         self.config = {
             "grm_module": "RemoteModuleMock",
@@ -84,11 +83,14 @@ class ConnPrimitiveRemoteTestCase(unittest.TestCase):
         self.assertIsInstance(self.remote.selected_resource, RemoteResourceMock)
 
         # allocate is called
-        self.remote.client.allocate.assert_called_once_with({
-            'platform_name': self.config.get('platform_name'),
-            'power_on': True,
-            'connected': True,
-            'tags': {"a": True, "b": True}})
+        self.remote.client.allocate.assert_called_once_with(
+            {
+                "platform_name": self.config.get("platform_name"),
+                "power_on": True,
+                "connected": True,
+                "tags": {"a": True, "b": True},
+            }
+        )
 
         # flash is called
         self.remote.selected_resource.open_connection.called_once_with("test.bin")
@@ -122,5 +124,5 @@ class ConnPrimitiveRemoteTestCase(unittest.TestCase):
         resource.release.assert_called_once()
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

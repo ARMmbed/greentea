@@ -27,8 +27,12 @@ home_dir = tempfile.mkdtemp()
 mbed_greentea_dlm.HOME_DIR = home_dir
 mbed_greentea_dlm.GREENTEA_HOME_DIR = ".mbed-greentea"
 mbed_greentea_dlm.GREENTEA_GLOBAL_LOCK = "glock.lock"
-mbed_greentea_dlm.GREENTEA_KETTLE = "kettle.json" # active Greentea instances
-mbed_greentea_dlm.GREENTEA_KETTLE_PATH = os.path.join(mbed_greentea_dlm.HOME_DIR, mbed_greentea_dlm.GREENTEA_HOME_DIR, mbed_greentea_dlm.GREENTEA_KETTLE)
+mbed_greentea_dlm.GREENTEA_KETTLE = "kettle.json"  # active Greentea instances
+mbed_greentea_dlm.GREENTEA_KETTLE_PATH = os.path.join(
+    mbed_greentea_dlm.HOME_DIR,
+    mbed_greentea_dlm.GREENTEA_HOME_DIR,
+    mbed_greentea_dlm.GREENTEA_KETTLE,
+)
 
 
 class GreenteaDlmFunctionality(unittest.TestCase):
@@ -41,7 +45,9 @@ class GreenteaDlmFunctionality(unittest.TestCase):
     def test_greentea_home_dir_init(self):
         mbed_greentea_dlm.greentea_home_dir_init()
 
-        path = os.path.join(mbed_greentea_dlm.HOME_DIR, mbed_greentea_dlm.GREENTEA_HOME_DIR)
+        path = os.path.join(
+            mbed_greentea_dlm.HOME_DIR, mbed_greentea_dlm.GREENTEA_HOME_DIR
+        )
         self.assertTrue(os.path.exists(path))
 
     def test_greentea_get_app_sem(self):
@@ -52,13 +58,21 @@ class GreenteaDlmFunctionality(unittest.TestCase):
 
     def test_greentea_get_target_lock(self):
         lock = mbed_greentea_dlm.greentea_get_target_lock("target-id-2")
-        path = os.path.join(mbed_greentea_dlm.HOME_DIR, mbed_greentea_dlm.GREENTEA_HOME_DIR, "target-id-2")
+        path = os.path.join(
+            mbed_greentea_dlm.HOME_DIR,
+            mbed_greentea_dlm.GREENTEA_HOME_DIR,
+            "target-id-2",
+        )
         self.assertIsNotNone(lock)
         self.assertEqual(path, lock.path)
 
     def test_greentea_get_global_lock(self):
         lock = mbed_greentea_dlm.greentea_get_global_lock()
-        path = os.path.join(mbed_greentea_dlm.HOME_DIR, mbed_greentea_dlm.GREENTEA_HOME_DIR, "glock.lock")
+        path = os.path.join(
+            mbed_greentea_dlm.HOME_DIR,
+            mbed_greentea_dlm.GREENTEA_HOME_DIR,
+            "glock.lock",
+        )
         self.assertIsNotNone(lock)
         self.assertEqual(path, lock.path)
 
@@ -92,7 +106,9 @@ class GreenteaDlmFunctionality(unittest.TestCase):
         uuid = "001"
         mbed_greentea_dlm.greentea_update_kettle(uuid)
 
-        data = mbed_greentea_dlm.get_json_data_from_file(mbed_greentea_dlm.GREENTEA_KETTLE_PATH)
+        data = mbed_greentea_dlm.get_json_data_from_file(
+            mbed_greentea_dlm.GREENTEA_KETTLE_PATH
+        )
         self.assertIsNotNone(data)
         self.assertIn("start_time", data[uuid])
         self.assertIn("cwd", data[uuid])
@@ -103,29 +119,37 @@ class GreenteaDlmFunctionality(unittest.TestCase):
 
         # Check greentea_kettle_info()
         output = mbed_greentea_dlm.greentea_kettle_info().splitlines()
-        line   = output[3]
+        line = output[3]
         self.assertIn(os.getcwd(), line)
         self.assertIn(uuid, line)
 
         # Test greentea_acquire_target_id
         target_id = "999"
         mbed_greentea_dlm.greentea_acquire_target_id(target_id, uuid)
-        data = mbed_greentea_dlm.get_json_data_from_file(mbed_greentea_dlm.GREENTEA_KETTLE_PATH)
+        data = mbed_greentea_dlm.get_json_data_from_file(
+            mbed_greentea_dlm.GREENTEA_KETTLE_PATH
+        )
         self.assertIn(uuid, data)
         self.assertIn("locks", data[uuid])
         self.assertIn(target_id, data[uuid]["locks"])
 
         # Test greentea_release_target_id
         mbed_greentea_dlm.greentea_release_target_id(target_id, uuid)
-        data = mbed_greentea_dlm.get_json_data_from_file(mbed_greentea_dlm.GREENTEA_KETTLE_PATH)
+        data = mbed_greentea_dlm.get_json_data_from_file(
+            mbed_greentea_dlm.GREENTEA_KETTLE_PATH
+        )
         self.assertIn(uuid, data)
         self.assertIn("locks", data[uuid])
         self.assertNotIn(target_id, data[uuid]["locks"])
 
         # Test greentea_acquire_target_id_from_list
         target_id = "999"
-        result = mbed_greentea_dlm.greentea_acquire_target_id_from_list([target_id], uuid)
-        data = mbed_greentea_dlm.get_json_data_from_file(mbed_greentea_dlm.GREENTEA_KETTLE_PATH)
+        result = mbed_greentea_dlm.greentea_acquire_target_id_from_list(
+            [target_id], uuid
+        )
+        data = mbed_greentea_dlm.get_json_data_from_file(
+            mbed_greentea_dlm.GREENTEA_KETTLE_PATH
+        )
         self.assertEqual(result, target_id)
         self.assertIn(uuid, data)
         self.assertIn("locks", data[uuid])
@@ -133,5 +157,7 @@ class GreenteaDlmFunctionality(unittest.TestCase):
 
         # Check greentea_clean_kettle()
         mbed_greentea_dlm.greentea_clean_kettle(uuid)
-        data = mbed_greentea_dlm.get_json_data_from_file(mbed_greentea_dlm.GREENTEA_KETTLE_PATH)
+        data = mbed_greentea_dlm.get_json_data_from_file(
+            mbed_greentea_dlm.GREENTEA_KETTLE_PATH
+        )
         self.assertEqual(data, {})

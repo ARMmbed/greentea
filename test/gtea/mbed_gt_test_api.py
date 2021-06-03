@@ -19,7 +19,6 @@ from mock import patch, MagicMock
 
 
 class GreenteaTestAPI(unittest.TestCase):
-
     def setUp(self):
         self.OUTPUT_FAILURE = """mbedgt: mbed-host-test-runner: started
 [1459245784.59][CONN][RXD] >>> Test cases: 7 passed, 1 failed with reason 'Test Cases Failed'
@@ -419,54 +418,113 @@ Plugin info: HostTestPluginBase::BasePlugin: Waiting up to 60 sec for '024000003
         pass
 
     def test_get_test_result(self):
-        self.assertEqual(mbed_test_api.TEST_RESULT_OK, mbed_test_api.get_test_result(self.OUTPUT_SUCCESS))
-        self.assertEqual(mbed_test_api.TEST_RESULT_FAIL, mbed_test_api.get_test_result(self.OUTPUT_FAILURE))
-        self.assertEqual(mbed_test_api.TEST_RESULT_TIMEOUT, mbed_test_api.get_test_result(self.OUTPUT_TIMEOUT))
-        self.assertEqual(mbed_test_api.TEST_RESULT_UNDEF, mbed_test_api.get_test_result(self.OUTPUT_UNDEF))
+        self.assertEqual(
+            mbed_test_api.TEST_RESULT_OK,
+            mbed_test_api.get_test_result(self.OUTPUT_SUCCESS),
+        )
+        self.assertEqual(
+            mbed_test_api.TEST_RESULT_FAIL,
+            mbed_test_api.get_test_result(self.OUTPUT_FAILURE),
+        )
+        self.assertEqual(
+            mbed_test_api.TEST_RESULT_TIMEOUT,
+            mbed_test_api.get_test_result(self.OUTPUT_TIMEOUT),
+        )
+        self.assertEqual(
+            mbed_test_api.TEST_RESULT_UNDEF,
+            mbed_test_api.get_test_result(self.OUTPUT_UNDEF),
+        )
 
     def test_get_test_result_ok_len(self):
-        r = mbed_test_api.get_testcase_utest(self.OUTOUT_CSTRING_TEST, 'C strings: %e %E float formatting')
+        r = mbed_test_api.get_testcase_utest(
+            self.OUTOUT_CSTRING_TEST, "C strings: %e %E float formatting"
+        )
 
         self.assertEqual(len(r), 6)
-        self.assertIn("[1459246276.41][CONN][RXD] >>> Running case #7: 'C strings: %e %E float formatting'...", r)
-        self.assertIn("[1459246276.46][CONN][INF] found KV pair in stream: {{__testcase_start;C strings: %e %E float formatting}}, queued...", r)
-        self.assertIn("[1459246276.46][CONN][RXD] {{__testcase_start;C strings: %e %E float formatting}}", r)
-        self.assertIn("[1459246276.52][CONN][INF] found KV pair in stream: {{__testcase_finish;C strings: %e %E float formatting;1;0}}, queued...", r)
-        self.assertIn("[1459246276.53][CONN][RXD] {{__testcase_finish;C strings: %e %E float formatting;1;0}}", r)
-        self.assertIn("[1459246276.59][CONN][RXD] >>> 'C strings: %e %E float formatting': 1 passed, 0 failed", r)
-
+        self.assertIn(
+            "[1459246276.41][CONN][RXD] >>> Running case #7: 'C strings: %e %E float formatting'...",
+            r,
+        )
+        self.assertIn(
+            "[1459246276.46][CONN][INF] found KV pair in stream: {{__testcase_start;C strings: %e %E float formatting}}, queued...",
+            r,
+        )
+        self.assertIn(
+            "[1459246276.46][CONN][RXD] {{__testcase_start;C strings: %e %E float formatting}}",
+            r,
+        )
+        self.assertIn(
+            "[1459246276.52][CONN][INF] found KV pair in stream: {{__testcase_finish;C strings: %e %E float formatting;1;0}}, queued...",
+            r,
+        )
+        self.assertIn(
+            "[1459246276.53][CONN][RXD] {{__testcase_finish;C strings: %e %E float formatting;1;0}}",
+            r,
+        )
+        self.assertIn(
+            "[1459246276.59][CONN][RXD] >>> 'C strings: %e %E float formatting': 1 passed, 0 failed",
+            r,
+        )
 
     def test_get_test_result_fail_len(self):
-        r = mbed_test_api.get_testcase_utest(self.OUTOUT_CSTRING_TEST, 'C strings: %f %f float formatting')
+        r = mbed_test_api.get_testcase_utest(
+            self.OUTOUT_CSTRING_TEST, "C strings: %f %f float formatting"
+        )
 
         self.assertEqual(len(r), 9)
-        self.assertIn("[1459246275.88][CONN][RXD] >>> Running case #6: 'C strings: %f %f float formatting'...", r)
-        self.assertIn("[1459246275.94][CONN][INF] found KV pair in stream: {{__testcase_start;C strings: %f %f float formatting}}, queued...", r)
-        self.assertIn("[1459246275.94][CONN][RXD] {{__testcase_start;C strings: %f %f float formatting}}", r)
-        self.assertIn("[1459246276.10][CONN][RXD] :57::FAIL: Expected '0.002000 0.924300 15.913200 791.773680 6208.200000 25719.495200 426815.982588 6429271.046000 42468024.930000 212006462.910000' Was '", r)
+        self.assertIn(
+            "[1459246275.88][CONN][RXD] >>> Running case #6: 'C strings: %f %f float formatting'...",
+            r,
+        )
+        self.assertIn(
+            "[1459246275.94][CONN][INF] found KV pair in stream: {{__testcase_start;C strings: %f %f float formatting}}, queued...",
+            r,
+        )
+        self.assertIn(
+            "[1459246275.94][CONN][RXD] {{__testcase_start;C strings: %f %f float formatting}}",
+            r,
+        )
+        self.assertIn(
+            "[1459246276.10][CONN][RXD] :57::FAIL: Expected '0.002000 0.924300 15.913200 791.773680 6208.200000 25719.495200 426815.982588 6429271.046000 42468024.930000 212006462.910000' Was '",
+            r,
+        )
         self.assertIn("'", r)
-        self.assertIn("[1459246276.18][CONN][RXD] >>> failure with reason 'Assertion Failed' during 'Case Handler'", r)
-        self.assertIn("[1459246276.25][CONN][INF] found KV pair in stream: {{__testcase_finish;C strings: %f %f float formatting;0;1}}, queued...", r)
-        self.assertIn("[1459246276.25][CONN][RXD] {{__testcase_finish;C strings: %f %f float formatting;0;1}}", r)
-        self.assertIn("[1459246276.34][CONN][RXD] >>> 'C strings: %f %f float formatting': 0 passed, 1 failed with reason 'Test Cases Failed'", r)
+        self.assertIn(
+            "[1459246276.18][CONN][RXD] >>> failure with reason 'Assertion Failed' during 'Case Handler'",
+            r,
+        )
+        self.assertIn(
+            "[1459246276.25][CONN][INF] found KV pair in stream: {{__testcase_finish;C strings: %f %f float formatting;0;1}}, queued...",
+            r,
+        )
+        self.assertIn(
+            "[1459246276.25][CONN][RXD] {{__testcase_finish;C strings: %f %f float formatting;0;1}}",
+            r,
+        )
+        self.assertIn(
+            "[1459246276.34][CONN][RXD] >>> 'C strings: %f %f float formatting': 0 passed, 1 failed with reason 'Test Cases Failed'",
+            r,
+        )
 
     def get_testcase_count_and_names(self):
-        tc_count, tc_names = mbed_test_api.get_testcase_count_and_names(self.OUTOUT_CSTRING_TEST_CASE_COUNT_AND_NAME)
+        tc_count, tc_names = mbed_test_api.get_testcase_count_and_names(
+            self.OUTOUT_CSTRING_TEST_CASE_COUNT_AND_NAME
+        )
 
         self.assertEqual(tc_count, 2)
-        self.assertIn('C strings: strtok', tc_names)
-        self.assertIn('C strings: strpbrk', tc_names)
+        self.assertIn("C strings: strtok", tc_names)
+        self.assertIn("C strings: strpbrk", tc_names)
 
     def test_get_test_result_return_val(self):
 
         test_case_names = [
-            'C strings: %e %E float formatting',
-            'C strings: %g %g float formatting',
-            'C strings: %i %d integer formatting',
-            'C strings: %u %d integer formatting',
-            'C strings: %x %E integer formatting',
-            'C strings: strpbrk',
-            'C strings: strtok'
+            "C strings: %e %E float formatting",
+            "C strings: %g %g float formatting",
+            "C strings: %i %d integer formatting",
+            "C strings: %u %d integer formatting",
+            "C strings: %x %E integer formatting",
+            "C strings: strpbrk",
+            "C strings: strtok",
         ]
 
         for test_case in test_case_names:
@@ -474,7 +532,9 @@ Plugin info: HostTestPluginBase::BasePlugin: Waiting up to 60 sec for '024000003
             self.assertEqual(len(r), 6)
 
         # This failing test case has different long lenght
-        r = mbed_test_api.get_testcase_utest(self.OUTOUT_CSTRING_TEST, 'C strings: %f %f float formatting')
+        r = mbed_test_api.get_testcase_utest(
+            self.OUTOUT_CSTRING_TEST, "C strings: %f %f float formatting"
+        )
         self.assertEqual(len(r), 9)
 
     def test_get_testcase_summary_failures(self):
@@ -488,83 +548,94 @@ Plugin info: HostTestPluginBase::BasePlugin: Waiting up to 60 sec for '024000003
         self.assertEqual(None, r)
 
     def test_get_testcase_summary_value_failures(self):
-        r = mbed_test_api.get_testcase_summary("[1459246276.95][CONN][INF] found KV pair in stream: {{__testcase_summary;;}}")
+        r = mbed_test_api.get_testcase_summary(
+            "[1459246276.95][CONN][INF] found KV pair in stream: {{__testcase_summary;;}}"
+        )
         self.assertEqual(None, r)
 
-        r = mbed_test_api.get_testcase_summary("[1459246276.95][CONN][INF] found KV pair in stream: {{__testcase_summary;-1;-2}}")
+        r = mbed_test_api.get_testcase_summary(
+            "[1459246276.95][CONN][INF] found KV pair in stream: {{__testcase_summary;-1;-2}}"
+        )
         self.assertEqual(None, r)
 
-        r = mbed_test_api.get_testcase_summary("[1459246276.95][CONN][INF] found KV pair in stream: {{__testcase_summary;A;0}}")
+        r = mbed_test_api.get_testcase_summary(
+            "[1459246276.95][CONN][INF] found KV pair in stream: {{__testcase_summary;A;0}}"
+        )
         self.assertEqual(None, r)
 
     def test_get_testcase_summary_ok(self):
 
-        r = mbed_test_api.get_testcase_summary("[1459246276.95][CONN][INF] found KV pair in stream: {{__testcase_summary;0;0}}")
+        r = mbed_test_api.get_testcase_summary(
+            "[1459246276.95][CONN][INF] found KV pair in stream: {{__testcase_summary;0;0}}"
+        )
         self.assertNotEqual(None, r)
         self.assertEqual((0, 0), r)
 
         r = mbed_test_api.get_testcase_summary(self.OUTOUT_CSTRING_TEST)
         self.assertNotEqual(None, r)
-        self.assertEqual((7, 1), r)     # {{__testcase_summary;7;1}}
+        self.assertEqual((7, 1), r)  # {{__testcase_summary;7;1}}
 
         r = mbed_test_api.get_testcase_summary(self.OUTPUT_SUCCESS)
         self.assertNotEqual(None, r)
-        self.assertEqual((4, 0), r)     # {{__testcase_summary;4;0}}
+        self.assertEqual((4, 0), r)  # {{__testcase_summary;4;0}}
 
     def test_get_testcase_result(self):
         r = mbed_test_api.get_testcase_result(self.OUTOUT_CSTRING_TEST)
         self.assertEqual(len(r), 8)
 
         test_case_names = [
-            'C strings: %e %E float formatting',
-            'C strings: %g %g float formatting',
-            'C strings: %i %d integer formatting',
-            'C strings: %u %d integer formatting',
-            'C strings: %x %E integer formatting',
-            'C strings: strpbrk',
-            'C strings: strtok'
+            "C strings: %e %E float formatting",
+            "C strings: %g %g float formatting",
+            "C strings: %i %d integer formatting",
+            "C strings: %u %d integer formatting",
+            "C strings: %x %E integer formatting",
+            "C strings: strpbrk",
+            "C strings: strtok",
         ]
 
         for test_case in test_case_names:
             tc = r[test_case]
             # If data structure is correct
-            self.assertIn('utest_log', tc)
-            self.assertIn('time_start', tc)
-            self.assertIn('time_end', tc)
-            self.assertIn('failed', tc)
-            self.assertIn('result', tc)
-            self.assertIn('passed', tc)
-            self.assertIn('duration', tc)
+            self.assertIn("utest_log", tc)
+            self.assertIn("time_start", tc)
+            self.assertIn("time_end", tc)
+            self.assertIn("failed", tc)
+            self.assertIn("result", tc)
+            self.assertIn("passed", tc)
+            self.assertIn("duration", tc)
             # values passed
-            self.assertEqual(tc['passed'], 1)
-            self.assertEqual(tc['failed'], 0)
-            self.assertEqual(tc['result_text'], 'OK')
+            self.assertEqual(tc["passed"], 1)
+            self.assertEqual(tc["failed"], 0)
+            self.assertEqual(tc["result_text"], "OK")
 
         # Failing test case
-        tc = r['C strings: %f %f float formatting']
-        self.assertEqual(tc['passed'], 0)
-        self.assertEqual(tc['failed'], 1)
-        self.assertEqual(tc['result_text'], 'FAIL')
+        tc = r["C strings: %f %f float formatting"]
+        self.assertEqual(tc["passed"], 0)
+        self.assertEqual(tc["failed"], 1)
+        self.assertEqual(tc["result_text"], "FAIL")
 
     def test_get_testcase_result_tescase_name_and_count(self):
-        r = mbed_test_api.get_testcase_result(self.OUTOUT_GENERIC_TESTS_TESCASE_NAME_AND_COUNT)
+        r = mbed_test_api.get_testcase_result(
+            self.OUTOUT_GENERIC_TESTS_TESCASE_NAME_AND_COUNT
+        )
         self.assertEqual(len(r), 4)
 
-        self.assertIn('Basic', r)
-        self.assertIn('Blinky', r)
-        self.assertIn('C++ heap', r)
-        self.assertIn('C++ stack', r)
+        self.assertIn("Basic", r)
+        self.assertIn("Blinky", r)
+        self.assertIn("C++ heap", r)
+        self.assertIn("C++ stack", r)
 
     def test_get_testcase_result_tescase_name_and_count(self):
-        r = mbed_test_api.get_testcase_result(self.OUTOUT_CSTRING_TEST_CASE_COUNT_AND_NAME)
+        r = mbed_test_api.get_testcase_result(
+            self.OUTOUT_CSTRING_TEST_CASE_COUNT_AND_NAME
+        )
         self.assertEqual(len(r), 2)
 
-        self.assertIn('C strings: strpbrk', r)
-        self.assertIn('C strings: strtok', r)
+        self.assertIn("C strings: strpbrk", r)
+        self.assertIn("C strings: strtok", r)
 
-        self.assertEqual(r['C strings: strpbrk']['result_text'], 'SKIPPED')
-        self.assertEqual(r['C strings: strtok']['result_text'], 'ERROR')
-
+        self.assertEqual(r["C strings: strpbrk"]["result_text"], "SKIPPED")
+        self.assertEqual(r["C strings: strtok"]["result_text"], "ERROR")
 
     def test_get_test_results_empty_output(self):
         result = mbed_test_api.get_test_result("")
@@ -587,7 +658,9 @@ Plugin info: HostTestPluginBase::BasePlugin: Waiting up to 60 sec for '024000003
 
     def test_get_testcase_result_start_tag_missing(self):
         result = mbed_test_api.get_testcase_result(self.OUTPUT_STARTTAG_MISSING)
-        self.assertEqual(result['DNS query']['utest_log'], "__testcase_start tag not found.")
+        self.assertEqual(
+            result["DNS query"]["utest_log"], "__testcase_start tag not found."
+        )
 
     def test_run_htrun_unicode(self):
         with patch("mbed_os_tools.test.mbed_test_api.run_command") as _run_command:
@@ -616,5 +689,6 @@ Plugin info: HostTestPluginBase::BasePlugin: Waiting up to 60 sec for '024000003
         result = mbed_test_api.parse_global_resource_mgr(":".join(expected[:3]))
         self.assertEqual(result, expected)
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     unittest.main()
