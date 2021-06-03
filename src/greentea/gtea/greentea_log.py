@@ -2,7 +2,7 @@
 # Copyright (c) 2021 Arm Limited and Contributors. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
-
+"""Greentea logging implementation."""
 from threading import Lock
 
 try:
@@ -14,9 +14,7 @@ except ImportError:
 
 
 class GreenTeaSimpleLockLogger(object):
-    """! Simple locking printing mechanism
-    @details We are using parallel testing
-    """
+    """Simple locking printing mechanism."""
 
     # Colors used by color(ama) terminal component
     DIM = str()
@@ -27,9 +25,9 @@ class GreenTeaSimpleLockLogger(object):
     YELLOW = str()
     RESET = str()
 
-    def __init__(self, colors=True, use_colorama=False):
-        self.use_colorama = colorama  # Should we try to use colorama
-        self.colorful(colors)  # Set and use colours for formatting
+    def __init__(self, color_enable=True):
+        """Initialise the colors for formatting if in use."""
+        self.colorful(color_enable)
 
         # Mutext used to protect logger prints
         # Usage:
@@ -37,23 +35,23 @@ class GreenTeaSimpleLockLogger(object):
         # GREENTEA_LOG_MUTEX.release()
         self.GREENTEA_LOG_MUTEX = Lock()
 
-        if self.colors:
-            if not self.use_colorama:
+        if self.color_enable:
+            if not COLORAMA:
                 self.gt_log("Colorful console output is disabled")
             else:
                 colorama.init()
 
-    def colorful(self, colors):
-        """! Enable/Disable colourful printing"""
-        self.colors = colors
-        if self.colors:
+    def colorful(self, enable=True):
+        """Enable/Disable colourful printing."""
+        self.color_enable = enable
+        if self.color_enable:
             self.__set_colors()
         else:
             self.__clear_colors()
 
     def __set_colors(self):
-        """! Zeroes colours used for formatting"""
-        if self.use_colorama:
+        """Set colours to use for formatting."""
+        if COLORAMA and self.color_enable:
             self.DIM = colorama.Style.DIM
             self.BRIGHT = colorama.Style.BRIGHT
             self.GREEN = colorama.Fore.GREEN
@@ -63,7 +61,7 @@ class GreenTeaSimpleLockLogger(object):
             self.RESET = colorama.Style.RESET_ALL
 
     def __clear_colors(self):
-        """! Zeroes colours used for formatting"""
+        """Zero colours used for formatting."""
         self.DIM = str()
         self.BRIGHT = str()
         self.GREEN = str()
@@ -73,15 +71,19 @@ class GreenTeaSimpleLockLogger(object):
         self.RESET = str()
 
     def __print(self, text):
-        """! Mutex protected print"""
+        """Mutex protected print."""
         self.GREENTEA_LOG_MUTEX.acquire(1)
         print(text)
         self.GREENTEA_LOG_MUTEX.release()
 
     def gt_log(self, text, print_text=True):
-        """! Prints standard log message (in colour if colorama is installed)
-        @param print_text Forces log function to print on screen (not only return message)
-        @return Returns string with message
+        """Print standard log message, in colour if colorama is installed and enabled.
+
+        Args:
+            text: String to be logged.
+            print_text: Force log to be printed on screen.
+        Returns:
+            String with message.
         """
         result = self.GREEN + self.BRIGHT + "gt: " + self.RESET + text
         if print_text:
@@ -89,10 +91,15 @@ class GreenTeaSimpleLockLogger(object):
         return result
 
     def gt_log_tab(self, text, tab_count=1, print_text=True):
-        """! Prints standard log message with one (1) tab margin on the left
-        @param tab_count How many tags should be added (indent level)
-        @param print_text Forces log function to print on screen (not only return message)
-        @return Returns string with message
+        """Print standard log message with tab margin on the left.
+
+        Args:
+            text: String to be logged.
+            tab_count: How many tabs should be added (indent level).
+            print_text: Force log to be printed on screen.
+
+        Returns:
+            String with message.
         """
         result = "\t" * tab_count + text
         if print_text:
@@ -100,9 +107,14 @@ class GreenTeaSimpleLockLogger(object):
         return result
 
     def gt_log_err(self, text, print_text=True):
-        """! Prints error log message (in color if colorama is installed)
-        @param print_text Forces log function to print on screen (not only return message)
-        @return Returns string with message
+        """Print error log message, in color if colorama is installed and enabled.
+
+        Args:
+            text: String to be logged.
+            print_text: Force log to be printed on screen.
+
+        Returns:
+            String with message.
         """
         result = self.RED + self.BRIGHT + "gt: " + self.RESET + text
         if print_text:
@@ -110,9 +122,14 @@ class GreenTeaSimpleLockLogger(object):
         return result
 
     def gt_log_warn(self, text, print_text=True):
-        """! Prints error log message (in color if colorama is installed)
-        @param print_text Forces log function to print on screen (not only return message)
-        @return Returns string with message
+        """Print warning log message, in color if colorama is installed and enabled.
+
+        Args:
+            text: String to be logged.
+            print_text: Force log to be printed on screen.
+
+        Returns:
+            String with message.
         """
         result = self.YELLOW + "gt: " + self.RESET + text
         if print_text:
@@ -120,12 +137,17 @@ class GreenTeaSimpleLockLogger(object):
         return result
 
     def gt_bright(self, text):
-        """! Created bright text using colorama
-        @return Returns string with additional BRIGHT color codes
+        """Create bright text using colorama.
+
+        Args:
+            text: String to make bright.
+
+        Returns:
+            String with additional BRIGHT color codes.
         """
         if not text:
             text = ""
         return self.BLUE + self.BRIGHT + text + self.RESET
 
 
-gt_logger = GreenTeaSimpleLockLogger(use_colorama=COLORAMA)
+gt_logger = GreenTeaSimpleLockLogger()
