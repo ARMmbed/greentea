@@ -54,8 +54,9 @@ from greentea.gtea.target_info import get_platform_property
 
 from .test_api import run_host_test
 
-import mbed_os_tools.detect
-import mbed_os_tools.test.host_tests_plugins as host_tests_plugins
+from mbed_lstools.main import create as mbedls_create
+from htrun import host_tests_plugins as host_tests_plugins
+
 from greentea.gtea.greentea_cli import (
     RET_NO_DEVICES,
     get_local_host_tests_dir,
@@ -865,7 +866,7 @@ def main_cli(opts, args, gt_instance_uuid=None):
     parallel_test_exec = get_parallel_value(opts.parallel_test_exec)
 
     # Detect devices connected to system
-    mbeds = mbed_os_tools.detect.create()
+    mbeds = mbedls_create()
     mbeds_list = mbeds.list_mbeds(unique_names=True, read_details_txt=True)
 
     if opts.global_resource_mgr:

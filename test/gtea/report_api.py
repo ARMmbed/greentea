@@ -6,7 +6,7 @@
 import unittest
 from mock import patch
 
-from mbed_os_tools.test.mbed_report_api import (
+from greentea.gtea.report_api import (
     exporter_html,
     exporter_memory_metrics_csv,
     exporter_testcase_junit,
