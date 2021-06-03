@@ -175,7 +175,6 @@ def exporter_testcase_junit(test_result_ext, test_suite_properties=None):
     @return String containing Junit XML formatted test result output
     """
     from junit_xml import TestSuite, TestCase
-    import sys
 
     test_suites = []
 

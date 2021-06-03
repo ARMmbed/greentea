@@ -4,7 +4,6 @@
 #
 
 import os
-import re
 import json
 
 from os import walk

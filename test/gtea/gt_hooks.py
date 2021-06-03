@@ -5,6 +5,7 @@
 
 import unittest
 
+from unittest.mock import patch
 from greentea.gtea.greentea_hooks import GreenteaCliTestHook
 from greentea.gtea.greentea_hooks import LcovHook
 

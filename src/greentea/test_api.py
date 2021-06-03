@@ -7,22 +7,13 @@ from time import time
 
 from greentea.gtea.test_api import (
     get_test_result,
-    run_command,
     run_htrun,
-    get_testcase_count_and_names,
-    get_testcase_utest,
     get_coverage_data,
     get_printable_string,
     get_testcase_summary,
     get_testcase_result,
     get_memory_metrics,
-    get_thread_with_max_stack_size,
     get_thread_stack_info_summary,
-    log_mbed_devices_in_table,
-    get_test_spec,
-    get_test_build_properties,
-    parse_global_resource_mgr,
-    parse_fast_model_connection,
     gt_logger,
 )
 

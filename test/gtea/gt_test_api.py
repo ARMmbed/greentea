@@ -5,7 +5,6 @@
 
 import unittest
 from greentea.gtea import test_api
-from mock import patch, MagicMock
 
 
 class GreenteaTestAPI(unittest.TestCase):

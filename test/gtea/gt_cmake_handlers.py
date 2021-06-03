@@ -4,7 +4,6 @@
 #
 
 import os
-import mock
 import six
 import sys
 import unittest

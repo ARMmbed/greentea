@@ -4,13 +4,8 @@
 #
 
 import os
-import six
-import sys
 import tempfile
 import unittest
-
-from lockfile import LockFile
-from mock import patch
 
 from greentea.gtea import greentea_dlm
 

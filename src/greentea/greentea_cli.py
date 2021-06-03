@@ -11,12 +11,7 @@ import imp
 import io
 from time import time
 
-try:
-    from Queue import Queue
-except ImportError:
-    # Python 3
-    from queue import Queue
-
+from queue import Queue
 from threading import Thread
 
 
