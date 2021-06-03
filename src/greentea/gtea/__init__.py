@@ -1,4 +1,4 @@
 #
-# Copyright (c) 2018, Arm Limited and affiliates.
+# Copyright (c) 2021 Arm Limited and Contributors. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
