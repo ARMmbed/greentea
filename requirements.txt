@@ -1,3 +1,7 @@
-mbed-host-tests>=1.5.0,<2
 mbed-ls>=1.8.6
+PySerial>=3.0,<4.0
 setuptools-scm>=1.17.0,<2
+PrettyTable<=1.0.1
+lockfile
+six>=1.0,<2.0
+colorama>=0.3,<0.5

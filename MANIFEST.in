@@ -1,8 +1,4 @@
 global-exclude *.py[cod] __pycache__ *.so
-graft test
-include README.md
-include LICENSE
-include CONTRIBUTING.md
-include requirements.txt
-include test_requirements.txt
-include .coveragerc
+prune .git
+prune .github
+exclude .pre-commit-config.yaml

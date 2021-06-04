@@ -1,0 +1,11 @@
+[flake8]
+# black, the super-great auto-formatter has decided that 88 is a good number.
+# I'm inclined to agree, or not to dissagree.
+max-line-length = 88
+exclude =
+    test/*,
+ignore =
+    # W503: line break before binary operator (this is no longer PEP8 compliant)
+    W503,
+    # E203: whitespace before ':' (this is not PEP8 compliant)
+    E203,
