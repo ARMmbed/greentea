@@ -9,7 +9,7 @@ import six
 import sys
 import unittest
 
-from mbed_os_tools.test import cmake_handlers, tests_spec
+from greentea.gtea import cmake_handlers, tests_spec
 
 
 class GreenteaCmakeHandlers(unittest.TestCase):
@@ -104,7 +104,7 @@ add_test(mbed-client-test-helloworld-mbedclient "mbed-client-test-helloworld-mbe
         output = run_and_capture(null_path, verbose=True)
         self.assertTrue("no tests found in current location" in output)
         self.assertTrue(
-            "Example: execute 'mbedgt -t TARGET_NAME -n TEST_NAME' to run test TEST_NAME for target TARGET_NAME"
+            "Example: execute 'gt -t TARGET_NAME -n TEST_NAME' to run test TEST_NAME for target TARGET_NAME"
             in output
         )
 

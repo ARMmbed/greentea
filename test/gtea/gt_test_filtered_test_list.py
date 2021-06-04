@@ -4,7 +4,7 @@
 #
 
 import unittest
-from mbed_os_tools.test import mbed_greentea_cli
+from greentea import greentea_cli
 
 
 class GreenteaFilteredTestList(unittest.TestCase):
@@ -67,7 +67,7 @@ class GreenteaFilteredTestList(unittest.TestCase):
         pass
 
     def test_filter_test_list(self):
-        filtered_ctest_test_list = mbed_greentea_cli.create_filtered_test_list(
+        filtered_ctest_test_list = greentea_cli.create_filtered_test_list(
             self.ctest_test_list, self.test_by_names, self.skip_test
         )
 
@@ -81,7 +81,7 @@ class GreenteaFilteredTestList(unittest.TestCase):
 
     def test_skip_test(self):
         self.skip_test = "test1,test2"
-        filtered_ctest_test_list = mbed_greentea_cli.create_filtered_test_list(
+        filtered_ctest_test_list = greentea_cli.create_filtered_test_list(
             self.ctest_test_list, self.test_by_names, self.skip_test
         )
 
@@ -93,7 +93,7 @@ class GreenteaFilteredTestList(unittest.TestCase):
 
     def test_skip_test_invaild(self):
         self.skip_test = "test1,testXY"
-        filtered_ctest_test_list = mbed_greentea_cli.create_filtered_test_list(
+        filtered_ctest_test_list = greentea_cli.create_filtered_test_list(
             self.ctest_test_list, self.test_by_names, self.skip_test
         )
 
@@ -106,7 +106,7 @@ class GreenteaFilteredTestList(unittest.TestCase):
 
     def test_test_by_names(self):
         self.test_by_names = "test3"
-        filtered_ctest_test_list = mbed_greentea_cli.create_filtered_test_list(
+        filtered_ctest_test_list = greentea_cli.create_filtered_test_list(
             self.ctest_test_list, self.test_by_names, self.skip_test
         )
 
@@ -115,7 +115,7 @@ class GreenteaFilteredTestList(unittest.TestCase):
 
     def test_test_by_names_invalid(self):
         self.test_by_names = "test3,testXY"
-        filtered_ctest_test_list = mbed_greentea_cli.create_filtered_test_list(
+        filtered_ctest_test_list = greentea_cli.create_filtered_test_list(
             self.ctest_test_list, self.test_by_names, self.skip_test
         )
 
@@ -125,7 +125,7 @@ class GreenteaFilteredTestList(unittest.TestCase):
     def test_list_is_None_skip_test(self):
         self.ctest_test_list = None
         self.skip_test = "test3"
-        filtered_ctest_test_list = mbed_greentea_cli.create_filtered_test_list(
+        filtered_ctest_test_list = greentea_cli.create_filtered_test_list(
             self.ctest_test_list, self.test_by_names, self.skip_test
         )
 
@@ -135,7 +135,7 @@ class GreenteaFilteredTestList(unittest.TestCase):
     def test_list_is_None_test_by_names(self):
         self.ctest_test_list = None
         self.test_by_names = "test3"
-        filtered_ctest_test_list = mbed_greentea_cli.create_filtered_test_list(
+        filtered_ctest_test_list = greentea_cli.create_filtered_test_list(
             self.ctest_test_list, self.test_by_names, self.skip_test
         )
 
@@ -145,7 +145,7 @@ class GreenteaFilteredTestList(unittest.TestCase):
     def test_list_is_Empty_skip_test(self):
         self.ctest_test_list = {}
         self.skip_test = "test4"
-        filtered_ctest_test_list = mbed_greentea_cli.create_filtered_test_list(
+        filtered_ctest_test_list = greentea_cli.create_filtered_test_list(
             self.ctest_test_list, self.test_by_names, self.skip_test
         )
 
@@ -155,7 +155,7 @@ class GreenteaFilteredTestList(unittest.TestCase):
     def test_list_is_Empty_test_by_names(self):
         self.ctest_test_list = {}
         self.test_by_names = "test4"
-        filtered_ctest_test_list = mbed_greentea_cli.create_filtered_test_list(
+        filtered_ctest_test_list = greentea_cli.create_filtered_test_list(
             self.ctest_test_list, self.test_by_names, self.skip_test
         )
 
@@ -164,7 +164,7 @@ class GreenteaFilteredTestList(unittest.TestCase):
 
     def test_prefix_filter_one_star(self):
         self.test_by_names = "mbed-drivers-test-t*"
-        filtered_ctest_test_list = mbed_greentea_cli.create_filtered_test_list(
+        filtered_ctest_test_list = greentea_cli.create_filtered_test_list(
             self.ctest_test_list_mbed_drivers, self.test_by_names, self.skip_test
         )
 
@@ -179,7 +179,7 @@ class GreenteaFilteredTestList(unittest.TestCase):
 
     def test_prefix_filter_one_star_and_no_star(self):
         self.test_by_names = "mbed-drivers-test-t*,mbed-drivers-test-rtc"
-        filtered_ctest_test_list = mbed_greentea_cli.create_filtered_test_list(
+        filtered_ctest_test_list = greentea_cli.create_filtered_test_list(
             self.ctest_test_list_mbed_drivers, self.test_by_names, self.skip_test
         )
 
@@ -197,7 +197,7 @@ class GreenteaFilteredTestList(unittest.TestCase):
         self.test_by_names = (
             "mbed-drivers-test-ticker_2,mbed-drivers-test-rtc,mbed-drivers-test-ticker"
         )
-        filtered_ctest_test_list = mbed_greentea_cli.create_filtered_test_list(
+        filtered_ctest_test_list = greentea_cli.create_filtered_test_list(
             self.ctest_test_list_mbed_drivers, self.test_by_names, self.skip_test
         )
 
@@ -212,7 +212,7 @@ class GreenteaFilteredTestList(unittest.TestCase):
     def test_prefix_filter_merge_n_and_i(self):
         self.test_by_names = "mbed-drivers-test-ticker_2,mbed-drivers-test-ticker_3,mbed-drivers-test-rtc,mbed-drivers-test-ticker"
         self.skip_test = "mbed-drivers-test-ticker_3"
-        filtered_ctest_test_list = mbed_greentea_cli.create_filtered_test_list(
+        filtered_ctest_test_list = greentea_cli.create_filtered_test_list(
             self.ctest_test_list_mbed_drivers, self.test_by_names, self.skip_test
         )
 
@@ -227,7 +227,7 @@ class GreenteaFilteredTestList(unittest.TestCase):
     def test_prefix_filter_merge_n_and_i_repeated(self):
         self.test_by_names = "mbed-drivers-test-ticker_2,mbed-drivers-test-ticker_3,mbed-drivers-test-rtc,mbed-drivers-test-ticker"
         self.skip_test = "mbed-drivers-test-ticker_3,mbed-drivers-test-ticker_3"
-        filtered_ctest_test_list = mbed_greentea_cli.create_filtered_test_list(
+        filtered_ctest_test_list = greentea_cli.create_filtered_test_list(
             self.ctest_test_list_mbed_drivers, self.test_by_names, self.skip_test
         )
 
@@ -242,7 +242,7 @@ class GreenteaFilteredTestList(unittest.TestCase):
     def test_prefix_filter_merge_n_and_i_missing(self):
         self.test_by_names = "mbed-drivers-test-ticker_2,mbed-drivers-test-ticker_3,mbed-drivers-test-rtc,mbed-drivers-test-ticker"
         self.skip_test = "mbed-drivers-test-ticker_XXX"
-        filtered_ctest_test_list = mbed_greentea_cli.create_filtered_test_list(
+        filtered_ctest_test_list = greentea_cli.create_filtered_test_list(
             self.ctest_test_list_mbed_drivers, self.test_by_names, self.skip_test
         )
 
@@ -257,7 +257,7 @@ class GreenteaFilteredTestList(unittest.TestCase):
 
     def test_prefix_filter_merge_n_multi_star(self):
         self.test_by_names = "tests-mbedmicro-mbed*,tests-mbedmicro-rtos*"
-        filtered_ctest_test_list = mbed_greentea_cli.create_filtered_test_list(
+        filtered_ctest_test_list = greentea_cli.create_filtered_test_list(
             self.ctest_test_list_mbed_drivers_ext, self.test_by_names, self.skip_test
         )
 
@@ -284,7 +284,7 @@ class GreenteaFilteredTestList(unittest.TestCase):
     def test_prefix_filter_merge_n_multi_star_and_i(self):
         self.test_by_names = "tests-mbedmicro-mbed*,tests-mbedmicro-rtos*"
         self.skip_test = "tests-mbedmicro-rtos-mbed-isr,tests-mbedmicro-rtos-mbed-semaphore,tests-mbedmicro-mbed-call_before_main"
-        filtered_ctest_test_list = mbed_greentea_cli.create_filtered_test_list(
+        filtered_ctest_test_list = greentea_cli.create_filtered_test_list(
             self.ctest_test_list_mbed_drivers_ext, self.test_by_names, self.skip_test
         )
 

@@ -7,7 +7,7 @@ import os
 import re
 import json
 from subprocess import Popen, PIPE
-from .mbed_greentea_log import gt_logger
+from .greentea_log import gt_logger
 
 """
 List of available hooks:

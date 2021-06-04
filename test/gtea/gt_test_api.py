@@ -4,13 +4,13 @@
 #
 
 import unittest
-from mbed_os_tools.test import mbed_test_api
+from greentea.gtea import test_api
 from mock import patch, MagicMock
 
 
 class GreenteaTestAPI(unittest.TestCase):
     def setUp(self):
-        self.OUTPUT_FAILURE = """mbedgt: mbed-host-test-runner: started
+        self.OUTPUT_FAILURE = """gt: mbed-host-test-runner: started
 [1459245784.59][CONN][RXD] >>> Test cases: 7 passed, 1 failed with reason 'Test Cases Failed'
 [1459245784.61][CONN][RXD] >>> TESTS FAILED!
 [1459245784.64][CONN][INF] found KV pair in stream: {{__testcase_summary;7;1}}, queued...
@@ -29,7 +29,7 @@ class GreenteaTestAPI(unittest.TestCase):
 [1459245784.67][HTST][INF] {{result;failure}}
 """
 
-        self.OUTPUT_SUCCESS = """mbedgt: mbed-host-test-runner: started
+        self.OUTPUT_SUCCESS = """gt: mbed-host-test-runner: started
 [1459245860.90][CONN][RXD] {{__testcase_summary;4;0}}
 [1459245860.92][CONN][INF] found KV pair in stream: {{end;success}}, queued...
 [1459245860.92][CONN][RXD] {{end;success}}
@@ -45,7 +45,7 @@ class GreenteaTestAPI(unittest.TestCase):
 [1459245860.94][HTST][INF] {{result;success}}
 """
 
-        self.OUTPUT_TIMEOUT = """mbedgt: mbed-host-test-runner: started
+        self.OUTPUT_TIMEOUT = """gt: mbed-host-test-runner: started
 [1459246047.80][HTST][INF] copy image onto target...
         1 file(s) copied.
 [1459246055.05][HTST][INF] starting host test process...
@@ -70,7 +70,7 @@ class GreenteaTestAPI(unittest.TestCase):
 """
 
         self.OUTPUT_STARTTAG_MISSING = """
-mbedgt: mbed-host-test-runner: started
+gt: mbed-host-test-runner: started
 [1507470727.39][HTST][INF] host test executor ver. 1.2.0
 [1507470727.39][HTST][INF] copy image onto target... SKIPPED!
 [1507470727.39][HTST][INF] starting host test process...
@@ -139,7 +139,7 @@ mbedgt: mbed-host-test-runner: started
 [1507470760.47][HTST][INF] {{result;success}}
         """
 
-        self.OUTPUT_UNDEF = """mbedgt: mbed-host-test-runner: started
+        self.OUTPUT_UNDEF = """gt: mbed-host-test-runner: started
 {{result;some_random_value}}
 """
 
@@ -381,7 +381,7 @@ Plugin info: HostTestPluginBase::BasePlugin: Waiting up to 60 sec for '024000003
 [1467205014.31][HTST][INF] {{result;success}}
 """
 
-        self.OUTPUT_WITH_MEMORY_METRICS = """mbedgt: mbed-host-test-runner: started
+        self.OUTPUT_WITH_MEMORY_METRICS = """gt: mbed-host-test-runner: started
 [1459245860.90][CONN][RXD] {{__testcase_summary;4;0}}
 [1459245860.92][CONN][INF] found KV pair in stream: {{end;success}}, queued...
 [1459245860.92][CONN][RXD] {{end;success}}
@@ -409,24 +409,24 @@ Plugin info: HostTestPluginBase::BasePlugin: Waiting up to 60 sec for '024000003
 
     def test_get_test_result(self):
         self.assertEqual(
-            mbed_test_api.TEST_RESULT_OK,
-            mbed_test_api.get_test_result(self.OUTPUT_SUCCESS),
+            test_api.TEST_RESULT_OK,
+            test_api.get_test_result(self.OUTPUT_SUCCESS),
         )
         self.assertEqual(
-            mbed_test_api.TEST_RESULT_FAIL,
-            mbed_test_api.get_test_result(self.OUTPUT_FAILURE),
+            test_api.TEST_RESULT_FAIL,
+            test_api.get_test_result(self.OUTPUT_FAILURE),
         )
         self.assertEqual(
-            mbed_test_api.TEST_RESULT_TIMEOUT,
-            mbed_test_api.get_test_result(self.OUTPUT_TIMEOUT),
+            test_api.TEST_RESULT_TIMEOUT,
+            test_api.get_test_result(self.OUTPUT_TIMEOUT),
         )
         self.assertEqual(
-            mbed_test_api.TEST_RESULT_UNDEF,
-            mbed_test_api.get_test_result(self.OUTPUT_UNDEF),
+            test_api.TEST_RESULT_UNDEF,
+            test_api.get_test_result(self.OUTPUT_UNDEF),
         )
 
     def test_get_test_result_ok_len(self):
-        r = mbed_test_api.get_testcase_utest(
+        r = test_api.get_testcase_utest(
             self.OUTOUT_CSTRING_TEST, "C strings: %e %E float formatting"
         )
 
@@ -457,7 +457,7 @@ Plugin info: HostTestPluginBase::BasePlugin: Waiting up to 60 sec for '024000003
         )
 
     def test_get_test_result_fail_len(self):
-        r = mbed_test_api.get_testcase_utest(
+        r = test_api.get_testcase_utest(
             self.OUTOUT_CSTRING_TEST, "C strings: %f %f float formatting"
         )
 
@@ -497,7 +497,7 @@ Plugin info: HostTestPluginBase::BasePlugin: Waiting up to 60 sec for '024000003
         )
 
     def get_testcase_count_and_names(self):
-        tc_count, tc_names = mbed_test_api.get_testcase_count_and_names(
+        tc_count, tc_names = test_api.get_testcase_count_and_names(
             self.OUTOUT_CSTRING_TEST_CASE_COUNT_AND_NAME
         )
 
@@ -518,59 +518,59 @@ Plugin info: HostTestPluginBase::BasePlugin: Waiting up to 60 sec for '024000003
         ]
 
         for test_case in test_case_names:
-            r = mbed_test_api.get_testcase_utest(self.OUTOUT_CSTRING_TEST, test_case)
+            r = test_api.get_testcase_utest(self.OUTOUT_CSTRING_TEST, test_case)
             self.assertEqual(len(r), 6)
 
         # This failing test case has different long lenght
-        r = mbed_test_api.get_testcase_utest(
+        r = test_api.get_testcase_utest(
             self.OUTOUT_CSTRING_TEST, "C strings: %f %f float formatting"
         )
         self.assertEqual(len(r), 9)
 
     def test_get_testcase_summary_failures(self):
-        r = mbed_test_api.get_testcase_summary("{{__testcase_summary;;}}")
+        r = test_api.get_testcase_summary("{{__testcase_summary;;}}")
         self.assertEqual(None, r)
 
-        r = mbed_test_api.get_testcase_summary("{{__testcase_summary;-1;-2}}")
+        r = test_api.get_testcase_summary("{{__testcase_summary;-1;-2}}")
         self.assertEqual(None, r)
 
-        r = mbed_test_api.get_testcase_summary("{{__testcase_summary;A;0}}")
+        r = test_api.get_testcase_summary("{{__testcase_summary;A;0}}")
         self.assertEqual(None, r)
 
     def test_get_testcase_summary_value_failures(self):
-        r = mbed_test_api.get_testcase_summary(
+        r = test_api.get_testcase_summary(
             "[1459246276.95][CONN][INF] found KV pair in stream: {{__testcase_summary;;}}"
         )
         self.assertEqual(None, r)
 
-        r = mbed_test_api.get_testcase_summary(
+        r = test_api.get_testcase_summary(
             "[1459246276.95][CONN][INF] found KV pair in stream: {{__testcase_summary;-1;-2}}"
         )
         self.assertEqual(None, r)
 
-        r = mbed_test_api.get_testcase_summary(
+        r = test_api.get_testcase_summary(
             "[1459246276.95][CONN][INF] found KV pair in stream: {{__testcase_summary;A;0}}"
         )
         self.assertEqual(None, r)
 
     def test_get_testcase_summary_ok(self):
 
-        r = mbed_test_api.get_testcase_summary(
+        r = test_api.get_testcase_summary(
             "[1459246276.95][CONN][INF] found KV pair in stream: {{__testcase_summary;0;0}}"
         )
         self.assertNotEqual(None, r)
         self.assertEqual((0, 0), r)
 
-        r = mbed_test_api.get_testcase_summary(self.OUTOUT_CSTRING_TEST)
+        r = test_api.get_testcase_summary(self.OUTOUT_CSTRING_TEST)
         self.assertNotEqual(None, r)
         self.assertEqual((7, 1), r)  # {{__testcase_summary;7;1}}
 
-        r = mbed_test_api.get_testcase_summary(self.OUTPUT_SUCCESS)
+        r = test_api.get_testcase_summary(self.OUTPUT_SUCCESS)
         self.assertNotEqual(None, r)
         self.assertEqual((4, 0), r)  # {{__testcase_summary;4;0}}
 
     def test_get_testcase_result(self):
-        r = mbed_test_api.get_testcase_result(self.OUTOUT_CSTRING_TEST)
+        r = test_api.get_testcase_result(self.OUTOUT_CSTRING_TEST)
         self.assertEqual(len(r), 8)
 
         test_case_names = [
@@ -605,7 +605,7 @@ Plugin info: HostTestPluginBase::BasePlugin: Waiting up to 60 sec for '024000003
         self.assertEqual(tc["result_text"], "FAIL")
 
     def test_get_testcase_result_tescase_name_and_count(self):
-        r = mbed_test_api.get_testcase_result(
+        r = test_api.get_testcase_result(
             self.OUTOUT_GENERIC_TESTS_TESCASE_NAME_AND_COUNT
         )
         self.assertEqual(len(r), 4)
@@ -616,9 +616,7 @@ Plugin info: HostTestPluginBase::BasePlugin: Waiting up to 60 sec for '024000003
         self.assertIn("C++ stack", r)
 
     def test_get_testcase_result_tescase_name_and_count(self):
-        r = mbed_test_api.get_testcase_result(
-            self.OUTOUT_CSTRING_TEST_CASE_COUNT_AND_NAME
-        )
+        r = test_api.get_testcase_result(self.OUTOUT_CSTRING_TEST_CASE_COUNT_AND_NAME)
         self.assertEqual(len(r), 2)
 
         self.assertIn("C strings: strpbrk", r)
@@ -628,11 +626,11 @@ Plugin info: HostTestPluginBase::BasePlugin: Waiting up to 60 sec for '024000003
         self.assertEqual(r["C strings: strtok"]["result_text"], "ERROR")
 
     def test_get_test_results_empty_output(self):
-        result = mbed_test_api.get_test_result("")
+        result = test_api.get_test_result("")
         self.assertEqual(result, "TIMEOUT")
 
     def test_get_memory_metrics(self):
-        result = mbed_test_api.get_memory_metrics(self.OUTPUT_WITH_MEMORY_METRICS)
+        result = test_api.get_memory_metrics(self.OUTPUT_WITH_MEMORY_METRICS)
 
         self.assertEqual(result[0], 2284)
         self.assertEqual(result[1], 124124)
@@ -647,37 +645,10 @@ Plugin info: HostTestPluginBase::BasePlugin: Waiting up to 60 sec for '024000003
         self.assertEqual(thread_info["arg"], "EF")
 
     def test_get_testcase_result_start_tag_missing(self):
-        result = mbed_test_api.get_testcase_result(self.OUTPUT_STARTTAG_MISSING)
+        result = test_api.get_testcase_result(self.OUTPUT_STARTTAG_MISSING)
         self.assertEqual(
             result["DNS query"]["utest_log"], "__testcase_start tag not found."
         )
-
-    def test_run_htrun_unicode(self):
-        with patch("mbed_os_tools.test.mbed_test_api.run_command") as _run_command:
-            read_line_mock = MagicMock()
-            read_line_mock.decode = MagicMock(return_value=u"\u036b")
-            p_mock = MagicMock()
-            p_mock.wait = MagicMock(return_value=1337)
-            p_mock.stdout.readline = MagicMock(side_effect=[read_line_mock])
-            _run_command.return_value = p_mock
-            returncode, htrun_output = mbed_test_api.run_htrun("dummy", True)
-
-    def test_parse_global_resource_mgr(self):
-        expected = ("K64F", "module_name", "10.2.123.43", "3334")
-        result = mbed_test_api.parse_global_resource_mgr(":".join(expected))
-        self.assertEqual(result, expected)
-
-        expected = ("K64F", "module_name", "10.2.123.43", None)
-        result = mbed_test_api.parse_global_resource_mgr(":".join(expected[:3]))
-        self.assertEqual(result, expected)
-
-        expected = ("K64F", "module_name", "https://10.2.123.43", "3334")
-        result = mbed_test_api.parse_global_resource_mgr(":".join(expected))
-        self.assertEqual(result, expected)
-
-        expected = ("K64F", "module_name", "https://10.2.123.43", None)
-        result = mbed_test_api.parse_global_resource_mgr(":".join(expected[:3]))
-        self.assertEqual(result, expected)
 
 
 if __name__ == "__main__":

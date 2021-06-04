@@ -83,7 +83,7 @@ class GreenTeaSimpleLockLogger(object):
         @param print_text Forces log function to print on screen (not only return message)
         @return Returns string with message
         """
-        result = self.GREEN + self.BRIGHT + "mbedgt: " + self.RESET + text
+        result = self.GREEN + self.BRIGHT + "gt: " + self.RESET + text
         if print_text:
             self.__print(result)
         return result
@@ -104,7 +104,7 @@ class GreenTeaSimpleLockLogger(object):
         @param print_text Forces log function to print on screen (not only return message)
         @return Returns string with message
         """
-        result = self.RED + self.BRIGHT + "mbedgt: " + self.RESET + text
+        result = self.RED + self.BRIGHT + "gt: " + self.RESET + text
         if print_text:
             self.__print(result)
         return result
@@ -114,7 +114,7 @@ class GreenTeaSimpleLockLogger(object):
         @param print_text Forces log function to print on screen (not only return message)
         @return Returns string with message
         """
-        result = self.YELLOW + "mbedgt: " + self.RESET + text
+        result = self.YELLOW + "gt: " + self.RESET + text
         if print_text:
             self.__print(result)
         return result

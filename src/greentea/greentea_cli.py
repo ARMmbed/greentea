@@ -20,18 +20,17 @@ except ImportError:
 from threading import Thread
 
 
-from mbed_os_tools.test.mbed_test_api import (
+from greentea.gtea.test_api import (
     get_test_build_properties,
     get_test_spec,
-    log_mbed_devices_in_table,
-    TEST_RESULTS,
+    log_devices_in_table,
     TEST_RESULT_OK,
     TEST_RESULT_FAIL,
     parse_global_resource_mgr,
     parse_fast_model_connection,
 )
 
-from mbed_os_tools.test.mbed_report_api import (
+from greentea.gtea.report_api import (
     exporter_text,
     exporter_testcase_text,
     exporter_json,
@@ -40,32 +39,30 @@ from mbed_os_tools.test.mbed_report_api import (
     exporter_memory_metrics_csv,
 )
 
-from mbed_os_tools.test.mbed_greentea_log import gt_logger
+from greentea.gtea.greentea_log import gt_logger
 
-from mbed_os_tools.test.mbed_greentea_dlm import (
+from greentea.gtea.greentea_dlm import (
     GREENTEA_KETTLE_PATH,
     greentea_get_app_sem,
     greentea_update_kettle,
     greentea_clean_kettle,
 )
 
-from mbed_os_tools.test.mbed_greentea_hooks import GreenteaHooks
-from mbed_os_tools.test.tests_spec import TestBinary
-from mbed_os_tools.test.mbed_target_info import get_platform_property
+from greentea.gtea.greentea_hooks import GreenteaHooks
+from greentea.gtea.tests_spec import TestBinary
+from greentea.gtea.target_info import get_platform_property
 
-from .mbed_test_api import run_host_test
+from .test_api import run_host_test
 
 import mbed_os_tools.detect
 import mbed_os_tools.test.host_tests_plugins as host_tests_plugins
-from mbed_os_tools.test.mbed_greentea_cli import (
+from greentea.gtea.greentea_cli import (
     RET_NO_DEVICES,
-    RET_YOTTA_BUILD_FAIL,
-    LOCAL_HOST_TESTS_DIR,
     get_local_host_tests_dir,
     create_filtered_test_list,
 )
 
-LOCAL_HOST_TESTS_DIR = "./test/host_tests"  # Used by mbedhtrun -e <dir>
+LOCAL_HOST_TESTS_DIR = "./test/host_tests"  # Used by htrun -e <dir>
 
 
 def get_greentea_version():
@@ -159,7 +156,7 @@ def main():
         "--parallel",
         dest="parallel_test_exec",
         default=1,
-        help="Experimental, you execute test runners for connected to your host MUTs in parallel (speeds up test result collection)",
+        help="Experimental, you execute test runners for connected to your host DUTs in parallel (speeds up test result collection)",
     )
 
     parser.add_option(
@@ -484,16 +481,16 @@ def main():
 
 
 def run_test_thread(
-    test_result_queue, test_queue, opts, mut, build, build_path, greentea_hooks
+    test_result_queue, test_queue, opts, dut, build, build_path, greentea_hooks
 ):
     test_exec_retcode = 0
     test_platforms_match = 0
     test_report = {}
 
-    disk = mut["mount_point"]
-    # Set serial portl format used by mbedhtrun: 'serial_port' = '<serial_port_name>:<baudrate>'
-    port = "{}:{}".format(mut["serial_port"], mut["baud_rate"])
-    micro = mut["platform_name"]
+    disk = dut["mount_point"]
+    # Set format used by htrun: 'serial_port' = '<serial_port_name>:<baudrate>'
+    port = "{}:{}".format(dut["serial_port"], dut["baud_rate"])
+    micro = dut["platform_name"]
     program_cycle_s = get_platform_property(micro, "program_cycle_s")
     forced_reset_timeout = get_platform_property(micro, "forced_reset_timeout")
     copy_method = get_platform_property(micro, "copy_method")
@@ -525,7 +522,7 @@ def run_test_thread(
             disk,
             port,
             build_path,
-            mut["target_id"],
+            dut["target_id"],
             micro=micro,
             copy_method=copy_method,
             reset=reset_method,
@@ -545,8 +542,8 @@ def run_test_thread(
 
         # Some error in htrun, abort test execution
         if isinstance(host_test_result, int):
-            # int(host_test_result) > 0 - Call to mbedhtrun failed
-            # int(host_test_result) < 0 - Something went wrong while executing mbedhtrun
+            # int(host_test_result) > 0 - Call to htrun failed
+            # int(host_test_result) < 0 - Something went wrong while executing htrun
             gt_logger.gt_log_err("run_test_thread.run_host_test() failed, aborting...")
             break
 
@@ -648,7 +645,7 @@ def run_test_thread(
                 tc_failed,
             )
 
-        gt_logger.gt_log("test on hardware with target id: %s" % (mut["target_id"]))
+        gt_logger.gt_log("test on hardware with target id: %s" % (dut["target_id"]))
         gt_logger.gt_log(
             "test suite '%s' %s %s in %.2f sec"
             % (
@@ -723,7 +720,7 @@ def run_test_thread(
             print()
             print(single_test_output)
 
-    # greentea_release_target_id(mut['target_id'], gt_instance_uuid)
+    # greentea_release_target_id(dut['target_id'], gt_instance_uuid)
     test_result_queue.put(
         {
             "test_platforms_match": test_platforms_match,
@@ -740,18 +737,16 @@ def main_cli(opts, args, gt_instance_uuid=None):
     @return This function doesn't return, it exits to environment with proper success code
     """
 
-    def filter_ready_devices(mbeds_list):
-        """! Filters list of MUTs to check if all MUTs are correctly detected with mbed-ls module.
+    def filter_ready_devices(duts_list):
+        """! Filters list of DUTs to check if all DUTs are correctly detected with mbed-ls module.
         @details This function logs a lot to help users figure out root cause of their problems
-        @param mbeds_list List of MUTs to verify
-        @return Tuple of (MUTS detected correctly, MUTs not detected fully)
+        @param mbeds_list List of DUTs to verify
+        @return Tuple of (MUTS detected correctly, DUTs not detected fully)
         """
-        ready_mbed_devices = []  # Devices which can be used (are fully detected)
-        not_ready_mbed_devices = (
-            []
-        )  # Devices which can't be used (are not fully detected)
+        ready_devices = []  # Devices which can be used (are fully detected)
+        not_ready_devices = []  # Devices which can't be used (are not fully detected)
 
-        required_mut_props = [
+        required_dut_props = [
             "target_id",
             "platform_name",
             "serial_port",
@@ -760,14 +755,14 @@ def main_cli(opts, args, gt_instance_uuid=None):
 
         gt_logger.gt_log(
             "detected %d device%s"
-            % (len(mbeds_list), "s" if len(mbeds_list) != 1 else "")
+            % (len(duts_list), "s" if len(duts_list) != 1 else "")
         )
-        for mut in mbeds_list:
-            for prop in required_mut_props:
-                if not mut[prop]:
-                    # Adding MUT to NOT DETECTED FULLY list
-                    if mut not in not_ready_mbed_devices:
-                        not_ready_mbed_devices.append(mut)
+        for dut in duts_list:
+            for prop in required_dut_props:
+                if not dut[prop]:
+                    # Adding DUT to NOT DETECTED FULLY list
+                    if dut not in not_ready_devices:
+                        not_ready_devices.append(dut)
                         gt_logger.gt_log_err(
                             "mbed-ls was unable to enumerate correctly all properties of the device!"
                         )
@@ -776,7 +771,7 @@ def main_cli(opts, args, gt_instance_uuid=None):
                         )
 
                     gt_logger.gt_log_err(
-                        "mbed-ls property '%s' is '%s'" % (prop, str(mut[prop]))
+                        "mbed-ls property '%s' is '%s'" % (prop, str(dut[prop]))
                     )
                     if prop == "serial_port":
                         gt_logger.gt_log_tab(
@@ -788,8 +783,8 @@ def main_cli(opts, args, gt_instance_uuid=None):
                         )
             else:
                 # Adding MUT to DETECTED CORRECTLY list
-                ready_mbed_devices.append(mut)
-        return (ready_mbed_devices, not_ready_mbed_devices)
+                ready_devices.append(dut)
+        return (ready_devices, not_ready_devices)
 
     def get_parallel_value(value):
         """! Get correct value for parallel switch (--parallel)
@@ -842,8 +837,8 @@ def main_cli(opts, args, gt_instance_uuid=None):
 
         # Some error in htrun, abort test execution
         if isinstance(host_test_result, int):
-            # int(host_test_result) > 0 - Call to mbedhtrun failed
-            # int(host_test_result) < 0 - Something went wrong while executing mbedhtrun
+            # int(host_test_result) > 0 - Call to htrun failed
+            # int(host_test_result) < 0 - Something went wrong while executing htrun
             return host_test_result
 
         # If execution was successful 'run_host_test' return tuple with results
@@ -923,14 +918,14 @@ def main_cli(opts, args, gt_instance_uuid=None):
             )
             return -1
 
-    ready_mbed_devices = []  # Devices which can be used (are fully detected)
-    not_ready_mbed_devices = []  # Devices which can't be used (are not fully detected)
+    ready_devices = []  # Devices which can be used (are fully detected)
+    not_ready_devices = []  # Devices which can't be used (are not fully detected)
 
     if mbeds_list:
-        ready_mbed_devices, not_ready_mbed_devices = filter_ready_devices(mbeds_list)
-        if ready_mbed_devices:
+        ready_devices, not_ready_devices = filter_ready_devices(mbeds_list)
+        if ready_devices:
             # devices in form of a pretty formatted table
-            for line in log_mbed_devices_in_table(ready_mbed_devices).splitlines():
+            for line in log_devices_in_table(ready_devices).splitlines():
                 gt_logger.gt_log_tab(line.strip(), print_text=verbose)
     else:
         gt_logger.gt_log_err("no compatible devices detected")
@@ -988,37 +983,37 @@ def main_cli(opts, args, gt_instance_uuid=None):
 
         baudrate = test_build.get_baudrate()
 
-        ### Select MUTS to test from list of available MUTS to start testing
-        mut = None
+        ### Select DUTs to test from list of available MUTS to start testing
+        dut = None
         number_of_parallel_instances = 1
-        muts_to_test = []  # MUTs to actually be tested
-        for mbed_dev in ready_mbed_devices:
-            if accepted_target_ids and mbed_dev["target_id"] not in accepted_target_ids:
+        duts_to_test = []  # DUTs to actually be tested
+        for dev in ready_devices:
+            if accepted_target_ids and dev["target_id"] not in accepted_target_ids:
                 continue
 
             # Check that we have a valid serial port detected.
-            sp = mbed_dev["serial_port"]
+            sp = dev["serial_port"]
             if not sp:
                 gt_logger.gt_log_err(
                     "Serial port for target %s not detected correctly\n"
-                    % mbed_dev["target_id"]
+                    % dev["target_id"]
                 )
                 continue
 
-            if mbed_dev["platform_name"] == platform_name:
-                mbed_dev["baud_rate"] = baudrate
+            if dev["platform_name"] == platform_name:
+                dev["baud_rate"] = baudrate
 
-                mut = mbed_dev
-                if mbed_dev not in muts_to_test:
+                dut = dev
+                if dev not in duts_to_test:
                     # We will only add unique devices to list of devices "for testing" in this test run
-                    muts_to_test.append(mbed_dev)
+                    duts_to_test.append(dev)
                 if number_of_parallel_instances < parallel_test_exec:
                     number_of_parallel_instances += 1
                 else:
                     break
 
         # devices in form of a pretty formatted table
-        for line in log_mbed_devices_in_table(muts_to_test).splitlines():
+        for line in log_devices_in_table(duts_to_test).splitlines():
             gt_logger.gt_log_tab(line.strip(), print_text=verbose)
 
         # Configuration print mode:
@@ -1026,14 +1021,14 @@ def main_cli(opts, args, gt_instance_uuid=None):
             continue
 
         ### If we have at least one available device we can proceed
-        if mut:
+        if dut:
             target_platforms_match += 1
 
             build = test_build.get_name()
             build_path = test_build.get_path()
 
-            # Demo mode: --run implementation (already added --run to mbedhtrun)
-            # We want to pass file name to mbedhtrun (--run NAME  =>  -f NAME_ and run only one binary
+            # Demo mode: --run implementation (already added --run to htrun)
+            # We want to pass file name to htrun (--run NAME  =>  -f NAME_ and run only one binary
             if opts.run_app:
                 gt_logger.gt_log(
                     "running '%s' for '%s'-'%s'"
@@ -1043,10 +1038,11 @@ def main_cli(opts, args, gt_instance_uuid=None):
                         gt_logger.gt_bright(test_build.get_toolchain()),
                     )
                 )
-                disk = mut["mount_point"]
-                # Set serial portl format used by mbedhtrun: 'serial_port' = '<serial_port_name>:<baudrate>'
-                port = "{}:{}".format(mut["serial_port"], mut["baud_rate"])
-                micro = mut["platform_name"]
+                disk = dut["mount_point"]
+                # Set format used by htrun:
+                # 'serial_port' = '<serial_port_name>:<baudrate>'
+                port = "{}:{}".format(dut["serial_port"], dut["baud_rate"])
+                micro = dut["platform_name"]
                 program_cycle_s = get_platform_property(micro, "program_cycle_s")
                 copy_method = opts.copy_method if opts.copy_method else "shell"
                 enum_host_tests_path = get_local_host_tests_dir(opts.enum_host_tests)
@@ -1057,7 +1053,7 @@ def main_cli(opts, args, gt_instance_uuid=None):
                     disk,
                     port,
                     build_path,
-                    mut["target_id"],
+                    dut["target_id"],
                     micro=micro,
                     copy_method=copy_method,
                     program_cycle_s=program_cycle_s,
@@ -1069,8 +1065,8 @@ def main_cli(opts, args, gt_instance_uuid=None):
 
                 # Some error in htrun, abort test execution
                 if isinstance(host_test_result, int):
-                    # int(host_test_result) > 0 - Call to mbedhtrun failed
-                    # int(host_test_result) < 0 - Something went wrong while executing mbedhtrun
+                    # int(host_test_result) > 0 - Call to htrun failed
+                    # int(host_test_result) < 0 - Something went wrong while executing htrun
                     return host_test_result
 
                 # If execution was successful 'run_host_test' return tuple with results
@@ -1083,11 +1079,6 @@ def main_cli(opts, args, gt_instance_uuid=None):
                     test_cases_summary,
                     memory_metrics,
                 ) = host_test_result
-                status = (
-                    TEST_RESULTS.index(single_test_result)
-                    if single_test_result in TEST_RESULTS
-                    else -1
-                )
                 if single_test_result != TEST_RESULT_OK:
                     test_exec_retcode += 1
 
@@ -1141,14 +1132,14 @@ def main_cli(opts, args, gt_instance_uuid=None):
                     test_queue.put(test)
 
             number_of_threads = 0
-            for mut in muts_to_test:
+            for dut in duts_to_test:
                 # Experimental, parallel test execution
                 if number_of_threads < parallel_test_exec:
                     args = (
                         test_result_queue,
                         test_queue,
                         opts,
-                        mut,
+                        dut,
                         build,
                         build_path,
                         greentea_hooks,
@@ -1200,7 +1191,8 @@ def main_cli(opts, args, gt_instance_uuid=None):
 
         if opts.verbose_test_configuration_only:
             print(
-                "Example: execute 'mbedgt --target=TARGET_NAME' to start testing for TARGET_NAME target"
+                "Example: execute 'gt --target=TARGET_NAME' "
+                "to start testing for TARGET_NAME target"
             )
             return 0
 

@@ -7,8 +7,8 @@ import six
 import sys
 import unittest
 
-from mbed_os_tools.test import mbed_greentea_cli
-from mbed_os_tools.test.tests_spec import TestSpec
+from greentea import greentea_cli
+from greentea.gtea.tests_spec import TestSpec
 
 test_spec_def = {
     "builds": {
@@ -48,7 +48,7 @@ class GreenteaCliFunctionality(unittest.TestCase):
         pass
 
     def test_get_greentea_version(self):
-        version = mbed_greentea_cli.get_greentea_version()
+        version = greentea_cli.get_greentea_version()
 
         self.assertIs(type(version), str)
 
@@ -59,31 +59,31 @@ class GreenteaCliFunctionality(unittest.TestCase):
         self.assertEqual(version_list[2].isdigit(), True)
 
     def test_print_version(self):
-        version = mbed_greentea_cli.get_greentea_version()
+        version = greentea_cli.get_greentea_version()
 
         old_stdout = sys.stdout
         sys.stdout = stdout_capture = six.StringIO()
-        mbed_greentea_cli.print_version()
+        greentea_cli.print_version()
         sys.stdout = old_stdout
 
         printed_version = stdout_capture.getvalue().splitlines()[0]
         self.assertEqual(printed_version, version)
 
     def test_get_hello_string(self):
-        version = mbed_greentea_cli.get_greentea_version()
-        hello_string = mbed_greentea_cli.get_hello_string()
+        version = greentea_cli.get_greentea_version()
+        hello_string = greentea_cli.get_hello_string()
 
         self.assertIs(type(version), str)
         self.assertIs(type(hello_string), str)
         self.assertIn(version, hello_string)
 
     def test_get_local_host_tests_dir_invalid_path(self):
-        test_path = mbed_greentea_cli.get_local_host_tests_dir("invalid-path")
+        test_path = greentea_cli.get_local_host_tests_dir("invalid-path")
         self.assertEqual(test_path, None)
 
     def test_get_local_host_tests_dir_valid_path(self):
         path = "."
-        test_path = mbed_greentea_cli.get_local_host_tests_dir(path)
+        test_path = greentea_cli.get_local_host_tests_dir(path)
         self.assertEqual(test_path, path)
 
     def test_get_local_host_tests_dir_default_path(self):
@@ -98,7 +98,7 @@ class GreenteaCliFunctionality(unittest.TestCase):
 
         os.chdir(test1_dir)
 
-        test_path = mbed_greentea_cli.get_local_host_tests_dir("")
+        test_path = greentea_cli.get_local_host_tests_dir("")
         self.assertEqual(test_path, "./test/host_tests")
 
         os.chdir(curr_dir)
@@ -109,7 +109,7 @@ class GreenteaCliFunctionality(unittest.TestCase):
         test_spec.parse(test_spec_def)
         test_build = test_spec.get_test_builds()[0]
 
-        test_list = mbed_greentea_cli.create_filtered_test_list(
+        test_list = greentea_cli.create_filtered_test_list(
             test_build.get_tests(),
             "mbed-drivers-test-generic_*",
             None,
@@ -119,12 +119,12 @@ class GreenteaCliFunctionality(unittest.TestCase):
             set(test_list.keys()), set(["mbed-drivers-test-generic_tests"])
         )
 
-        test_list = mbed_greentea_cli.create_filtered_test_list(
+        test_list = greentea_cli.create_filtered_test_list(
             test_build.get_tests(), "*_strings", None, test_spec=test_spec
         )
         self.assertEqual(set(test_list.keys()), set(["mbed-drivers-test-c_strings"]))
 
-        test_list = mbed_greentea_cli.create_filtered_test_list(
+        test_list = greentea_cli.create_filtered_test_list(
             test_build.get_tests(), "mbed*s", None, test_spec=test_spec
         )
         expected = set(
@@ -132,7 +132,7 @@ class GreenteaCliFunctionality(unittest.TestCase):
         )
         self.assertEqual(set(test_list.keys()), expected)
 
-        test_list = mbed_greentea_cli.create_filtered_test_list(
+        test_list = greentea_cli.create_filtered_test_list(
             test_build.get_tests(), "*-drivers-*", None, test_spec=test_spec
         )
         expected = set(
@@ -141,7 +141,7 @@ class GreenteaCliFunctionality(unittest.TestCase):
         self.assertEqual(set(test_list.keys()), expected)
 
         # Should be case insensitive
-        test_list = mbed_greentea_cli.create_filtered_test_list(
+        test_list = greentea_cli.create_filtered_test_list(
             test_build.get_tests(), "*-DRIVERS-*", None, test_spec=test_spec
         )
         expected = set(

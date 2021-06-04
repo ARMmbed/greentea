@@ -7,10 +7,10 @@ import os
 import fnmatch
 
 from .cmake_handlers import list_binaries_for_builds, list_binaries_for_targets
-from .mbed_greentea_log import gt_logger
+from .greentea_log import gt_logger
 
 RET_NO_DEVICES = 1001
-LOCAL_HOST_TESTS_DIR = "./test/host_tests"  # Used by mbedhtrun -e <dir>
+LOCAL_HOST_TESTS_DIR = "./test/host_tests"  # Used by htrun -e <dir>
 
 
 def get_local_host_tests_dir(path):

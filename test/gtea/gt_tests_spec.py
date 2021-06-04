@@ -5,7 +5,8 @@
 
 import os
 import unittest
-from mbed_os_tools.test.tests_spec import Test, TestBinary, TestBuild, TestSpec
+
+from greentea.gtea.tests_spec import Test, TestBuild, TestSpec
 
 simple_test_spec = {
     "builds": {

@@ -37,9 +37,9 @@ def run_cli_process(cmd):
         p = Popen(cmd, stdout=PIPE, stderr=PIPE)
         _stdout, _stderr = p.communicate()
     except OSError as e:
-        print("mbedgt: Command: %s" % (cmd))
+        print("gt: Command: %s" % (cmd))
         print(str(e))
-        print("mbedgt: traceback...")
+        print("gt: traceback...")
         print(e.child_traceback)
         return str(), str(), -1
     return _stdout, _stderr, p.returncode

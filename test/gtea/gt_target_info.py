@@ -11,7 +11,7 @@ import unittest
 from six import StringIO
 
 from mock import patch
-from mbed_greentea.gtea import target_info
+from greentea.gtea import target_info
 
 
 class GreenteaTargetInfo(unittest.TestCase):
@@ -22,7 +22,7 @@ class GreenteaTargetInfo(unittest.TestCase):
         pass
 
     def test_get_platform_property_from_targets_no_json(self):
-        with patch("mbed_greentea.gtea.target_info._find_targets_json") as _find:
+        with patch("greentea.gtea.target_info._find_targets_json") as _find:
             _find.return_value = iter([])
             result = target_info._get_platform_property_from_targets(
                 "not_a_platform", "not_a_property"
@@ -30,8 +30,8 @@ class GreenteaTargetInfo(unittest.TestCase):
             self.assertIsNone(result)
 
     def test_get_platform_property_from_targets_no_file(self):
-        with patch("mbed_greentea.gtea.target_info._find_targets_json") as _find, patch(
-            "mbed_greentea.gtea.target_info.open"
+        with patch("greentea.gtea.target_info._find_targets_json") as _find, patch(
+            "greentea.gtea.target_info.open"
         ) as _open:
             _find.return_value = iter(["foo"])
             _open.side_effect = IOError
@@ -41,8 +41,8 @@ class GreenteaTargetInfo(unittest.TestCase):
             self.assertIsNone(result)
 
     def test_get_platform_property_from_targets_invalid_json(self):
-        with patch("mbed_greentea.gtea.target_info._find_targets_json") as _find, patch(
-            "mbed_greentea.gtea.target_info.open"
+        with patch("greentea.gtea.target_info._find_targets_json") as _find, patch(
+            "greentea.gtea.target_info.open"
         ) as _open:
             _find.return_value = iter(["foo"])
             _open.return_value.__enter__.return_value = StringIO("{")
@@ -52,8 +52,8 @@ class GreenteaTargetInfo(unittest.TestCase):
             self.assertIsNone(result)
 
     def test_get_platform_property_from_targets_empty_json(self):
-        with patch("mbed_greentea.gtea.target_info._find_targets_json") as _find, patch(
-            "mbed_greentea.gtea.target_info.open"
+        with patch("greentea.gtea.target_info._find_targets_json") as _find, patch(
+            "greentea.gtea.target_info.open"
         ) as _open:
             _find.return_value = iter(["foo"])
             _open.return_value.__enter__.return_value = StringIO("{}")
@@ -63,8 +63,8 @@ class GreenteaTargetInfo(unittest.TestCase):
             self.assertIsNone(result)
 
     def test_get_platform_property_from_targets_no_value(self):
-        with patch("mbed_greentea.gtea.target_info._find_targets_json") as _find, patch(
-            "mbed_greentea.gtea.target_info.open"
+        with patch("greentea.gtea.target_info._find_targets_json") as _find, patch(
+            "greentea.gtea.target_info.open"
         ) as _open:
             _find.return_value = iter(["foo"])
             _open.return_value.__enter__.return_value = StringIO('{"K64F": {}}')
@@ -74,8 +74,8 @@ class GreenteaTargetInfo(unittest.TestCase):
             self.assertEqual(result, None)
 
     def test_get_platform_property_from_targets_in_json(self):
-        with patch("mbed_greentea.gtea.target_info._find_targets_json") as _find, patch(
-            "mbed_greentea.gtea.target_info.open"
+        with patch("greentea.gtea.target_info._find_targets_json") as _find, patch(
+            "greentea.gtea.target_info.open"
         ) as _open:
             _find.return_value = iter(["foo"])
             _open.return_value.__enter__.return_value = StringIO(
@@ -87,7 +87,7 @@ class GreenteaTargetInfo(unittest.TestCase):
             self.assertEqual("cp", result)
 
     def test_find_targets_json(self):
-        with patch("mbed_greentea.gtea.target_info.os.walk") as _walk:
+        with patch("greentea.gtea.target_info.os.walk") as _walk:
             _walk.return_value = iter(
                 [("", ["foo"], []), ("foo", [], ["targets.json"])]
             )
@@ -95,7 +95,7 @@ class GreenteaTargetInfo(unittest.TestCase):
             self.assertEqual(result, [os.path.join("foo", "targets.json")])
 
     def test_find_targets_json_ignored(self):
-        with patch("mbed_greentea.gtea.target_info.os.walk") as _walk:
+        with patch("greentea.gtea.target_info.os.walk") as _walk:
             walk_result = [("", [".build"], [])]
             _walk.return_value = iter(walk_result)
             result = list(target_info._find_targets_json("bogus_path"))
@@ -136,9 +136,9 @@ class GreenteaTargetInfo(unittest.TestCase):
         targets.json > default
         """
         with patch(
-            "mbed_greentea.gtea.target_info._get_platform_property_from_targets"
+            "greentea.gtea.target_info._get_platform_property_from_targets"
         ) as _targets, patch(
-            "mbed_greentea.gtea.target_info._get_platform_property_from_default"
+            "greentea.gtea.target_info._get_platform_property_from_default"
         ) as _default:
             # 1
             _targets.return_value = "targets"

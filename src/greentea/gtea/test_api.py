@@ -10,10 +10,9 @@ import json
 import string
 from subprocess import Popen, PIPE, STDOUT
 
-from .cmake_handlers import list_binaries_for_builds, list_binaries_for_targets
-from .mbed_coverage_api import coverage_dump_file, coverage_pack_hex_payload
-from .mbed_greentea_log import gt_logger
-from .mbed_yotta_api import get_test_spec_from_yt_module
+from .cmake_handlers import list_binaries_for_builds
+from .coverage_api import coverage_dump_file, coverage_pack_hex_payload
+from .greentea_log import gt_logger
 from .tests_spec import TestSpec
 
 
@@ -65,7 +64,7 @@ TEST_RESULT_MAPPING = {
 }
 
 
-# This value is used to tell caller than run_host_test function failed while invoking mbedhtrun
+# This value is used to tell caller than run_host_test function failed while invoking htrun
 # Just a value greater than zero
 RUN_HOST_TEST_POPEN_ERROR = 1729
 
@@ -455,8 +454,8 @@ def get_thread_stack_info_summary(thread_stack_info):
     return summary
 
 
-def log_mbed_devices_in_table(
-    muts,
+def log_devices_in_table(
+    duts,
     cols=[
         "platform_name",
         "platform_name_unique",
@@ -477,9 +476,9 @@ def log_mbed_devices_in_table(
         pt.align[col] = "l"
     pt.padding_width = 1  # One space between column edges and contents (default)
     row = []
-    for mut in muts:
+    for dut in duts:
         for col in cols:
-            cell_val = mut[col] if col in mut else "not detected"
+            cell_val = dut[col] if col in dut else "not detected"
             row.append(cell_val)
         pt.add_row(row)
         row = []

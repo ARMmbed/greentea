@@ -10,8 +10,7 @@ import sys
 import tempfile
 import unittest
 
-from mock import patch
-from mbed_os_tools.test import mbed_report_api
+from greentea.gtea import report_api
 
 
 class GreenteaReportApiFunctionality(unittest.TestCase):
@@ -92,7 +91,7 @@ class GreenteaReportApiFunctionality(unittest.TestCase):
 
         old_stdout = sys.stdout
         sys.stdout = stdout_capture = six.StringIO()
-        result = mbed_report_api.export_to_file(filepath, payload)
+        result = report_api.export_to_file(filepath, payload)
         sys.stdout = old_stdout
 
         command_output = stdout_capture.getvalue().splitlines()[0]
@@ -101,7 +100,7 @@ class GreenteaReportApiFunctionality(unittest.TestCase):
 
         # Valid filepath
         temp_file = tempfile.mkstemp("test_file")
-        result = mbed_report_api.export_to_file(temp_file[1], payload)
+        result = report_api.export_to_file(temp_file[1], payload)
         self.assertTrue(result)
 
         with open(temp_file[1], "r") as f:
@@ -112,7 +111,7 @@ class GreenteaReportApiFunctionality(unittest.TestCase):
         os.remove(temp_file[1])
 
     def test_exporter_text(self):
-        result, result_ = mbed_report_api.exporter_text(self.test_suite_data)
+        result, result_ = report_api.exporter_text(self.test_suite_data)
 
         lines = result.splitlines()
         self.assertIn("target", lines[0])
@@ -126,7 +125,7 @@ class GreenteaReportApiFunctionality(unittest.TestCase):
         self.assertIn("OK", lines[2])
 
     def test_exporter_testcase_test(self):
-        result, result_ = mbed_report_api.exporter_testcase_text(self.test_case_data)
+        result, result_ = report_api.exporter_testcase_text(self.test_case_data)
 
         lines = result.splitlines()
         self.assertIn("target", lines[0])
@@ -140,7 +139,7 @@ class GreenteaReportApiFunctionality(unittest.TestCase):
         self.assertIn("case-1", line)
 
     def test_exporter_testcase_junit(self):
-        result = mbed_report_api.exporter_testcase_junit(self.test_case_data)
+        result = report_api.exporter_testcase_junit(self.test_case_data)
         self.assertIsNotNone(result)
 
         from xml.etree import ElementTree as ET

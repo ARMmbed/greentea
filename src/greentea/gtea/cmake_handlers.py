@@ -7,7 +7,7 @@ import re
 import os
 import os.path
 
-from .mbed_greentea_log import gt_logger
+from .greentea_log import gt_logger
 
 
 def load_ctest_testsuite(link_target, binary_type=".bin", verbose=False):
@@ -108,7 +108,7 @@ def list_binaries_for_targets(build_dir="./build", verbose_footer=False):
 
     if verbose_footer:
         print(
-            "\nExample: execute 'mbedgt -t TARGET_NAME -n TEST_NAME' to run "
+            "\nExample: execute 'gt -t TARGET_NAME -n TEST_NAME' to run "
             "test TEST_NAME for target TARGET_NAME"
         )
 
@@ -129,6 +129,6 @@ def list_binaries_for_builds(test_spec, verbose_footer=False):
 
     if verbose_footer:
         print(
-            "\nExample: execute 'mbedgt -t BUILD_NAME -n TEST_NAME' to run test "
+            "\nExample: execute 'gt -t BUILD_NAME -n TEST_NAME' to run test "
             "TEST_NAME for build TARGET_NAME in current test specification"
         )

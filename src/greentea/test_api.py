@@ -5,23 +5,7 @@
 import os
 from time import time
 
-from mbed_os_tools.test.mbed_test_api import (
-    TEST_RESULT_OK,
-    TEST_RESULT_FAIL,
-    TEST_RESULT_ERROR,
-    TEST_RESULT_SKIPPED,
-    TEST_RESULT_UNDEF,
-    TEST_RESULT_IOERR_COPY,
-    TEST_RESULT_IOERR_DISK,
-    TEST_RESULT_IOERR_SERIAL,
-    TEST_RESULT_TIMEOUT,
-    TEST_RESULT_NO_IMAGE,
-    TEST_RESULT_MBED_ASSERT,
-    TEST_RESULT_BUILD_FAILED,
-    TEST_RESULT_SYNC_FAILED,
-    TEST_RESULTS,
-    TEST_RESULT_MAPPING,
-    RUN_HOST_TEST_POPEN_ERROR,
+from greentea.gtea.test_api import (
     get_test_result,
     run_command,
     run_htrun,
@@ -69,7 +53,7 @@ def run_host_test(
     tags=None,
     run_app=None,
 ):
-    """! This function runs host test supervisor (executes mbedhtrun) and checks output from host test process.
+    """! This function runs host test supervisor (executes htrun) and checks output from host test process.
     @param image_path Path to binary file for flashing
     @param disk Currently mounted mbed-enabled devices disk (mount point)
     @param port Currently mounted mbed-enabled devices serial port (console)
@@ -88,12 +72,12 @@ def run_host_test(
     @param tags Filter list of available devices under test to only run on devices with the provided list
            of tags  [tag-filters tag1,tag]
     @param run_app Run application mode flag (we run application and grab serial port data)
-    @param digest_source if None mbedhtrun will be executed. If 'stdin',
+    @param digest_source if None htrun will be executed. If 'stdin',
            stdin will be used via StdInObserver or file (if
            file name was given as switch option)
     @return Tuple with test results, test output, test duration times, test case results, and memory metrics.
-            Return int > 0 if running mbedhtrun process failed.
-            Retrun int < 0 if something went wrong during mbedhtrun execution.
+            Return int > 0 if running htrun process failed.
+            Retrun int < 0 if something went wrong during htrun execution.
     """
 
     def get_binary_host_tests_dir(binary_path, level=2):
@@ -145,7 +129,7 @@ def run_host_test(
         # * We will search for directory called host_tests on the level of test group (level=2)
         #   or on the level of tests directory (level=3).
         #
-        # If host_tests directory is found above test code will will pass it to mbedhtrun using
+        # If host_tests directory is found above test code will will pass it to htrun using
         # switch -e <path_to_host_tests_dir>
         gt_logger.gt_log(
             "checking for 'host_tests' directory above image directory structure",
@@ -185,7 +169,7 @@ def run_host_test(
 
     # Command executing CLI for host test supervisor (in detect-mode)
     cmd = [
-        "mbedhtrun",
+        "htrun",
         "-m",
         micro,
         "-p",
@@ -200,7 +184,7 @@ def run_host_test(
     if global_resource_mgr:
         # Use global resource manager to execute test
         # Example:
-        # $ mbedhtrun -p :9600 -f "tests-mbed_drivers-generic_tests.bin" -m K64F --grm raas_client:10.2.203.31:8000
+        # $ htrun -p :9600 -f "tests-mbed_drivers-generic_tests.bin" -m K64F --grm raas_client:10.2.203.31:8000
         cmd += ["--grm", global_resource_mgr]
     else:
         # Use local resources to execute tests
@@ -219,7 +203,7 @@ def run_host_test(
     if fast_model_connection:
         # Use simulator resource manager to execute test
         # Example:
-        # $ mbedhtrun -f "tests-mbed_drivers-generic_tests.elf" -m FVP_MPS2_M3 --fm DEFAULT
+        # $ htrun -f "tests-mbed_drivers-generic_tests.elf" -m FVP_MPS2_M3 --fm DEFAULT
         cmd += ["--fm", fast_model_connection]
     if compare_log:
         cmd += ["--compare-log", compare_log]
@@ -236,8 +220,8 @@ def run_host_test(
     if polling_timeout:
         cmd += ["-P", str(polling_timeout)]
 
-    gt_logger.gt_log_tab("calling mbedhtrun: %s" % " ".join(cmd), print_text=verbose)
-    gt_logger.gt_log("mbed-host-test-runner: started")
+    gt_logger.gt_log_tab("calling htrun: %s" % " ".join(cmd), print_text=verbose)
+    gt_logger.gt_log("host-test-runner: started")
 
     for retry in range(1, 1 + retry_count):
         start_time = time()
@@ -247,7 +231,7 @@ def run_host_test(
             return returncode
         elif returncode == 0:
             break
-        gt_logger.gt_log("retry mbedhtrun {}/{}".format(retry, retry_count))
+        gt_logger.gt_log("retry htrun {}/{}".format(retry, retry_count))
     else:
         gt_logger.gt_log("{} failed after {} count".format(cmd, retry_count))
 
@@ -272,7 +256,7 @@ def run_host_test(
     get_coverage_data(build_path, htrun_output)
 
     gt_logger.gt_log(
-        "mbed-host-test-runner: stopped and returned '%s'" % result, print_text=verbose
+        "host-test-runner: stopped and returned '%s'" % result, print_text=verbose
     )
     return (
         result,

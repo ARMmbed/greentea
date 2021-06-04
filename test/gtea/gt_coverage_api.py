@@ -5,7 +5,7 @@
 
 import os
 import unittest
-from mbed_os_tools.test import mbed_coverage_api
+from greentea.gtea import coverage_api
 
 
 class GreenteaCoverageAPI(unittest.TestCase):
@@ -17,19 +17,19 @@ class GreenteaCoverageAPI(unittest.TestCase):
 
     def test_coverage_pack_hex_payload(self):
         # This function takesstring as input
-        r = mbed_coverage_api.coverage_pack_hex_payload("")
+        r = coverage_api.coverage_pack_hex_payload("")
         self.assertEqual(bytearray(b""), r)
 
-        r = mbed_coverage_api.coverage_pack_hex_payload("6164636772")
+        r = coverage_api.coverage_pack_hex_payload("6164636772")
         self.assertEqual(bytearray(b"adcgr"), r)
 
-        r = mbed_coverage_api.coverage_pack_hex_payload(".")  # '.' -> 0x00
+        r = coverage_api.coverage_pack_hex_payload(".")  # '.' -> 0x00
         self.assertEqual(bytearray(b"\x00"), r)
 
-        r = mbed_coverage_api.coverage_pack_hex_payload("...")  # '.' -> 0x00
+        r = coverage_api.coverage_pack_hex_payload("...")  # '.' -> 0x00
         self.assertEqual(bytearray(b"\x00\x00\x00"), r)
 
-        r = mbed_coverage_api.coverage_pack_hex_payload(".6164636772.")  # '.' -> 0x00
+        r = coverage_api.coverage_pack_hex_payload(".6164636772.")  # '.' -> 0x00
         self.assertEqual(bytearray(b"\x00adcgr\x00"), r)
 
     def test_coverage_dump_file_valid(self):
@@ -37,7 +37,7 @@ class GreenteaCoverageAPI(unittest.TestCase):
 
         payload = bytearray(b"PAYLOAD")
         handle, path = tempfile.mkstemp("test_file")
-        mbed_coverage_api.coverage_dump_file(".", path, payload)
+        coverage_api.coverage_dump_file(".", path, payload)
 
         with open(path, "r") as f:
             read_data = f.read()
