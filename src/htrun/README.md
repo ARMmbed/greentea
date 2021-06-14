@@ -1,14 +1,14 @@
 # Development moved
 
-The development of Htrun has been moved into the [mbed-os-tools](../../src/mbed_os_tools) package. You can continue to use this module for legacy reasons, however all further development should be continued in the new package.
+The development of Htrun (mbed-host-tests) has been moved into the [greentea](https://github.com/ARMmbed/greentea/tree/master) repository under `src/htrun`. You can continue to use this module for legacy reasons, however all further development should be continued in the greentea repository.
 
 -------------
 
-[![PyPI version](https://badge.fury.io/py/mbed-host-tests.svg)](https://badge.fury.io/py/mbed-host-tests)
+[![PyPI version](https://badge.fury.io/py/mbed-greentea.svg)](https://badge.fury.io/py/mbed-greentea)
 
-# Htrun (mbed-host-tests)
+# Greentea host tests runner (htrun) command line
 
-`htrun` has extensive command line. In most cases `htrun` (or its command line avatar `mbedhtrun`) will be run in background:
+`htrun` has extensive command line. In most cases `htrun` will be run in background:
 * driving test binary flashing,
 * device reset and
 * test execution.
@@ -29,12 +29,12 @@ Test execution phase will consist of:
 
 ## Command line overview
 
-This chapter will present few examples of how you can use `mbedhtrun` command line to execute tests. In most cases test automation tools such as [Greentea](https://github.com/ARMmbed/greentea) will execute `mbedhtrun` implicitly. There are cases when we want to execute `mbedhtrun` independently. Mostly in situation when we want to:
+This chapter will present a few examples of how you can use `htrun` command line to execute tests. In most cases test automation tools such as [Greentea](https://github.com/ARMmbed/greentea/src/greentea) will execute `htrun` implicitly. There are cases when we want to execute `htrun` independently. Mostly in situation when we want to:
 * debug our code and have binary + host test instrumentation on,
 * prototype or
 * just want to replace test runner in another OS with one compatible with mbed-enabled devices.
 
-All `mbedhtrun` needs is name of the binary you want to flash and method of flashing!
+All `htrun` needs is name of the binary you want to flash and method of flashing!
 
 ## Useful command line end-to-end examples
 
@@ -43,19 +43,19 @@ All `mbedhtrun` needs is name of the binary you want to flash and method of flas
 Flash binary file `/path/to/file/binary.bin` using mount point `D:`. Use serial port `COM4` to communicate with DUT:
 
 ```
-$ mbedhtrun -f /path/to/file/binary.bin -d D: -p COM4
+$ htrun -f /path/to/file/binary.bin -d D: -p COM4
 ```
 
 Flash (use shell command `copy`) binary file `/path/to/file/binary.bin` using mount point `D:`. Use serial port `COM4` to communicate with DUT:
 
 ```
-$ mbedhtrun -f /path/to/file/binary.bin -d D: -p COM4 -c copy
+$ htrun -f /path/to/file/binary.bin -d D: -p COM4 -c copy
 ```
 
 Skip flashing phase (e.g. you've already flashed this device with `/path/to/file/binary.bin` binary). Use serial port `COM4` to communicate with DUT:
 
 ```
-$ mbedhtrun -f /path/to/file/binary.bin -d D: -p COM4 --skip-flashing
+$ htrun -f /path/to/file/binary.bin -d D: -p COM4 --skip-flashing
 ```
 
 ### DUT-host communication and reset phase
@@ -63,19 +63,19 @@ $ mbedhtrun -f /path/to/file/binary.bin -d D: -p COM4 --skip-flashing
 Flash binary file `/path/to/file/binary.bin` using mount point `D:`. Use serial port `COM4` with baudrate `115200` to communicate with DUT:
 
 ```
-$ mbedhtrun -f /path/to/file/binary.bin -d D: -p COM4:115200
+$ htrun -f /path/to/file/binary.bin -d D: -p COM4:115200
 ```
 
-As above but we will skip reset phase (non so common but in some cases can be used to suppress reset phase for some reasons):
+As above but we will skip reset phase (not so common but in some cases can be used to suppress reset phase for some reasons):
 
 ```
-$ mbedhtrun -f /path/to/file/binary.bin -d D: -p COM4:115200 --skip-reset
+$ htrun -f /path/to/file/binary.bin -d D: -p COM4:115200 --skip-reset
 ```
 
 Flash binary file `/path/to/file/binary.bin` using mount point `D:`. Use serial port `COM4` with default baudrate to communicate with DUT. Do not send `__sync` key-value protocol synchronization packet to DUT before preamble read:
 
 ```
-$ mbedhtrun -f /path/to/file/binary.bin -d D: -p COM4 --sync=0
+$ htrun -f /path/to/file/binary.bin -d D: -p COM4 --sync=0
 ```
 
 **Note**: Sync packet management allows you to manipulate the way `htrun` sends `__sync` packet(s) to DUT. With current settings we can force on `htrun` to send `__sync` packets in this manner:
@@ -88,7 +88,7 @@ $ mbedhtrun -f /path/to/file/binary.bin -d D: -p COM4 --sync=0
 Flash local file `/path/to/file/binary.bin` to remote device resource (platform `K64F`) provided by `remote_client` GRM service available on IP address `10.2.203.31` and port: `8000`. Force serial port connection to remote device `9600` with baudrate:
 
 ```
-$ mbedhtrun -p :9600 -f /path/to/file/binary.bin -m K64F --grm remote_client:10.2.203.31:8000
+$ htrun -p :9600 -f /path/to/file/binary.bin -m K64F --grm remote_client:10.2.203.31:8000
 ```
 
 Command line switch `--grm` has format: `<module_name>:<IP_address>:<port_number>`.
@@ -107,11 +107,11 @@ The "--fm" option only available when [mbed-fastmodel-agent](https://github.com/
 Load local file `/path/to/file/binary.elf` to onto fastmodel FVP_MPS2_m3 simulators:
 
 ```
-$ mbedhtrun -f /path/to/file/binary.elf -m FVP_MPS2_M3 --fm DEFAULT
+$ htrun -f /path/to/file/binary.elf -m FVP_MPS2_M3 --fm DEFAULT
 ```
 
 Command line switch format `--fm <config_name>`.
-  * `<config_name>` - ether pre-defined CONFIG_NAME from mbedfm or a local config file for the Fast Models.
+  * `<config_name>` - either pre-defined CONFIG_NAME from mbedfm or a local config file for the Fast Models.
 
 **Note**: Switch -m <platform_name> is required to tell this fastmodel connection which Fastmodel to request.
 **Note**: Command line switch `--fm` implicitly forces `--skip-flashing` and `--skip-reset` because both flags are used for locally available DUTs.
@@ -122,54 +122,53 @@ Command line switch format `--fm <config_name>`.
 List available host tests names, class names and origin:
 
 ```
-$ mbedhtrun --list
+$ htrun --list
 ```
 
 List available host tests names, class names and origin. Load additional host tests from `/path/to/host_tests` directory:
 
 ```
-$ mbedhtrun --list -e /path/to/host_tests
+$ htrun --list -e /path/to/host_tests
 ```
 
 List available reset and flashing plugins:
 
 ```
-$ mbedhtrun --plugins
+$ htrun --plugins
 ```
 
 Flash binary file `/path/to/file/binary.bin` using plugin `stlink`. Use serial port `COM4` with baudrate `115200` to communicate with DUT:
 
 ```
-mbedhtrun -c stlink -f /path/to/file/binary.bin -p COM4:115200
+htrun -c stlink -f /path/to/file/binary.bin -p COM4:115200
 ```
 
 # Installation
 
-`htrun` is redistributed with sources, as Python 2.7 compatible module called `mbed-host-tests` and command line tool called `mbedhtrun`.
+`htrun` is distributed along with `mbed-greentea` module as a dependency sources and its command line tool called `htrun`.
 
 ## Installation from PyPI (Python Package Index)
-`mbed-host-tests` module is redistributed via PyPI. We recommend you use the [application pip](https://pip.pypa.io/en/latest/installing.html#install-pip).
+`mbed-greentea` module is distributed via PyPI. We recommend you use the [application pip](https://pip.pypa.io/en/latest/installing.html#install-pip).
 
 **Note:** Python 2.7.9 onwards include ```pip``` by default, so you may have ```pip``` already.
-**Note:** `mbed-host-tests` module is redistributed with `mbed-greentea` module as a dependency. So if you've already installed Greentea `mbed-host-tests` should be there!
 
-To install mbed-ls from [PyPI](https://pypi.python.org/pypi/mbed-host-tests) use command:
+To install mbed-ls from [PyPI](https://pypi.python.org/pypi/mbed-greentea) use command:
 
 ```
-$ pip install mbed-host-tests --upgrade
+$ pip install mbed-greentea --upgrade
 ```
 
 ## Installation from Python sources
-To install the mbed test suite, first clone the `mbed-os-tools` repository:
+To install the mbed test suite, first clone the `greentea` repository:
 
 ```
-$ git clone https://github.com/ARMmbed/mbed-os-tools.git
+$ git clone https://github.com/ARMmbed/greentea.git
 ```
 
-Change the directory to the `mbed-os-tools/packages/mbed-host-tests` directory:
+Change the directory to the `greentea` directory:
 
 ```
-$ cd mbed-os-tools/packages/mbed-host-tests
+$ cd greentea
 ```
 
 Now you are ready to install `htrun`:
@@ -177,36 +176,37 @@ Now you are ready to install `htrun`:
 ```
 $ python setup.py install
 ```
+**Note:** setup.py will install both greentea (gt) and htrun command line tools.
 
 ### Checking installation
-To check whether the installation was successful try running the ```mbedgt --help``` command and check that it returns information (you may need to restart your terminal first):
+To check whether the installation was successful try running the ```htrun --help``` command and check that it returns information (you may need to restart your terminal first):
 
 ```
-$ mbedhtrun --help
-Usage: mbedgt-script.py [options]
+$ htrun --help
+Usage: htrun [options]
 
-Flash, reset and perform host supervised tests on mbed platforms
+Flash, reset and perform host supervised tests on Mbed enabled platforms
 
 Options:
   -h, --help            show this help message and exit
 ```
 
-# mbed-host-tests
+# Greentea host tests runner (htrun)
 
-mbed's test suite (codenamed ```Greentea```) supports the *test supervisor* concept. This concept is realized by this module. ```mbed-host-tests``` is a collection of host tests. Host test is script written in Python, which is executed in parallel with the test suite runner (a binary running on the target hardware / device under test) to monitor the test execution's progress or to control the test flow (interaction with the mbed device under test - DUT). The host test is also responsible for grabbing the test result, or deducing it from the test runner's behavior.
+Mbed's test suite (codenamed ```Greentea```) supports the *test supervisor* concept. This concept is realized by this module. ```htrun``` is a collection of host tests. Host test is script written in Python, which is executed in parallel with the test suite runner (a binary running on the target hardware / device under test) to monitor the test execution's progress or to control the test flow (interaction with the mbed device under test - DUT). The host test is also responsible for grabbing the test result, or deducing it from the test runner's behavior.
 
 Key-value protocol was developed and is used to provide communication layer between DUT (device under test) and host computer. Key-value protocol defined host computer as master and DUT as slave.
 * Slave side APIs and key-value protocol implementation is encapsulated in [greentea-client](https://github.com/ARMmbed/mbed-os/tree/master/features/frameworks/greentea-client) module.
-* Master side APIs and key-value protocol is encapsulated in  ```mbed-host-tests```.
+* Master side APIs and key-value protocol is encapsulated in  ```htrun```.
 
-```mbed-host-tests``` responsibilities are:
+```htrun``` responsibilities are:
 * Flash mbed device with given binary.
 * Reset mbed device after flashing to start test suite execution.
 * Use key-value protocol to handshake with device and make sure correct host test script is executed to supervise test suite execution.
 * Run key-value protocol state machine and execute event callbacks.
 * Monitor serial port traffic to parse valid key-value protocol events.
 * Make decision if test test suite passed / failed / returned error.
-* Provide command line tool interface, command: ```mbedhtrun``` after module installation (on host).
+* Provide command line tool interface, command: ```htrun``` after module installation (on host).
 * Provide few basic host test implementations which can be used out of the box for test development. For example the basic host test (called ```default``` or ```default_auto```) just parses events from DUT and finished host test execution when ```end``` event is received. Other included in this module host tests can help you to test timers or RTC.
 
 ## Key-value protocol overview
@@ -261,31 +261,9 @@ Key-value protocol was developed and is used to provide communication layer betw
 
 # Greentea client API
 
-DUT test API was first introduced in ```mbedmicro/mbed``` project [here](https://github.com/mbedmicro/mbed/tree/master/libraries/tests/mbed/env). After refactoring this functionality was copied and improved in [greentea-client](https://github.com/ARMmbed/mbed-os/tree/master/features/frameworks/greentea-client) module.
+[greentea-client](https://github.com/ARMmbed/greentea-client) is a C++ client library that provides greentea_send_kv API for sending and greentea_parse_kv API to receive key-value pairs with the Greentea host test tool.
 
-* Slave side key-value protocol API, see [here](https://github.com/ARMmbed/mbed-os/blob/master/features/frameworks/greentea-client/greentea-client/test_env.h) for details.
-
-```c++
-// Send key-value pairs from slave to master
-void greentea_send_kv(const char *, const char *);
-void greentea_send_kv(const char *, const int);
-void greentea_send_kv(const char *, const int, const int);
-void greentea_send_kv(const char *, const char *, const int);
-void greentea_send_kv(const char *, const char *, const int, const int);
-
-// Blocking, receive key-value message from master
-int greentea_parse_kv(char *, char *, const int, const int);
-```
-Functions are used to send key-string or key-integer value messages to master. This functions should replace typical ```printf()``` calls with payload/control data to host.
-
-* **Blocking** wait for key-value pair message in input stream:
-
-```c++
-int greentea_parse_kv(char *out_key, char *out_value, const int out_key_len, const int out_value_len);
-```
-
-This function should replace ```scanf()``` used to check for incoming messages from master.
-Function parses input and if key-value message is found load to ```out_key```, ```out_value``` key-value pair. Use ```out_key_size``` and ```out_value_size``` to define out buffers max size (including trailing zero).
+* Slave side key-value protocol API, see [here](https://github.com/ARMmbed/greentea-client/blob/master/include/greentea-client/test_env.h) for details.
 
 # Key-value transport protocol sequence
 
@@ -325,32 +303,6 @@ the same UUID to master        |                   |
 ```
 
 Example of handshake from ```htrun``` log:
-
-DUT code:
-
-```c
-// GREENTEA_SETUP pseudo-code
-void GREENTEA_SETUP(const int timeout, const char *host_test_name) {
-    // Wait for SYNC and echo it back
-    char _key[8] = {0};
-    char _value[48] = {0};
-    while (1) {
-        greentea_parse_kv(_key, _value, sizeof(_key), sizeof(_value));
-        if (strcmp(_key, GREENTEA_TEST_ENV_SYNC) == 0) {
-            // Found correct __sunc message
-            greentea_send_kv(_key, _value);
-            break;
-        }
-    }
-
-    // Send PREAMBLE: client version, test suite timeout and requested host test
-    greentea_send_kv(GREENTEA_TEST_ENV_HOST_TEST_VERSION, "0.1.8");
-    greentea_send_kv(GREENTEA_TEST_ENV_TIMEOUT, timeout);
-    greentea_send_kv(GREENTEA_TEST_ENV_HOST_TEST_NAME, host_test_name);
-}
-```
-
-Corresponding log:
 
 ```
 [1458565465.35][SERI][INF] reset device using 'default' plugin...
@@ -481,7 +433,6 @@ int main() {
     // 2. Send test case related data
     GREENTEA_SETUP(15, "gimme_auto");  // __timeout, __host_test_name
 
-    // ...
     // Send to master {{gimme_something; some_stuff}}
     greentea_send_kv("gimme_something", "some_stuff");
 
@@ -489,10 +440,8 @@ int main() {
     char value[32] = {0};
     // Blocking wait for master response for {{gimme_something; some_stuff}}
     greentea_parse_kv(key, value, sizeof(key), sizeof(value));
-    // ...
+    
     fprintf(stderr, "Received from master %s, %s", key, value);
-    // ...
-
     GREENTEA_TESTSUITE_RESULT(true);    // __exit
 }
 ```
@@ -525,9 +474,6 @@ class GimmeAuto(BaseHostTest):
     def setup(self):
         # Register callback for message 'gimme_something' from DUT
         self.register_callback("gimme_something", self._callback_gimme_something)
-
-        # Initialize your host test here
-        # ...
 
     def result(self):
         # Define your test result here
@@ -627,9 +573,6 @@ class GimmeAuto(BaseHostTest):
         # Register callback for message 'gimme_something' from DUT
         self.register_callback("gimme_something", self._callback_gimme_something)
 
-        # Initialize your host test here
-        # ...
-
     def result(self):
         # Define your test result here
         # Or use self.notify_complete(bool) to pass result anytime!
@@ -714,7 +657,6 @@ In this example DUT code uses ```greentea-client``` to sync (```GREENTEA_SETUP``
 
 ```c++
 #include "greentea-client/test_env.h"
-#include "unity/unity.h"    // Optional: unity ASSERTs
 
 int app_start(int, char*[]) {
 
@@ -748,7 +690,6 @@ GREENTEA_SETUP(15, "wait_us_auto");
 
 ```c++
 #include "greentea-client/test_env.h"
-#include "unity/unity.h"
 
 void recv() {
     // receive from client
@@ -768,7 +709,7 @@ int app_start(int, char*[]) {
 * Example host test template:
 
 ```python
-from mbed_host_tests import BaseHostTest
+from htrun import BaseHostTest
 
 class YourCustomHostTest(BaseHostTest):
 
@@ -828,112 +769,6 @@ class YourCustomHostTest(BaseHostTest):
         return __result
 ```
 
-### DUT test suite with ```utest``` harness
-
-```utest``` harness allows you to define multiple test cases inside your test suite. This feature is supported by ```Greentea``` test tools.
-
-* DUT implementation:
-
-```c++
-#include "greentea-client/test_env.h"
-#include "unity/unity.h"
-#include "utest/utest.h"
-
-status_t greentea_failure_handler(const Case *const source, const failure_t reason) {
-    // Continue with next test case if it fails
-    greentea_case_failure_abort_handler(source, reason);
-    return STATUS_CONTINUE;
-}
-
-void test_uninitialised_array() {
-    // TEst case code...
-}
-
-void test_repeated_init() {
-    // TEst case code...
-}
-
-void test_data_types() {
-    // TEst case code...
-}
-
-const Case cases[] = {
-    Case("Test uninitialised array", test_uninitialised_array, greentea_failure_handler),
-    Case("Test repeated array initialisation", test_repeated_init, greentea_failure_handler),
-    Case("Test basic data type arrays", test_data_types, greentea_failure_handler)
-    // ...
-};
-
-status_t greentea_setup(const size_t number_of_cases) {
-    GREENTEA_SETUP(5, "default_auto");
-    return greentea_test_setup_handler(number_of_cases);
-}
-
-int app_start(int, char*[]) {
-
-   // Run the test cases
-    Harness::run(specification);
-}
-```
-
-# Writing host tests (master side)
-When writing a new host test for your module please bear in mind that:
-* You own the host test and you should write it the way so it can coexist with the same host tests ran by other processes such as Continuous Integration systems or other host users.
-  * Note: If you work in isolation and your test environment if fully controlled by you (for example you queue all tasks calling host tests, or use global host unique socket port numbers) this rule doesn’t apply to you.
-* When writing host test using OS resources such as sockets, files, serial ports, peripheral devices like for example multi-meters / scopes. remember that those resources are indivisible!
-  * For example if you hardcode in your host test UDP port 32123 and use it for UDP server implementation  of your host test bear in mind that this port may be already used. It is your responsibility to react for this event and implement means to overcome it (if possible).
-
-## Callbacks
-You can register callbacks in ```setup()``` phase or decorate callback functions using ```@event_callback``` decorator.
-
-### Callback registration in setup() method
-
-```python
-from mbed_host_tests import BaseHostTest
-
-class DetectRuntimeError(BaseHostTest):
-
-    __result = False
-
-    def callback_some_event(self, key, value, timeout):
-        # Do something with 'some_event'
-        pass
-
-    def setup(self):
-        # Reagister call back for 'some_event' event
-        self.register_callback('some_event', self.callback_some_event)
-
-    def result(self):
-        # Do some return calculations
-        return self.__result
-```
-
-Below the same callback registered using decorator:
-
-### Callback decorator definition
-
-```python
-from mbed_host_tests.host_tests import BaseHostTest, event_callback
-
-class DetectRuntimeError(BaseHostTest):
-
-    __result = False
-
-    @event_callback('some_event')
-    def callback_some_event(self, key, value, timeout):
-        # Do something with 'some_event'
-        pass
-
-    def setup(self):
-        # Do some extra setup if required
-        # You can also register here callbacks using self.register_callback(...) method
-        pass
-
-    def result(self):
-        # Do some return calculations
-        return self.__result
-```
-
 ### Parsing text received from DUT (line by line)
 Example of host test expecting ```Runtime error ... CallbackNode ... ``` string in DUT output.
 We will use allowed to override ```__rxd_line``` event to hook to DUT RXD channel lines of text.
@@ -942,7 +777,7 @@ We will use allowed to override ```__rxd_line``` event to hook to DUT RXD channe
 
 ```python
 from sys import stdout
-from mbed_host_tests import BaseHostTest
+from htrun import BaseHostTest
 
 class DetectRuntimeError(BaseHostTest):
 
@@ -976,7 +811,7 @@ class DetectRuntimeError(BaseHostTest):
 #### Using __rdx_line event
 
 ```python
-from mbed_host_tests import BaseHostTest
+from htrun import BaseHostTest
 
 class DetectRuntimeError(BaseHostTest):
     """! We _expect_ to detect 'Runtime error' """
@@ -1192,7 +1027,7 @@ Another example with regular examples is shown below:
 To capture a log use following option:
 
 ```
-mbedhtrun -d D: -p COM46 -m K64F -f .\BUILD\K64F\GCC_ARM\benchmark.bin --serial-output-file compare.log
+htrun -d D: -p COM46 -m K64F -f .\BUILD\K64F\GCC_ARM\benchmark.bin --serial-output-file compare.log
 ```
 
 Option ```--serial-output-file``` takes file name as argument and writes the target serial output to the file. Edit the file to remove lines that will change in successive executions. Put regular expressions if needed at places like benchmark numbers in above log. With these edits you are left with a template good for comparison.
@@ -1200,7 +1035,7 @@ Option ```--serial-output-file``` takes file name as argument and writes the tar
 Use following command to test the example and the comparison log:
 
 ```
-mbedhtrun -d D: -p COM46 -m K64F -f .\BUILD\K64F\GCC_ARM\benchmark.bin --compare-log compare.log
+htrun -d D: -p COM46 -m K64F -f .\BUILD\K64F\GCC_ARM\benchmark.bin --compare-log compare.log
 ```
 
 In case an application requires more time to process data and generate results, you can use the option ```--polling-timeout``` to override the default timeout setting.
