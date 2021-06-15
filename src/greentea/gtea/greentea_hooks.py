@@ -6,7 +6,8 @@
 import os
 import re
 import json
-from subprocess import Popen, PIPE
+import subprocess
+
 from .greentea_log import gt_logger
 
 """
@@ -35,21 +36,6 @@ class GreenteaCliTestHook(GreenteaTestHook):
         GreenteaTestHook.__init__(self, name)
         self.cmd = cmd
 
-    def run_cli_process(self, cmd):
-        """! Runs command as a process and return stdout, stderr and ret code
-        @param cmd Command to execute
-        @return Tuple of (stdout, stderr, returncode)
-        """
-        _stdout, _stderr, ret = None, None, -1
-        try:
-            p = Popen(cmd, stdout=PIPE, stderr=PIPE, shell=True)
-            _stdout, _stderr = p.communicate()
-            ret = p.returncode
-        except OSError as e:
-            gt_logger.gt_log_err(str(e))
-            ret = -1
-        return _stdout, _stderr, ret
-
     def run(self, format=None):
         """! Runs hook after command is formated with in-place {tags}
         @format Pass format dictionary to replace hook {tags} with real values
@@ -57,14 +43,20 @@ class GreenteaCliTestHook(GreenteaTestHook):
         """
         gt_logger.gt_log("hook '%s' execution" % self.name)
         cmd = self.format_before_run(self.cmd, format)
-        gt_logger.gt_log_tab("hook command: %s" % cmd)
-        (_stdout, _stderr, ret) = self.run_cli_process(cmd)
-        if _stdout:
-            print(_stdout)
-        if ret:
-            gt_logger.gt_log_err("hook exited with error: %d, dumping stderr..." % ret)
-            print(_stderr)
-        return ret
+        gt_logger.gt_log_tab(f"hook command: {cmd}")
+        try:
+            p = subprocess.run(cmd, shell=True)
+        except OSError as e:
+            gt_logger.gt_log_err(str(e))
+            return -1
+        if p.stdout:
+            print(p.stdout)
+        if p.returncode:
+            gt_logger.gt_log_err(
+                f"hook exited with error: {p.returncode}, dumping stderr..."
+            )
+            print(p.stderr)
+        return p.returncode
 
     @staticmethod
     def format_before_run(cmd, format, verbose=False):
