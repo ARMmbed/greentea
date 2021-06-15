@@ -4,7 +4,6 @@
 #
 
 import os
-import sys
 import random
 import argparse
 import imp
@@ -35,13 +34,6 @@ from greentea.gtea.report_api import (
 )
 
 from greentea.gtea.greentea_log import gt_logger
-
-from greentea.gtea.greentea_dlm import (
-    GREENTEA_KETTLE_PATH,
-    greentea_get_app_sem,
-    greentea_update_kettle,
-    greentea_clean_kettle,
-)
 
 from greentea.gtea.greentea_hooks import GreenteaHooks
 from greentea.gtea.tests_spec import TestBinary
@@ -237,14 +229,6 @@ def main():
     )
 
     parser.add_argument(
-        "--lock",
-        dest="lock_by_target",
-        default=False,
-        action="store_true",
-        help="Use simple resource locking mechanism to run multiple application instances",
-    )
-
-    parser.add_argument(
         "-H",
         "--hooks",
         dest="hooks_json",
@@ -354,37 +338,17 @@ def main():
         gt_logger.gt_log(get_hello_string())
 
     start = time()
-    if args.lock_by_target:
-        # We are using Greentea proprietary locking mechanism to lock between platforms and targets
-        gt_logger.gt_log("using (experimental) simple locking mechanism")
-        gt_logger.gt_log_tab("kettle: %s" % GREENTEA_KETTLE_PATH)
-        gt_file_sem, gt_file_sem_name, gt_instance_uuid = greentea_get_app_sem()
-        with gt_file_sem:
-            greentea_update_kettle(gt_instance_uuid)
-            try:
-                cli_ret = main_cli(args, gt_instance_uuid)
-            except KeyboardInterrupt:
-                greentea_clean_kettle(gt_instance_uuid)
-                gt_logger.gt_log_err("ctrl+c keyboard interrupt!")
-                return 1  # Keyboard interrupt
-            except:
-                greentea_clean_kettle(gt_instance_uuid)
-                gt_logger.gt_log_err("unexpected error:")
-                gt_logger.gt_log_tab(sys.exc_info()[0])
-                raise
-            greentea_clean_kettle(gt_instance_uuid)
-    else:
-        # Standard mode of operation
-        # Other instance must provide mutually exclusive access control to platforms and targets
-        try:
-            cli_ret = main_cli(args)
-        except KeyboardInterrupt:
-            gt_logger.gt_log_err("ctrl+c keyboard interrupt!")
-            return 1  # Keyboard interrupt
-        except Exception as e:
-            gt_logger.gt_log_err("unexpected error:")
-            gt_logger.gt_log_tab(str(e))
-            raise
+    # Standard mode of operation
+    # Must provide mutually exclusive access control to platforms and targets
+    try:
+        cli_ret = main_cli(args)
+    except KeyboardInterrupt:
+        gt_logger.gt_log_err("ctrl+c keyboard interrupt!")
+        return 1  # Keyboard interrupt
+    except Exception as e:
+        gt_logger.gt_log_err("unexpected error:")
+        gt_logger.gt_log_tab(str(e))
+        raise
 
     if not any([args.list_binaries, args.version]):
         delta = time() - start  # Test execution time delta
