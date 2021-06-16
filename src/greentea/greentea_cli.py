@@ -929,15 +929,15 @@ def main_cli(args, gt_instance_uuid=None):
 
             test_list = test_build.get_tests()
 
-            filtered_ctest_test_list = create_filtered_test_list(
+            filtered_test_list = create_filtered_test_list(
                 test_list, args.test_by_names, args.skip_test, test_spec=test_spec
             )
 
             gt_logger.gt_log(
                 "running %d test%s for platform '%s' and toolchain '%s'"
                 % (
-                    len(filtered_ctest_test_list),
-                    "s" if len(filtered_ctest_test_list) != 1 else "",
+                    len(filtered_test_list),
+                    "s" if len(filtered_test_list) != 1 else "",
                     gt_logger.gt_bright(platform_name),
                     gt_logger.gt_bright(test_build.get_toolchain()),
                 )
@@ -945,21 +945,19 @@ def main_cli(args, gt_instance_uuid=None):
 
             # Test execution order can be shuffled (also with provided random seed)
             # for test execution reproduction.
-            filtered_ctest_test_list_keys = filtered_ctest_test_list.keys()
+            filtered_test_list_keys = filtered_test_list.keys()
             if args.shuffle_test_order:
                 # We want to shuffle test names randomly
-                random.shuffle(
-                    filtered_ctest_test_list_keys, lambda: shuffle_random_seed
-                )
+                random.shuffle(filtered_test_list_keys, lambda: shuffle_random_seed)
 
-            for test_name in filtered_ctest_test_list_keys:
+            for test_name in filtered_test_list_keys:
                 image_path = (
-                    filtered_ctest_test_list[test_name]
+                    filtered_test_list[test_name]
                     .get_binary(binary_type=TestBinary.BIN_TYPE_BOOTABLE)
                     .get_path()
                 )
                 compare_log = (
-                    filtered_ctest_test_list[test_name]
+                    filtered_test_list[test_name]
                     .get_binary(binary_type=TestBinary.BIN_TYPE_BOOTABLE)
                     .get_compare_log()
                 )

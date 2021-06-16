@@ -10,10 +10,9 @@ import json
 import string
 from subprocess import Popen, PIPE, STDOUT
 
-from .cmake_handlers import list_binaries_for_builds
 from .coverage_api import coverage_dump_file, coverage_pack_hex_payload
 from .greentea_log import gt_logger
-from .tests_spec import TestSpec
+from .tests_spec import TestSpec, list_binaries_for_builds
 
 
 # Return codes for test script

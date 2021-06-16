@@ -6,7 +6,7 @@
 import os
 import fnmatch
 
-from .cmake_handlers import list_binaries_for_builds, list_binaries_for_targets
+from .tests_spec import list_binaries_for_builds
 from .greentea_log import gt_logger
 
 RET_NO_DEVICES = 1001
@@ -28,53 +28,52 @@ def get_local_host_tests_dir(path):
     return None
 
 
-def create_filtered_test_list(
-    ctest_test_list, test_by_names, skip_test, test_spec=None
-):
-    """! Filters test case list (filtered with switch -n) and return filtered list.
-    @ctest_test_list List of tests, derived from test specification
-    @test_by_names Command line switch -n <test_by_names>
-    @skip_test Command line switch -i <skip_test>
-    @param test_spec Test specification object loaded with --test-spec switch
-    @return
-    """
+def create_filtered_test_list(test_list, test_by_names, skip_test, test_spec):
+    """Create a filtered test case list.
 
-    filtered_ctest_test_list = ctest_test_list
-    test_list = None
+    Args:
+        test_list: List of tests, derived from test specification.
+        test_by_names: Comma-separated string of names of tests to run.
+        skip_test: Comma-separated string of names of tests to skip.
+        test_spec: Test specification object loaded with --test-spec switch.
+
+    Returns:
+        Filtered test case list.
+    """
+    filtered_test_list = test_list
+    test_name_list = None
     invalid_test_names = []
-    if filtered_ctest_test_list is None:
+    if filtered_test_list is None:
         return {}
 
     if test_by_names:
-        filtered_ctest_test_list = {}  # Subset of 'ctest_test_list'
-        test_list = test_by_names.lower().split(",")
+        filtered_test_list = {}  # Subset of 'test_list'
+        test_name_list = test_by_names.lower().split(",")
         gt_logger.gt_log("test case filter (specified with -n option)")
 
-        for test_name in set(test_list):
+        for test_name in set(test_name_list):
             gt_logger.gt_log_tab(test_name)
             matches = [
-                test
-                for test in ctest_test_list.keys()
-                if fnmatch.fnmatch(test, test_name)
+                test for test in test_list.keys() if fnmatch.fnmatch(test, test_name)
             ]
             if matches:
                 for match in matches:
                     gt_logger.gt_log_tab(
                         "test filtered in '%s'" % gt_logger.gt_bright(match)
                     )
-                    filtered_ctest_test_list[match] = ctest_test_list[match]
+                    filtered_test_list[match] = test_list[match]
             else:
                 invalid_test_names.append(test_name)
 
     if skip_test:
-        test_list = skip_test.split(",")
+        test_name_list = skip_test.split(",")
         gt_logger.gt_log("test case filter (specified with -i option)")
 
-        for test_name in set(test_list):
+        for test_name in set(test_name_list):
             gt_logger.gt_log_tab(test_name)
             matches = [
                 test
-                for test in filtered_ctest_test_list.keys()
+                for test in filtered_test_list.keys()
                 if fnmatch.fnmatch(test, test_name)
             ]
             if matches:
@@ -82,7 +81,7 @@ def create_filtered_test_list(
                     gt_logger.gt_log_tab(
                         "test filtered out '%s'" % gt_logger.gt_bright(match)
                     )
-                    del filtered_ctest_test_list[match]
+                    del filtered_test_list[match]
             else:
                 invalid_test_names.append(test_name)
 
@@ -92,26 +91,17 @@ def create_filtered_test_list(
             "invalid test case names (specified with '%s' option)" % opt_to_print
         )
         for test_name in invalid_test_names:
-            if test_spec:
-                test_spec_name = test_spec.test_spec_filename
-                gt_logger.gt_log_warn(
-                    "test name '%s' not found in '%s' (specified with --test-spec option)"
-                    % (
-                        gt_logger.gt_bright(test_name),
-                        gt_logger.gt_bright(test_spec_name),
-                    )
+            test_spec_name = test_spec.test_spec_filename
+            gt_logger.gt_log_warn(
+                "test name '%s' not found in '%s' "
+                "(specified with --test-spec option)"
+                % (
+                    gt_logger.gt_bright(test_name),
+                    gt_logger.gt_bright(test_spec_name),
                 )
-            else:
-                gt_logger.gt_log_warn(
-                    "test name '%s' not found in CTestTestFile.cmake (specified with '%s' option)"
-                    % (gt_logger.gt_bright(test_name), opt_to_print)
-                )
+            )
         gt_logger.gt_log_tab("note: test case names are case sensitive")
         gt_logger.gt_log_tab("note: see list of available test cases below")
         # Print available test suite names (binary names user can use with -n
-        if test_spec:
-            list_binaries_for_builds(test_spec)
-        else:
-            list_binaries_for_targets()
-
-    return filtered_ctest_test_list
+        list_binaries_for_builds(test_spec)
+    return filtered_test_list

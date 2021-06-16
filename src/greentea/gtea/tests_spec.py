@@ -9,6 +9,7 @@ to Greentea.
 """
 
 import json
+from .greentea_log import gt_logger
 
 
 class TestBinary(object):
@@ -349,3 +350,26 @@ class TestSpec(object):
         :return:
         """
         self.__target_test_spec[name] = test_build
+
+
+def list_binaries_for_builds(test_spec, verbose_footer=False):
+    """Parse test spec and list binaries (BOOTABLE) in lexicographical order.
+
+    Args:
+        test_spec: Test specification object.
+        verbose_footer: Prints additional "how to use" Greentea footer.
+    """
+    test_builds = test_spec.get_test_builds()
+    for tb in test_builds:
+        gt_logger.gt_log(
+            "available tests for build '%s', location '%s'"
+            % (tb.get_name(), tb.get_path())
+        )
+        for tc in sorted(tb.get_tests().keys()):
+            gt_logger.gt_log_tab("test '%s'" % tc)
+
+    if verbose_footer:
+        print(
+            "\nExample: execute 'gt -t BUILD_NAME -n TEST_NAME' to run test "
+            "TEST_NAME for build TARGET_NAME in current test specification"
+        )

@@ -7,9 +7,10 @@ import unittest
 from greentea import greentea_cli
 
 
+@unittest.mock.patch("greentea.gtea.tests_spec.TestSpec")
 class GreenteaFilteredTestList(unittest.TestCase):
     def setUp(self):
-        self.ctest_test_list = {
+        self.test_list = {
             "test1": "\\build\\test1.bin",
             "test2": "\\build\\test2.bin",
             "test3": "\\build\\test3.bin",
@@ -18,7 +19,7 @@ class GreenteaFilteredTestList(unittest.TestCase):
         self.test_by_names = None
         self.skip_test = None
 
-        self.ctest_test_list_mbed_drivers = {
+        self.test_list_mbed_drivers = {
             "mbed-drivers-test-c_strings": "./build/mbed-drivers-test-c_strings.bin",
             "mbed-drivers-test-dev_null": "./build/mbed-drivers-test-dev_null.bin",
             "mbed-drivers-test-echo": "./build/mbed-drivers-test-echo.bin",
@@ -32,7 +33,7 @@ class GreenteaFilteredTestList(unittest.TestCase):
             "mbed-drivers-test-wait_us": "./build/mbed-drivers-test-wait_us.bin",
         }
 
-        self.ctest_test_list_mbed_drivers_ext = {
+        self.test_list_mbed_drivers_ext = {
             "tests-integration-threaded_blinky": "./build/tests-integration-threaded_blinky.bin",
             "tests-mbed_drivers-c_strings": "./build/tests-mbed_drivers-c_strings.bin",
             "tests-mbed_drivers-callback": "./build/tests-mbed_drivers-callback.bin",
@@ -66,9 +67,9 @@ class GreenteaFilteredTestList(unittest.TestCase):
     def tearDown(self):
         pass
 
-    def test_filter_test_list(self):
-        filtered_ctest_test_list = greentea_cli.create_filtered_test_list(
-            self.ctest_test_list, self.test_by_names, self.skip_test
+    def test_filter_test_list(self, mock_test_spec):
+        filtered_test_list = greentea_cli.create_filtered_test_list(
+            self.test_list, self.test_by_names, self.skip_test, mock_test_spec
         )
 
         filtered_test_list = {
@@ -77,24 +78,24 @@ class GreenteaFilteredTestList(unittest.TestCase):
             "test3": "\\build\\test3.bin",
             "test4": "\\build\\test4.bin",
         }
-        self.assertEqual(filtered_test_list, filtered_ctest_test_list)
+        self.assertEqual(filtered_test_list, filtered_test_list)
 
-    def test_skip_test(self):
+    def test_skip_test(self, mock_test_spec):
         self.skip_test = "test1,test2"
-        filtered_ctest_test_list = greentea_cli.create_filtered_test_list(
-            self.ctest_test_list, self.test_by_names, self.skip_test
+        filtered_test_list = greentea_cli.create_filtered_test_list(
+            self.test_list, self.test_by_names, self.skip_test, mock_test_spec
         )
 
         filtered_test_list = {
             "test3": "\\build\\test3.bin",
             "test4": "\\build\\test4.bin",
         }
-        self.assertEqual(filtered_test_list, filtered_ctest_test_list)
+        self.assertEqual(filtered_test_list, filtered_test_list)
 
-    def test_skip_test_invaild(self):
+    def test_skip_test_invaild(self, mock_test_spec):
         self.skip_test = "test1,testXY"
-        filtered_ctest_test_list = greentea_cli.create_filtered_test_list(
-            self.ctest_test_list, self.test_by_names, self.skip_test
+        filtered_test_list = greentea_cli.create_filtered_test_list(
+            self.test_list, self.test_by_names, self.skip_test, mock_test_spec
         )
 
         filtered_test_list = {
@@ -102,70 +103,73 @@ class GreenteaFilteredTestList(unittest.TestCase):
             "test3": "\\build\\test3.bin",
             "test4": "\\build\\test4.bin",
         }
-        self.assertEqual(filtered_test_list, filtered_ctest_test_list)
+        self.assertEqual(filtered_test_list, filtered_test_list)
 
-    def test_test_by_names(self):
+    def test_test_by_names(self, mock_test_spec):
         self.test_by_names = "test3"
-        filtered_ctest_test_list = greentea_cli.create_filtered_test_list(
-            self.ctest_test_list, self.test_by_names, self.skip_test
+        filtered_test_list = greentea_cli.create_filtered_test_list(
+            self.test_list, self.test_by_names, self.skip_test, mock_test_spec
         )
 
         filtered_test_list = {"test3": "\\build\\test3.bin"}
-        self.assertEqual(filtered_test_list, filtered_ctest_test_list)
+        self.assertEqual(filtered_test_list, filtered_test_list)
 
-    def test_test_by_names_invalid(self):
+    def test_test_by_names_invalid(self, mock_test_spec):
         self.test_by_names = "test3,testXY"
-        filtered_ctest_test_list = greentea_cli.create_filtered_test_list(
-            self.ctest_test_list, self.test_by_names, self.skip_test
+        filtered_test_list = greentea_cli.create_filtered_test_list(
+            self.test_list, self.test_by_names, self.skip_test, mock_test_spec
         )
 
         filtered_test_list = {"test3": "\\build\\test3.bin"}
-        self.assertEqual(filtered_test_list, filtered_ctest_test_list)
+        self.assertEqual(filtered_test_list, filtered_test_list)
 
-    def test_list_is_None_skip_test(self):
-        self.ctest_test_list = None
+    def test_list_is_None_skip_test(self, mock_test_spec):
+        self.test_list = None
         self.skip_test = "test3"
-        filtered_ctest_test_list = greentea_cli.create_filtered_test_list(
-            self.ctest_test_list, self.test_by_names, self.skip_test
+        filtered_test_list = greentea_cli.create_filtered_test_list(
+            self.test_list, self.test_by_names, self.skip_test, mock_test_spec
         )
 
         filtered_test_list = {}
-        self.assertEqual(filtered_test_list, filtered_ctest_test_list)
+        self.assertEqual(filtered_test_list, filtered_test_list)
 
-    def test_list_is_None_test_by_names(self):
-        self.ctest_test_list = None
+    def test_list_is_None_test_by_names(self, mock_test_spec):
+        self.test_list = None
         self.test_by_names = "test3"
-        filtered_ctest_test_list = greentea_cli.create_filtered_test_list(
-            self.ctest_test_list, self.test_by_names, self.skip_test
+        filtered_test_list = greentea_cli.create_filtered_test_list(
+            self.test_list, self.test_by_names, self.skip_test, mock_test_spec
         )
 
         filtered_test_list = {}
-        self.assertEqual(filtered_test_list, filtered_ctest_test_list)
+        self.assertEqual(filtered_test_list, filtered_test_list)
 
-    def test_list_is_Empty_skip_test(self):
-        self.ctest_test_list = {}
+    def test_list_is_Empty_skip_test(self, mock_test_spec):
+        self.test_list = {}
         self.skip_test = "test4"
-        filtered_ctest_test_list = greentea_cli.create_filtered_test_list(
-            self.ctest_test_list, self.test_by_names, self.skip_test
+        filtered_test_list = greentea_cli.create_filtered_test_list(
+            self.test_list, self.test_by_names, self.skip_test, mock_test_spec
         )
 
         filtered_test_list = {}
-        self.assertEqual(filtered_test_list, filtered_ctest_test_list)
+        self.assertEqual(filtered_test_list, filtered_test_list)
 
-    def test_list_is_Empty_test_by_names(self):
-        self.ctest_test_list = {}
+    def test_list_is_Empty_test_by_names(self, mock_test_spec):
+        self.test_list = {}
         self.test_by_names = "test4"
-        filtered_ctest_test_list = greentea_cli.create_filtered_test_list(
-            self.ctest_test_list, self.test_by_names, self.skip_test
+        filtered_test_list = greentea_cli.create_filtered_test_list(
+            self.test_list, self.test_by_names, self.skip_test, mock_test_spec
         )
 
         filtered_test_list = {}
-        self.assertEqual(filtered_test_list, filtered_ctest_test_list)
+        self.assertEqual(filtered_test_list, filtered_test_list)
 
-    def test_prefix_filter_one_star(self):
+    def test_prefix_filter_one_star(self, mock_test_spec):
         self.test_by_names = "mbed-drivers-test-t*"
-        filtered_ctest_test_list = greentea_cli.create_filtered_test_list(
-            self.ctest_test_list_mbed_drivers, self.test_by_names, self.skip_test
+        filtered_test_list = greentea_cli.create_filtered_test_list(
+            self.test_list_mbed_drivers,
+            self.test_by_names,
+            self.skip_test,
+            mock_test_spec,
         )
 
         expected = [
@@ -174,13 +178,16 @@ class GreenteaFilteredTestList(unittest.TestCase):
             "mbed-drivers-test-ticker_3",
             "mbed-drivers-test-timeout",
         ]
-        self.assertEqual(len(expected), len(filtered_ctest_test_list))
-        self.assertEqual(set(filtered_ctest_test_list.keys()), set(expected))
+        self.assertEqual(len(expected), len(filtered_test_list))
+        self.assertEqual(set(filtered_test_list.keys()), set(expected))
 
-    def test_prefix_filter_one_star_and_no_star(self):
+    def test_prefix_filter_one_star_and_no_star(self, mock_test_spec):
         self.test_by_names = "mbed-drivers-test-t*,mbed-drivers-test-rtc"
-        filtered_ctest_test_list = greentea_cli.create_filtered_test_list(
-            self.ctest_test_list_mbed_drivers, self.test_by_names, self.skip_test
+        filtered_test_list = greentea_cli.create_filtered_test_list(
+            self.test_list_mbed_drivers,
+            self.test_by_names,
+            self.skip_test,
+            mock_test_spec,
         )
 
         expected = [
@@ -190,15 +197,18 @@ class GreenteaFilteredTestList(unittest.TestCase):
             "mbed-drivers-test-timeout",
             "mbed-drivers-test-rtc",
         ]
-        self.assertEqual(len(expected), len(filtered_ctest_test_list))
-        self.assertEqual(set(filtered_ctest_test_list.keys()), set(expected))
+        self.assertEqual(len(expected), len(filtered_test_list))
+        self.assertEqual(set(filtered_test_list.keys()), set(expected))
 
-    def test_prefix_filter_no_star(self):
+    def test_prefix_filter_no_star(self, mock_test_spec):
         self.test_by_names = (
             "mbed-drivers-test-ticker_2,mbed-drivers-test-rtc,mbed-drivers-test-ticker"
         )
-        filtered_ctest_test_list = greentea_cli.create_filtered_test_list(
-            self.ctest_test_list_mbed_drivers, self.test_by_names, self.skip_test
+        filtered_test_list = greentea_cli.create_filtered_test_list(
+            self.test_list_mbed_drivers,
+            self.test_by_names,
+            self.skip_test,
+            mock_test_spec,
         )
 
         expected = [
@@ -206,14 +216,17 @@ class GreenteaFilteredTestList(unittest.TestCase):
             "mbed-drivers-test-ticker_2",
             "mbed-drivers-test-rtc",
         ]
-        self.assertEqual(len(expected), len(filtered_ctest_test_list))
-        self.assertEqual(set(filtered_ctest_test_list.keys()), set(expected))
+        self.assertEqual(len(expected), len(filtered_test_list))
+        self.assertEqual(set(filtered_test_list.keys()), set(expected))
 
-    def test_prefix_filter_merge_n_and_i(self):
+    def test_prefix_filter_merge_n_and_i(self, mock_test_spec):
         self.test_by_names = "mbed-drivers-test-ticker_2,mbed-drivers-test-ticker_3,mbed-drivers-test-rtc,mbed-drivers-test-ticker"
         self.skip_test = "mbed-drivers-test-ticker_3"
-        filtered_ctest_test_list = greentea_cli.create_filtered_test_list(
-            self.ctest_test_list_mbed_drivers, self.test_by_names, self.skip_test
+        filtered_test_list = greentea_cli.create_filtered_test_list(
+            self.test_list_mbed_drivers,
+            self.test_by_names,
+            self.skip_test,
+            mock_test_spec,
         )
 
         expected = [
@@ -221,14 +234,17 @@ class GreenteaFilteredTestList(unittest.TestCase):
             "mbed-drivers-test-ticker_2",
             "mbed-drivers-test-rtc",
         ]
-        self.assertEqual(len(expected), len(filtered_ctest_test_list))
-        self.assertEqual(set(filtered_ctest_test_list.keys()), set(expected))
+        self.assertEqual(len(expected), len(filtered_test_list))
+        self.assertEqual(set(filtered_test_list.keys()), set(expected))
 
-    def test_prefix_filter_merge_n_and_i_repeated(self):
+    def test_prefix_filter_merge_n_and_i_repeated(self, mock_test_spec):
         self.test_by_names = "mbed-drivers-test-ticker_2,mbed-drivers-test-ticker_3,mbed-drivers-test-rtc,mbed-drivers-test-ticker"
         self.skip_test = "mbed-drivers-test-ticker_3,mbed-drivers-test-ticker_3"
-        filtered_ctest_test_list = greentea_cli.create_filtered_test_list(
-            self.ctest_test_list_mbed_drivers, self.test_by_names, self.skip_test
+        filtered_test_list = greentea_cli.create_filtered_test_list(
+            self.test_list_mbed_drivers,
+            self.test_by_names,
+            self.skip_test,
+            mock_test_spec,
         )
 
         expected = [
@@ -236,14 +252,17 @@ class GreenteaFilteredTestList(unittest.TestCase):
             "mbed-drivers-test-ticker_2",
             "mbed-drivers-test-rtc",
         ]
-        self.assertEqual(len(expected), len(filtered_ctest_test_list))
-        self.assertEqual(set(filtered_ctest_test_list.keys()), set(expected))
+        self.assertEqual(len(expected), len(filtered_test_list))
+        self.assertEqual(set(filtered_test_list.keys()), set(expected))
 
-    def test_prefix_filter_merge_n_and_i_missing(self):
+    def test_prefix_filter_merge_n_and_i_missing(self, mock_test_spec):
         self.test_by_names = "mbed-drivers-test-ticker_2,mbed-drivers-test-ticker_3,mbed-drivers-test-rtc,mbed-drivers-test-ticker"
         self.skip_test = "mbed-drivers-test-ticker_XXX"
-        filtered_ctest_test_list = greentea_cli.create_filtered_test_list(
-            self.ctest_test_list_mbed_drivers, self.test_by_names, self.skip_test
+        filtered_test_list = greentea_cli.create_filtered_test_list(
+            self.test_list_mbed_drivers,
+            self.test_by_names,
+            self.skip_test,
+            mock_test_spec,
         )
 
         expected = [
@@ -252,13 +271,16 @@ class GreenteaFilteredTestList(unittest.TestCase):
             "mbed-drivers-test-ticker_3",
             "mbed-drivers-test-rtc",
         ]
-        self.assertEqual(len(expected), len(filtered_ctest_test_list))
-        self.assertEqual(set(filtered_ctest_test_list.keys()), set(expected))
+        self.assertEqual(len(expected), len(filtered_test_list))
+        self.assertEqual(set(filtered_test_list.keys()), set(expected))
 
-    def test_prefix_filter_merge_n_multi_star(self):
+    def test_prefix_filter_merge_n_multi_star(self, mock_test_spec):
         self.test_by_names = "tests-mbedmicro-mbed*,tests-mbedmicro-rtos*"
-        filtered_ctest_test_list = greentea_cli.create_filtered_test_list(
-            self.ctest_test_list_mbed_drivers_ext, self.test_by_names, self.skip_test
+        filtered_test_list = greentea_cli.create_filtered_test_list(
+            self.test_list_mbed_drivers_ext,
+            self.test_by_names,
+            self.skip_test,
+            mock_test_spec,
         )
 
         expected = [
@@ -278,14 +300,17 @@ class GreenteaFilteredTestList(unittest.TestCase):
             "tests-mbedmicro-rtos-mbed-timer",
         ]
 
-        self.assertEqual(len(expected), len(filtered_ctest_test_list))
-        self.assertEqual(set(filtered_ctest_test_list.keys()), set(expected))
+        self.assertEqual(len(expected), len(filtered_test_list))
+        self.assertEqual(set(filtered_test_list.keys()), set(expected))
 
-    def test_prefix_filter_merge_n_multi_star_and_i(self):
+    def test_prefix_filter_merge_n_multi_star_and_i(self, mock_test_spec):
         self.test_by_names = "tests-mbedmicro-mbed*,tests-mbedmicro-rtos*"
         self.skip_test = "tests-mbedmicro-rtos-mbed-isr,tests-mbedmicro-rtos-mbed-semaphore,tests-mbedmicro-mbed-call_before_main"
-        filtered_ctest_test_list = greentea_cli.create_filtered_test_list(
-            self.ctest_test_list_mbed_drivers_ext, self.test_by_names, self.skip_test
+        filtered_test_list = greentea_cli.create_filtered_test_list(
+            self.test_list_mbed_drivers_ext,
+            self.test_by_names,
+            self.skip_test,
+            mock_test_spec,
         )
 
         expected = [
@@ -305,8 +330,8 @@ class GreenteaFilteredTestList(unittest.TestCase):
             "tests-mbedmicro-rtos-mbed-timer",
         ]
 
-        self.assertEqual(len(expected), len(filtered_ctest_test_list))
-        self.assertEqual(set(filtered_ctest_test_list.keys()), set(expected))
+        self.assertEqual(len(expected), len(filtered_test_list))
+        self.assertEqual(set(filtered_test_list.keys()), set(expected))
 
 
 if __name__ == "__main__":

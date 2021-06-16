@@ -3,10 +3,12 @@
 # SPDX-License-Identifier: Apache-2.0
 #
 
+import io
 import os
+import sys
 import unittest
 
-from greentea.gtea.tests_spec import Test, TestBuild, TestSpec
+from greentea.gtea.tests_spec import Test, TestBuild, TestSpec, list_binaries_for_builds
 
 simple_test_spec = {
     "builds": {
@@ -216,6 +218,31 @@ class TestsSpecFunctionality(unittest.TestCase):
         test_builds = self.test_spec.get_test_builds(filter_by_names=filter_by_names)
         test_builds_names = [x.get_name() for x in test_builds]
         self.assertEqual(len(test_builds_names), 0)
+
+
+class TestListBinaries(unittest.TestCase):
+    def test_list_binaries_for_builds(self):
+        root_path = os.path.dirname(os.path.realpath(__file__))
+        spec_path = os.path.join(root_path, "resources", "test_spec.json")
+
+        spec = TestSpec(spec_path)
+
+        for verbose in [True, False]:
+            # Capture logging output
+            old_stdout = sys.stdout
+            sys.stdout = stdout_capture = io.StringIO()
+            list_binaries_for_builds(spec, verbose_footer=verbose)
+            sys.stdout = old_stdout
+
+            output = stdout_capture.getvalue()
+            self.assertTrue("available tests for build 'K64F-ARM'" in output)
+            self.assertTrue("available tests for build 'K64F-GCC'" in output)
+            self.assertTrue("tests-example-1" in output)
+            self.assertTrue("tests-example-2" in output)
+            self.assertTrue("tests-example-7" in output)
+
+            if verbose == True:
+                self.assertTrue("Example: execute" in output)
 
 
 if __name__ == "__main__":
