@@ -1,0 +1,4 @@
+global-exclude *.py[cod] __pycache__ *.so
+prune .git
+prune .github
+exclude .pre-commit-config.yaml

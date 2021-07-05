@@ -1,17 +1,7 @@
-# Copyright (c) 2018, Arm Limited and affiliates.
+#
+# Copyright (c) 2021 Arm Limited and Contributors. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#     http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
 
 from ..host_tests_logger import HtrunLogger
 
@@ -20,11 +10,11 @@ class ConnectorPrimitiveException(Exception):
     """
     Exception in connector primitive module.
     """
+
     pass
 
 
 class ConnectorPrimitive(object):
-
     def __init__(self, name):
         self.LAST_ERROR = None
         self.logger = HtrunLogger(name)
@@ -37,7 +27,7 @@ class ConnectorPrimitive(object):
         @return Returns buffer with K-V message sent to DUT on success, None on failure
         """
         # All Key-Value messages ends with newline character
-        kv_buff = "{{%s;%s}}"% (key, value) + '\n'
+        kv_buff = "{{%s;%s}}" % (key, value) + "\n"
 
         if self.write(kv_buff):
             self.logger.prn_txd(kv_buff.rstrip())
@@ -65,8 +55,7 @@ class ConnectorPrimitive(object):
         raise NotImplementedError
 
     def reset(self):
-        """! Reset the dut
-        """
+        """! Reset the dut"""
         raise NotImplementedError
 
     def connected(self):
@@ -82,6 +71,5 @@ class ConnectorPrimitive(object):
         return self.LAST_ERROR
 
     def finish(self):
-        """! Handle DUT dtor like (close resource) operations here
-        """
+        """! Handle DUT dtor like (close resource) operations here"""
         raise NotImplementedError

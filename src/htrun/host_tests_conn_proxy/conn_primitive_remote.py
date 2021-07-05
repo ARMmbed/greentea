@@ -1,17 +1,7 @@
-# Copyright (c) 2018, Arm Limited and affiliates.
+#
+# Copyright (c) 2021 Arm Limited and Contributors. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#     http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
 
 import time
 from .. import DEFAULT_BAUD_RATE
@@ -22,25 +12,25 @@ class RemoteConnectorPrimitive(ConnectorPrimitive):
     def __init__(self, name, config, importer=__import__):
         ConnectorPrimitive.__init__(self, name)
         self.config = config
-        self.target_id = self.config.get('target_id', None)
-        self.grm_host = config.get('grm_host', None)
-        self.grm_port = config.get('grm_port', None)
+        self.target_id = self.config.get("target_id", None)
+        self.grm_host = config.get("grm_host", None)
+        self.grm_port = config.get("grm_port", None)
         if self.grm_port:
             self.grm_port = int(self.grm_port)
-        self.grm_module = config.get('grm_module', 'unknown')
-        self.platform_name = config.get('platform_name', None)
-        self.baudrate = config.get('baudrate', DEFAULT_BAUD_RATE)
-        self.image_path = config.get('image_path', None)
-        self.forced_reset_timeout = config.get('forced_reset_timeout', 0)
+        self.grm_module = config.get("grm_module", "unknown")
+        self.platform_name = config.get("platform_name", None)
+        self.baudrate = config.get("baudrate", DEFAULT_BAUD_RATE)
+        self.image_path = config.get("image_path", None)
+        self.forced_reset_timeout = config.get("forced_reset_timeout", 0)
         self.allocate_requirements = {
             "platform_name": self.platform_name,
             "power_on": True,
-            "connected": True
+            "connected": True,
         }
 
         if self.config.get("tags"):
             self.allocate_requirements["tags"] = {}
-            for tag in config["tags"].split(','):
+            for tag in config["tags"].split(","):
                 self.allocate_requirements["tags"][tag] = True
 
         # Global Resource Mgr tool-kit
@@ -58,13 +48,17 @@ class RemoteConnectorPrimitive(ConnectorPrimitive):
         try:
             self.remote_module = importer(self.grm_module)
         except ImportError as error:
-            self.logger.prn_err("unable to load global resource manager '%s' module!" % self.grm_module)
+            self.logger.prn_err(
+                "unable to load global resource manager '%s' module!" % self.grm_module
+            )
             self.logger.prn_err(str(error))
             self.remote_module = None
             return False
 
-        self.logger.prn_inf("remote resources initialization: remote(host=%s, port=%s)" %
-                            (self.grm_host, self.grm_port))
+        self.logger.prn_inf(
+            "remote resources initialization: remote(host=%s, port=%s)"
+            % (self.grm_host, self.grm_port)
+        )
 
         # Connect to remote global resource manager
         self.client = self.remote_module.create(host=self.grm_host, port=self.grm_port)
@@ -78,7 +72,10 @@ class RemoteConnectorPrimitive(ConnectorPrimitive):
         try:
             self.selected_resource = self.client.allocate(self.allocate_requirements)
         except Exception as error:
-            self.logger.prn_err("can't allocate resource: '%s', reason: %s" % (self.platform_name, str(error)))
+            self.logger.prn_err(
+                "can't allocate resource: '%s', reason: %s"
+                % (self.platform_name, str(error))
+            )
             return False
 
         # Remote DUT connection, flashing and reset...
@@ -94,7 +91,9 @@ class RemoteConnectorPrimitive(ConnectorPrimitive):
 
     def __remote_connect(self, baudrate=DEFAULT_BAUD_RATE):
         """! Open remote connection to DUT """
-        self.logger.prn_inf("opening connection to platform at baudrate='%s'" % baudrate)
+        self.logger.prn_inf(
+            "opening connection to platform at baudrate='%s'" % baudrate
+        )
         if not self.selected_resource:
             raise Exception("remote resource not exists!")
         try:
@@ -111,7 +110,9 @@ class RemoteConnectorPrimitive(ConnectorPrimitive):
             if self.connected():
                 self.selected_resource.close_connection()
         except Exception as error:
-            self.logger.prn_err("RemoteConnectorPrimitive.disconnect() failed, reason: " + str(error))
+            self.logger.prn_err(
+                "RemoteConnectorPrimitive.disconnect() failed, reason: " + str(error)
+            )
 
     def __remote_reset(self, delay=0):
         """! Use GRM remote API to reset DUT """
@@ -127,7 +128,7 @@ class RemoteConnectorPrimitive(ConnectorPrimitive):
 
         # Post-reset sleep
         if delay:
-            self.logger.prn_inf("waiting %.2f sec after reset"% delay)
+            self.logger.prn_inf("waiting %.2f sec after reset" % delay)
             time.sleep(delay)
 
     def __remote_flashing(self, filename, forceflash=False):
@@ -150,7 +151,9 @@ class RemoteConnectorPrimitive(ConnectorPrimitive):
         try:
             data = self.selected_resource.read(count)
         except Exception as error:
-            self.logger.prn_err("RemoteConnectorPrimitive.read(%d): %s" % (count, str(error)))
+            self.logger.prn_err(
+                "RemoteConnectorPrimitive.read(%d): %s" % (count, str(error))
+            )
         return data
 
     def write(self, payload, log=False):
@@ -170,7 +173,11 @@ class RemoteConnectorPrimitive(ConnectorPrimitive):
         pass
 
     def allocated(self):
-        return self.remote_module and self.selected_resource and self.selected_resource.is_allocated
+        return (
+            self.remote_module
+            and self.selected_resource
+            and self.selected_resource.is_allocated
+        )
 
     def connected(self):
         return self.allocated() and self.selected_resource.is_connected
@@ -181,7 +188,9 @@ class RemoteConnectorPrimitive(ConnectorPrimitive):
                 self.selected_resource.release()
                 self.selected_resource = None
         except Exception as error:
-            self.logger.prn_err("RemoteConnectorPrimitive.release failed, reason: " + str(error))
+            self.logger.prn_err(
+                "RemoteConnectorPrimitive.release failed, reason: " + str(error)
+            )
 
     def finish(self):
         # Finally once we're done with the resource
