@@ -12,4 +12,4 @@ Functionality can be overridden by set of plugins which can provide specialised 
 
 from pkg_resources import get_distribution
 
-__version__ = get_distribution("greentea").version
+__version__ = get_distribution("mbed-greentea").version
