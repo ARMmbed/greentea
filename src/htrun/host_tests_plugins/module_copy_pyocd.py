@@ -78,7 +78,7 @@ class HostTestPluginCopyMethod_pyOCD(HostTestPluginBase):
 
             # Program the file
             programmer = FileProgrammer(session)
-            programmer.program(image_path)
+            programmer.program(image_path, format=kwargs['format'])
 
         return True
 
