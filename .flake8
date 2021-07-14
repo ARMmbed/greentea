@@ -2,10 +2,24 @@
 # black, the super-great auto-formatter has decided that 88 is a good number.
 # I'm inclined to agree, or not to dissagree.
 max-line-length = 88
+docstring-convention = google
 exclude =
+    .git,
+    .tox,
+    .venv,
+    __pycache__,
+    dist,
     test/*,
 ignore =
     # W503: line break before binary operator (this is no longer PEP8 compliant)
     W503,
     # E203: whitespace before ':' (this is not PEP8 compliant)
     E203,
+per-file-ignores =
+    # Package level __init__ files improve user experience by short cutting
+    # imports.
+    # F401: imported but unused
+    __init__.py:F401
+    src/htrun/*/__init__.py:F401
+    # We don't care about docstrings in test classes
+    src/htrun/host_tests/*: D
