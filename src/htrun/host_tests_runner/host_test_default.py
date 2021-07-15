@@ -2,7 +2,7 @@
 # Copyright (c) 2021 Arm Limited and Contributors. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
-
+"""Default host test."""
 
 import re
 import sys
@@ -35,13 +35,13 @@ else:
 
 
 class DefaultTestSelector(DefaultTestSelectorBase):
-    """! Select default host_test supervision (replaced after auto detection) """
+    """Select default host_test supervision (replaced after auto detection)."""
 
     RESET_TYPE_SW_RST = "software_reset"
     RESET_TYPE_HW_RST = "hardware_reset"
 
     def __init__(self, options):
-        """! ctor"""
+        """Initialise plugin."""
         self.options = options
 
         self.logger = HtrunLogger("HTST")
@@ -71,7 +71,8 @@ class DefaultTestSelector(DefaultTestSelectorBase):
                 sys.exit(0)
 
             if options.global_resource_mgr or options.fast_model_connection:
-                # If Global/Simulator Resource Mgr is working it will handle reset/flashing workflow
+                # If Global/Simulator Resource Mgr is working it will handle
+                # reset/flashing workflow
                 # So local plugins are offline
                 self.options.skip_reset = True
                 self.options.skip_flashing = True
@@ -87,13 +88,17 @@ class DefaultTestSelector(DefaultTestSelectorBase):
         DefaultTestSelectorBase.__init__(self, options)
 
     def is_host_test_obj_compatible(self, obj_instance):
-        """! Check if host test object loaded is actually host test class
-             derived from 'htrun.BaseHostTest()'
-             Additionaly if host test class implements custom ctor it should
-             call BaseHostTest().__Init__()
-        @param obj_instance Instance of host test derived class
-        @return True if obj_instance is derived from htrun.BaseHostTest()
-                and BaseHostTest.__init__() was called, else return False
+        """Check if host test object is derived from 'htrun.BaseHostTest()'.
+
+        Additionaly if host test class implements custom ctor it should
+        call BaseHostTest().__Init__()
+
+        Args:
+            obj_instance: Instance of host test derived class.
+
+        Returns:
+            True if obj_instance is derived from htrun.BaseHostTest() and
+            BaseHostTest.__init__() was called, else False.
         """
         result = False
         if obj_instance:
@@ -102,14 +107,15 @@ class DefaultTestSelector(DefaultTestSelectorBase):
 
             # Check if host test (obj_instance) is derived from htrun.BaseHostTest()
             if not isinstance(obj_instance, BaseHostTest):
-                # In theory we should always get host test objects inheriting from BaseHostTest()
-                # because loader will only load those.
+                # In theory we should always get host test objects inheriting from
+                # BaseHostTest() because loader will only load those.
                 self.logger.prn_err(
                     "host test must inherit from htrun.BaseHostTest() class"
                 )
                 result = False
 
-            # Check if BaseHostTest.__init__() was called when custom host test is created
+            # Check if BaseHostTest.__init__() was called when custom host test is
+            # created
             if not obj_instance.base_host_test_inited():
                 self.logger.prn_err(
                     "custom host test __init__() must call BaseHostTest.__init__(self)"
@@ -119,9 +125,12 @@ class DefaultTestSelector(DefaultTestSelectorBase):
         return result
 
     def run_test(self):
-        """! This function implements key-value protocol state-machine.
-            Handling of all events and connector are handled here.
-        @return Return self.TestResults.RESULT_* enum
+        """Implement key-value protocol state-machine.
+
+        Handling of all events and connector are handled here.
+
+        Returns:
+            self.TestResults.RESULT_* enum.
         """
         result = None
         timeout_duration = 10  # Default test case timeout
@@ -130,7 +139,10 @@ class DefaultTestSelector(DefaultTestSelectorBase):
         dut_event_queue = Queue()  # Events from host to DUT {k;v}
 
         def callback__notify_prn(key, value, timestamp):
-            """! Handles __norify_prn. Prints all lines in separate log line """
+            """Handle __notify_prn.
+
+            Prints all lines in a separate log line.
+            """
             for line in value.splitlines():
                 self.logger.prn_inf(line)
 
@@ -192,14 +204,19 @@ class DefaultTestSelector(DefaultTestSelectorBase):
             return p
 
         def process_code_coverage(key, value, timestamp):
-            """! Process the found coverage key value and perform an idle
-                 loop checking for more timeing out if there is no response from
-                 the target within the idle timeout.
-            @param key The key from the first coverage event
-            @param value The value from the first coverage event
-            @param timestamp The timestamp from the first coverage event
-            @return The elapsed time taken by the processing of code coverage,
-                    and the (key, value, and timestamp) of the next event
+            """Process the found coverage key value.
+
+            Perform an idle loop checking for more timeing out if there is no response
+            from the target within the idle timeout.
+
+            Args:
+                key: The key from the first coverage event.
+                value: The value from the first coverage event.
+                timestamp: The timestamp from the first coverage event.
+
+            Returns:
+                The elapsed time taken by the processing of code coverage, and
+                the (key, value, and timestamp) of the next event.
             """
             original_start_time = time()
             start_time = time()
@@ -242,8 +259,8 @@ class DefaultTestSelector(DefaultTestSelectorBase):
                 conn_process_started = True
             else:
                 self.logger.prn_err(
-                    "First expected event was '__conn_process_start', received '%s' instead"
-                    % key
+                    "First expected event was '__conn_process_start', received '%s' "
+                    "instead" % key
                 )
 
         except QueueEmpty:
@@ -299,8 +316,8 @@ class DefaultTestSelector(DefaultTestSelectorBase):
 
                         # Check if host test object loaded is actually host test class
                         # derived from 'htrun.BaseHostTest()'
-                        # Additionaly if host test class implements custom ctor it should
-                        # call BaseHostTest().__Init__()
+                        # Additionaly if host test class implements custom ctor it
+                        # should call BaseHostTest().__Init__()
                         if self.test_supervisor and self.is_host_test_obj_compatible(
                             self.test_supervisor
                         ):
@@ -309,10 +326,12 @@ class DefaultTestSelector(DefaultTestSelectorBase):
                                 event_queue, dut_event_queue, config
                             )
                             try:
-                                # After setup() user should already register all callbacks
+                                # After setup() user should already register all
+                                # callbacks
                                 self.test_supervisor.setup()
                             except (TypeError, ValueError):
-                                # setup() can throw in normal circumstances TypeError and ValueError
+                                # setup() can throw in normal circumstances TypeError
+                                # and ValueError
                                 self.logger.prn_err("host test setup() failed, reason:")
                                 self.logger.prn_inf("==== Traceback start ====")
                                 for line in traceback.format_exc().splitlines():
@@ -361,7 +380,8 @@ class DefaultTestSelector(DefaultTestSelectorBase):
                         result = self.RESULT_IO_SERIAL
                         event_queue.put(("__exit_event_queue", 0, time()))
                     elif key == "__exit_event_queue":
-                        # This event is sent by the host test indicating no more events expected
+                        # This event is sent by the host test indicating no more events
+                        # expected
                         self.logger.prn_inf("%s received" % (key))
                         callbacks__exit_event_queue = True
                         break
@@ -390,7 +410,8 @@ class DefaultTestSelector(DefaultTestSelectorBase):
 
                     if key == "__notify_complete":
                         # This event is sent by Host Test, test result is in value
-                        # or if value is None, value will be retrieved from HostTest.result() method
+                        # or if value is None, value will be retrieved from
+                        # HostTest.result() method
                         self.logger.prn_inf("%s(%s)" % (key, str(value)))
                         result = value
                         event_queue.put(("__exit_event_queue", 0, time()))
@@ -404,7 +425,8 @@ class DefaultTestSelector(DefaultTestSelectorBase):
 
                         if value == DefaultTestSelector.RESET_TYPE_SW_RST:
                             self.logger.prn_inf("Performing software reset.")
-                            # Just disconnecting and re-connecting comm process will soft reset DUT
+                            # Just disconnecting and re-connecting comm process will
+                            # soft reset DUT
                         elif value == DefaultTestSelector.RESET_TYPE_HW_RST:
                             self.logger.prn_inf("Performing hard reset.")
                             # request hardware reset
@@ -441,7 +463,8 @@ class DefaultTestSelector(DefaultTestSelectorBase):
                         callbacks__exit = True
                         event_queue.put(("__exit_event_queue", 0, time()))
                     elif key == "__exit_event_queue":
-                        # This event is sent by the host test indicating no more events expected
+                        # This event is sent by the host test indicating no more events
+                        # expected
                         self.logger.prn_inf("%s received" % (key))
                         callbacks__exit_event_queue = True
                         break
@@ -498,7 +521,8 @@ class DefaultTestSelector(DefaultTestSelectorBase):
 
         # NOTE: with the introduction of the '__exit_event_queue' event, there
         # should never be left events assuming the DUT has stopped sending data
-        # over the serial data. Leaving this for now to catch anything that slips through.
+        # over the serial data. Leaving this for now to catch anything that slips
+        # through.
 
         if callbacks_consume:
             # We are consuming all remaining events if requested
@@ -510,7 +534,8 @@ class DefaultTestSelector(DefaultTestSelectorBase):
 
                 if key == "__notify_complete":
                     # This event is sent by Host Test, test result is in value
-                    # or if value is None, value will be retrieved from HostTest.result() method
+                    # or if value is None, value will be retrieved from
+                    # HostTest.result() method
                     self.logger.prn_inf("%s(%s)" % (key, str(value)))
                     result = value
                 elif key.startswith("__"):
@@ -557,16 +582,21 @@ class DefaultTestSelector(DefaultTestSelectorBase):
         return result
 
     def execute(self):
-        """! Test runner for host test.
+        """Test runner for host test.
 
-        @details This function will start executing test and forward test result via serial port
-                 to test suite. This function is sensitive to work-flow flags such as --skip-flashing,
-                 --skip-reset etc.
-                 First function will flash device with binary, initialize serial port for communication,
-                 reset target. On serial port handshake with test case will be performed. It is when host
-                 test reads property data from serial port (sent over serial port).
-                 At the end of the procedure proper host test (defined in set properties) will be executed
-                 and test execution timeout will be measured.
+        This function will execute the test and forward the test result via
+        serial port to the test suite. This function is sensitive to work-flow
+        flags such as --skip-flashing, --skip-reset etc...
+
+        This function will:
+            Flash a firmware image to the DUT.
+            Initialize the serial port for communication.
+            Reset the device.
+
+        A handshake with the device will be performed when the host test reads
+        property data from the serial port. At the end of the procedure the
+        appropriate host test (as defined in set properties) will be executed
+        and test execution timeout will be measured.
         """
         result = self.RESULT_UNDEF
 
@@ -604,12 +634,13 @@ class DefaultTestSelector(DefaultTestSelectorBase):
             return -3  # Keyboard interrupt
 
     def match_log(self, line):
-        """
-        Matches lines from compare log with the target serial output. Compare log lines are matched in seq using index
-        self.compare_log_idx. Lines can be strings to be matched as is or regular expressions.
+        """Match lines from compare log with the target serial output.
 
-        :param line:
-        :return:
+        Compare log lines are matched in seq using index self.compare_log_idx. Lines can
+        be strings to be matched as is or regular expressions.
+
+        Args:
+            line: Line of text to search.
         """
         if self.compare_log_idx < len(self.compare_log):
             regex = self.compare_log[self.compare_log_idx]

@@ -2,7 +2,7 @@
 # Copyright (c) 2021 Arm Limited and Contributors. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
-
+"""API to flash and reset devices using plugin methods."""
 import sys
 import json
 from time import sleep
@@ -13,11 +13,14 @@ from .. import host_tests_plugins, DEFAULT_BAUD_RATE
 def flash_dev(
     disk=None, image_path=None, copy_method="default", port=None, program_cycle_s=4
 ):
-    """! Flash device using pythonic interface
-    @param disk Switch -d <disk>
-    @param image_path Switch -f <image_path>
-    @param copy_method Switch -c <copy_method> (default: shell)
-    @param port Switch -p <port>
+    """Flash a firmware image to a device.
+
+    Args:
+        disk: Switch -d <disk>.
+        image_path: Switch -f <image_path>.
+        copy_method: Switch -c <copy_method> (default: shell).
+        port: Switch -p <port>.
+        program_cycle_s: Sleep time.
     """
     if copy_method == "default":
         copy_method = "shell"
@@ -43,18 +46,19 @@ def reset_dev(
     timeout=1,
     verbose=False,
 ):
-    """! Reset device using pythonic interface
-    @param port Switch -p <port>
-    @param disk Switch -d <disk>
-    @param reset_type Switch -r <reset_type>
-    @param reset_timeout Switch -R <reset_timeout>
-    @param serial_port Serial port handler, set to None if you want this function to open serial
+    """Reset a device.
 
-    @param baudrate Serial port baudrate
-    @param timeout Serial port timeout
-    @param verbose Verbose mode
+    Args:
+        port: Switch -p <port>.
+        disk: Switch -d <disk>.
+        reset_type: Switch -r <reset_type>.
+        reset_timeout: Switch -R <reset_timeout>.
+        serial_port: Serial port handler, set to None if you want this function
+            to open serial.
+        baudrate: Serial port baudrate.
+        timeout: Serial port timeout.
+        verbose: Verbose mode.
     """
-
     result = False
     if not serial_port:
         try:
@@ -73,8 +77,9 @@ def reset_dev(
 def handle_send_break_cmd(
     port, disk, reset_type=None, baudrate=None, timeout=1, verbose=False
 ):
-    """! Resets platforms and prints serial port output
-    @detail Mix with switch -r RESET_TYPE and -p PORT for versatility
+    """Reset platform and print serial port output.
+
+    Mix with switch -r RESET_TYPE and -p PORT for versatility.
     """
     if not reset_type:
         reset_type = "default"

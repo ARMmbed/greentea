@@ -119,6 +119,7 @@ class Test(object):
         Args:
             path: Path to the binary.
             binary_type: Type of binary being added.
+            compare_log: Log to match output from.
         """
         self.__binaries_by_flash_method[binary_type] = TestBinary(
             path, binary_type, compare_log

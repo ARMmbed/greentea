@@ -41,6 +41,7 @@ def _platform_property_from_targets_json(targets, platform, property):
         targets: Data structure from targets.json.
         platform: Name of the platform.
         property: Name of the property.
+
     Returns:
         Property value, None if not found.
 

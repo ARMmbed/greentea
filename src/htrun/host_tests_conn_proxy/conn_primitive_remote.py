@@ -2,14 +2,22 @@
 # Copyright (c) 2021 Arm Limited and Contributors. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
-
+"""ConnectorPrimitive enabling remote communication with a DUT."""
 import time
 from .. import DEFAULT_BAUD_RATE
 from .conn_primitive import ConnectorPrimitive
 
 
 class RemoteConnectorPrimitive(ConnectorPrimitive):
+    """Connect to a remote device using a global resource manager (grm).
+
+    This object will import an arbitrary python module it uses as a "remote client", to
+    connect to a device over IP. The object expects the remote client module name, IP
+    address and port to be specified in the `config` dictionary passed to __init__.
+    """
+
     def __init__(self, name, config, importer=__import__):
+        """Populate instance attributes with device and grm data."""
         ConnectorPrimitive.__init__(self, name)
         self.config = config
         self.target_id = self.config.get("target_id", None)
@@ -42,9 +50,13 @@ class RemoteConnectorPrimitive(ConnectorPrimitive):
         self.__remote_init(importer)
 
     def __remote_init(self, importer):
-        """! Initialize DUT using GRM APIs """
+        """Import the "remote client" module, use it to connect to the DUT.
 
-        # We want to load global resource manager module by name from command line (switch --grm)
+        Args:
+            importer: Callable that will import the module by name.
+        """
+        # We want to load global resource manager module by name from command line
+        # (switch --grm)
         try:
             self.remote_module = importer(self.grm_module)
         except ImportError as error:
@@ -90,7 +102,11 @@ class RemoteConnectorPrimitive(ConnectorPrimitive):
         return True
 
     def __remote_connect(self, baudrate=DEFAULT_BAUD_RATE):
-        """! Open remote connection to DUT """
+        """Open a remote connection to the DUT.
+
+        Args:
+            baudrate: The baud rate the remote client uses to connect to the DUT.
+        """
         self.logger.prn_inf(
             "opening connection to platform at baudrate='%s'" % baudrate
         )
@@ -104,6 +120,7 @@ class RemoteConnectorPrimitive(ConnectorPrimitive):
             raise
 
     def __remote_disconnect(self):
+        """Close the connection to the selected DUT."""
         if not self.selected_resource:
             raise Exception("remote resource not exists!")
         try:
@@ -115,7 +132,11 @@ class RemoteConnectorPrimitive(ConnectorPrimitive):
             )
 
     def __remote_reset(self, delay=0):
-        """! Use GRM remote API to reset DUT """
+        """Reset the DUT remotely.
+
+        Args:
+            delay: Time to wait after sending the reset command.
+        """
         self.logger.prn_inf("remote resources reset...")
         if not self.selected_resource:
             raise Exception("remote resource not exists!")
@@ -132,7 +153,12 @@ class RemoteConnectorPrimitive(ConnectorPrimitive):
             time.sleep(delay)
 
     def __remote_flashing(self, filename, forceflash=False):
-        """! Use GRM remote API to flash DUT """
+        """Flash the DUT remotely.
+
+        Args:
+            filename: Path to the image to flash to the remote target.
+            forceflash: Force flashing, this is just forwarded to the remote client.
+        """
         self.logger.prn_inf("remote resources flashing with '%s'..." % filename)
         if not self.selected_resource:
             raise Exception("remote resource not exists!")
@@ -144,7 +170,11 @@ class RemoteConnectorPrimitive(ConnectorPrimitive):
             raise
 
     def read(self, count):
-        """! Read 'count' bytes of data from DUT """
+        """Read data from the DUT.
+
+        Args:
+            count: Number of bytes to read.
+        """
         if not self.connected():
             raise Exception("remote resource not exists!")
         data = str()
@@ -157,7 +187,12 @@ class RemoteConnectorPrimitive(ConnectorPrimitive):
         return data
 
     def write(self, payload, log=False):
-        """! Write 'payload' to DUT """
+        """Send some text to the DUT.
+
+        Args:
+            payload: Text payload to send to the DUT.
+            log: Log the payload.
+        """
         if self.connected():
             try:
                 self.selected_resource.write(payload)
@@ -170,9 +205,11 @@ class RemoteConnectorPrimitive(ConnectorPrimitive):
         return False
 
     def flush(self):
+        """No-op."""
         pass
 
     def allocated(self):
+        """Check if the selected resource is allocated."""
         return (
             self.remote_module
             and self.selected_resource
@@ -180,9 +217,11 @@ class RemoteConnectorPrimitive(ConnectorPrimitive):
         )
 
     def connected(self):
+        """Check if the selected resource is connected."""
         return self.allocated() and self.selected_resource.is_connected
 
     def __remote_release(self):
+        """Release the remote resource."""
         try:
             if self.allocated():
                 self.selected_resource.release()
@@ -193,14 +232,15 @@ class RemoteConnectorPrimitive(ConnectorPrimitive):
             )
 
     def finish(self):
-        # Finally once we're done with the resource
-        # we disconnect and release the allocation
+        """Disconnect the resource and release the allocation."""
         if self.allocated():
             self.__remote_disconnect()
             self.__remote_release()
 
     def reset(self):
+        """Reset the selected resource."""
         self.__remote_reset(delay=self.forced_reset_timeout)
 
     def __del__(self):
+        """Disconnect from the remote client when object is garbage collected."""
         self.finish()

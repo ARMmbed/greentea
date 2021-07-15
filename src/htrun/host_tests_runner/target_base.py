@@ -2,6 +2,7 @@
 # Copyright (c) 2021 Arm Limited and Contributors. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
+"""Base class for targets."""
 
 import json
 import os
@@ -13,13 +14,15 @@ from ..host_tests_logger import HtrunLogger
 
 
 class TargetBase:
-    """! TargetBase class for a host driven test
-    @details This class stores information about things like disk, port, serial speed etc.
-             Class is also responsible for manipulation of serial port between host and mbed device
+    """TargetBase class for a host driven test.
+
+    This class stores information necessary to communicate with the device
+    under test. It is responsible for managing serial port communication
+    between the host and the device.
     """
 
     def __init__(self, options):
-        """ctor"""
+        """Initialise common target attributes."""
         self.options = options
         self.logger = HtrunLogger("Greentea")
         # Options related to copy / reset the connected target device
@@ -45,8 +48,9 @@ class TargetBase:
         self.serial_baud = DEFAULT_BAUD_RATE
         self.serial_timeout = 1
 
-        # Users can use command to pass port speeds together with port name. E.g. COM4:115200:1
-        # Format if PORT:SPEED:TIMEOUT
+        # Users can use command to pass port speeds together with port name. E.g.
+        # COM4:115200:1
+        # Format is PORT:SPEED:TIMEOUT
         port_config = self.port.split(":") if self.port else ""
         if len(port_config) == 2:
             # -p COM4:115200
@@ -96,15 +100,18 @@ class TargetBase:
         mcu=None,
         retry_copy=5,
     ):
-        """! Closure for copy_image_raw() method.
-        @return Returns result from copy plugin
+        """Copy an image to a target.
+
+        Returns:
+            True if the copy succeeded, otherwise False.
         """
 
         def get_remount_count(disk_path, tries=2):
-            """! Get the remount count from 'DETAILS.TXT' file
-            @return Returns count, None if not-available
-            """
+            """Get the remount count from 'DETAILS.TXT' file.
 
+            Returns:
+                Remount count, or None if not available.
+            """
             # In case of no disk path, nothing to do
             if disk_path is None:
                 return None
@@ -137,8 +144,10 @@ class TargetBase:
             return None
 
         def check_flash_error(target_id, disk, initial_remount_count):
-            """! Check for flash errors
-            @return Returns false if FAIL.TXT present, else true
+            """Check for flash errors.
+
+            Returns:
+                False if FAIL.TXT present, else True.
             """
             if not target_id:
                 self.logger.prn_wrn(
@@ -149,7 +158,8 @@ class TargetBase:
             bad_files = set(["FAIL.TXT"])
             # Re-try at max 5 times with 0.5 sec in delay
             for i in range(5):
-                # mbed_lstools.main.create() should be done inside the loop. Otherwise it will loop on same data.
+                # mbed_lstools.main.create() should be done inside the loop. Otherwise
+                # it will loop on same data.
                 mbeds = create()
                 mbed_list = mbeds.list_mbeds()  # list of mbeds present
                 # get first item in list with a matching target_id, if present
@@ -244,10 +254,19 @@ class TargetBase:
     def copy_image_raw(
         self, image_path=None, disk=None, copy_method=None, port=None, mcu=None
     ):
-        """! Copy file depending on method you want to use. Handles exception
-             and return code from shell copy commands.
-        @return Returns result from copy plugin
-        @details Method which is actually copying image to connected target
+        """Copy a firmware image to disk with the given copy_method.
+
+        Handles exception and return code from shell copy commands.
+
+        Args:
+            image_path: Path to the firmware image to copy/flash.
+            disk: Destination path forr the firmware image.
+            copy_method: Copy plugin name to use.
+            port: Serial COM port.
+            mcu: Name of the MCU being targeted.
+
+        Returns:
+            True if copy succeeded, otherwise False.
         """
         # image_path - Where is binary with target's firmware
 
@@ -271,10 +290,10 @@ class TargetBase:
         return result
 
     def hw_reset(self):
-        """
-        Performs hardware reset of target ned device.
+        """Perform hardware reset of target device.
 
-        :return:
+        Returns:
+            True if the reset succeeded, otherwise False.
         """
         device_info = {}
         result = ht_plugins.call_plugin(

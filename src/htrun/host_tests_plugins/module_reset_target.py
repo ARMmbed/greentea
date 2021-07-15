@@ -2,6 +2,7 @@
 # Copyright (c) 2021 Arm Limited and Contributors. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
+"""Serial reset plugin."""
 
 import re
 import pkg_resources
@@ -9,6 +10,7 @@ from .host_test_plugins import HostTestPluginBase
 
 
 class HostTestPluginResetMethod_Target(HostTestPluginBase):
+    """Plugin interface adapter for serial reset."""
 
     # Plugin interface
     name = "HostTestPluginResetMethod_Target"
@@ -18,12 +20,7 @@ class HostTestPluginResetMethod_Target(HostTestPluginBase):
     required_parameters = ["serial"]
 
     def __init__(self):
-        """! ctor
-        @details We can check module version by referring to version attribute
-        import pkg_resources
-        print pkg_resources.require("htrun")[0].version
-        '2.7'
-        """
+        """Initialise plugin."""
         HostTestPluginBase.__init__(self)
         self.re_float = re.compile("^\d+\.\d+")
         pyserial_version = pkg_resources.require("pyserial")[0].version
@@ -31,8 +28,10 @@ class HostTestPluginResetMethod_Target(HostTestPluginBase):
         self.is_pyserial_v3 = float(self.pyserial_version) >= 3.0
 
     def get_pyserial_version(self, pyserial_version):
-        """! Retrieve pyserial module version
-        @return Returns float with pyserial module number
+        """Retrieve pyserial module version.
+
+        Returns:
+            Float with pyserial module number.
         """
         version = 3.0
         m = self.re_float.search(pyserial_version)
@@ -44,14 +43,14 @@ class HostTestPluginResetMethod_Target(HostTestPluginBase):
         return version
 
     def safe_sendBreak(self, serial):
-        """! Closure for pyserial version dependant API calls"""
+        """Closure for pyserial version dependent API calls."""
         if self.is_pyserial_v3:
             return self._safe_sendBreak_v3_0(serial)
         return self._safe_sendBreak_v2_7(serial)
 
     def _safe_sendBreak_v2_7(self, serial):
-        """! pyserial 2.7 API implementation of sendBreak/setBreak
-        @details
+        """Pyserial 2.7 API implementation of sendBreak/setBreak.
+
         Below API is deprecated for pyserial 3.x versions!
         http://pyserial.readthedocs.org/en/latest/pyserial_api.html#serial.Serial.sendBreak
         http://pyserial.readthedocs.org/en/latest/pyserial_api.html#serial.Serial.setBreak
@@ -61,7 +60,8 @@ class HostTestPluginResetMethod_Target(HostTestPluginBase):
             serial.sendBreak()
         except:
             # In Linux a termios.error is raised in sendBreak and in setBreak.
-            # The following setBreak() is needed to release the reset signal on the target mcu.
+            # The following setBreak() is needed to release the reset signal on the
+            # target mcu.
             try:
                 serial.setBreak(False)
             except:
@@ -69,8 +69,8 @@ class HostTestPluginResetMethod_Target(HostTestPluginBase):
         return result
 
     def _safe_sendBreak_v3_0(self, serial):
-        """! pyserial 3.x API implementation of send_brea / break_condition
-        @details
+        """Pyserial 3.x API implementation of send_break / break_condition.
+
         http://pyserial.readthedocs.org/en/latest/pyserial_api.html#serial.Serial.send_break
         http://pyserial.readthedocs.org/en/latest/pyserial_api.html#serial.Serial.break_condition
         """
@@ -79,7 +79,8 @@ class HostTestPluginResetMethod_Target(HostTestPluginBase):
             serial.send_break()
         except:
             # In Linux a termios.error is raised in sendBreak and in setBreak.
-            # The following break_condition = False is needed to release the reset signal on the target mcu.
+            # The following break_condition = False is needed to release the reset
+            # signal on the target mcu.
             try:
                 serial.break_condition = False
             except Exception as e:
@@ -90,17 +91,22 @@ class HostTestPluginResetMethod_Target(HostTestPluginBase):
         return result
 
     def setup(self, *args, **kwargs):
-        """! Configure plugin, this function should be called before plugin execute() method is used."""
+        """Configure plugin.
+
+        This function should be called before plugin execute() method is used.
+        """
         return True
 
     def execute(self, capability, *args, **kwargs):
-        """! Executes capability by name
+        """Reset a device using serial break.
 
-        @param capability Capability name
-        @param args Additional arguments
-        @param kwargs Additional arguments
-        @details Each capability e.g. may directly just call some command line program or execute building pythonic function
-        @return Capability call return value
+        Args:
+            capability: Capability name.
+            args: Additional arguments.
+            kwargs: Additional arguments.
+
+        Returns:
+            True if the reset succeeded, otherwise False.
         """
         if not kwargs["serial"]:
             self.print_plugin_error("Error: serial port not set (not opened?)")
@@ -116,5 +122,5 @@ class HostTestPluginResetMethod_Target(HostTestPluginBase):
 
 
 def load_plugin():
-    """! Returns plugin available in this module"""
+    """Return plugin available in this module."""
     return HostTestPluginResetMethod_Target()

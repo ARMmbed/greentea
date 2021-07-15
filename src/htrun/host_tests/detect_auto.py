@@ -2,19 +2,24 @@
 # Copyright (c) 2021 Arm Limited and Contributors. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
+"""Auto detection host test."""
 
 import re
 from .. import BaseHostTest
 
 
 class DetectPlatformTest(BaseHostTest):
+    """Test to auto detect the platform."""
+
     PATTERN_MICRO_NAME = "Target '(\w+)'"
     re_detect_micro_name = re.compile(PATTERN_MICRO_NAME)
 
     def result(self):
+        """Not implemented."""
         raise NotImplementedError
 
     def test(self, selftest):
+        """Run test."""
         result = True
 
         c = selftest.mbed.serial_readline()  # {{start}} preamble

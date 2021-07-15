@@ -2,8 +2,8 @@
 # Copyright (c) 2021 Arm Limited and Contributors. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
+"""Greentea Host Tests Runner."""
 
-# Greentea Host Tests Runner
 from multiprocessing import freeze_support
 from htrun import init_host_test_cli_params
 from htrun.host_tests_runner.host_test_default import DefaultTestSelector
@@ -11,9 +11,10 @@ from htrun.host_tests_toolbox.host_functional import handle_send_break_cmd
 
 
 def main():
-    """! This function drives command line tool 'htrun' which is using DefaultTestSelector
-    @details 1. Create DefaultTestSelector object and pass command line parameters
-             2. Call default test execution function run() to start test instrumentation
+    """Drive command line tool 'htrun' which is using DefaultTestSelector.
+
+    1. Create DefaultTestSelector object and pass command line parameters.
+    2. Call default test execution function run() to start test instrumentation.
     """
     freeze_support()
     result = 0

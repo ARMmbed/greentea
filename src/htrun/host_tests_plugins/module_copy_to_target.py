@@ -2,6 +2,7 @@
 # Copyright (c) 2021 Arm Limited and Contributors. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
+"""Copy to DAPLink enabled devices using file operations."""
 
 import os
 from shutil import copy
@@ -9,21 +10,21 @@ from .host_test_plugins import HostTestPluginBase
 
 
 class HostTestPluginCopyMethod_Target(HostTestPluginBase):
-    """Generic flashing method for Mbed enabled platforms (by copy)"""
+    """Generic flashing method for DAPLink enabled platforms using file copy."""
 
     def __init__(self):
-        """ctor"""
+        """Initialise the plugin."""
         HostTestPluginBase.__init__(self)
 
     def generic_target_copy(self, image_path, destination_disk):
-        """! Generic target copy method for "Mbed enabled" devices.
+        """Target copy method for "Mbed enabled" devices.
 
-        @param image_path Path to binary file to be flashed
-        @param destination_disk Path to destination (target mount point)
+        Args:
+            image_path: Path to binary file to be flashed.
+            destination_disk: Path to destination (target mount point).
 
-        @details It uses standard python shutil function to copy image_file (target specific binary) to device's disk.
-
-        @return Returns True if copy (flashing) was successful
+        Returns:
+            True if copy (flashing) was successful, otherwise False.
         """
         result = True
         if not destination_disk.endswith("/") and not destination_disk.endswith("\\"):
@@ -38,7 +39,6 @@ class HostTestPluginCopyMethod_Target(HostTestPluginBase):
             result = False
         return result
 
-    # Plugin interface
     name = "HostTestPluginCopyMethod_Target"
     type = "CopyMethod"
     stable = True
@@ -46,13 +46,16 @@ class HostTestPluginCopyMethod_Target(HostTestPluginBase):
     required_parameters = ["image_path", "destination_disk"]
 
     def setup(self, *args, **kwargs):
-        """Configure plugin, this function should be called before plugin execute() method is used."""
+        """Configure plugin."""
         return True
 
     def execute(self, capability, *args, **kwargs):
-        """! Executes capability by name.
-        @details Each capability may directly just call some command line program or execute building pythonic function
-        @return Returns True if 'capability' operation was successful
+        """Copy a firmware image to a DAPLink compatible device's filesystem.
+
+        The "capability" name must be "shutil" or this function will just fail.
+
+        Returns:
+            True if copy was successful, otherwise False.
         """
         if not kwargs["image_path"]:
             self.print_plugin_error("Error: image path not specified")
@@ -75,7 +78,8 @@ class HostTestPluginCopyMethod_Target(HostTestPluginBase):
                     destination_disk = os.path.normpath(kwargs["destination_disk"])
                     # Wait for mount point to be ready
                     # if mount point changed according to target_id use new mount point
-                    # available in result (_, destination_disk) of check_mount_point_ready
+                    # available in result (_, destination_disk) of
+                    # check_mount_point_ready
                     mount_res, destination_disk = self.check_mount_point_ready(
                         destination_disk,
                         target_id=self.target_id,
@@ -87,5 +91,5 @@ class HostTestPluginCopyMethod_Target(HostTestPluginBase):
 
 
 def load_plugin():
-    """Returns plugin available in this module"""
+    """Return plugin available in this module."""
     return HostTestPluginCopyMethod_Target()

@@ -2,7 +2,7 @@
 # Copyright (c) 2021 Arm Limited and Contributors. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
-
+"""Connects to a device's serial port."""
 
 import time
 from serial import Serial, SerialException
@@ -13,7 +13,17 @@ from .conn_primitive import ConnectorPrimitive, ConnectorPrimitiveException
 
 
 class SerialConnectorPrimitive(ConnectorPrimitive):
+    """ConnectorPrimitive implementation using serial IO."""
+
     def __init__(self, name, port, baudrate, config):
+        """Initialise with serial params.
+
+        Args:
+            name: Target name to display in the log.
+            port: Serial COM port.
+            baudrate: Baudrate to use for serial comms.
+            config: Map of config parameters describing the state of the DUT.
+        """
         ConnectorPrimitive.__init__(self, name)
         self.port = port
         self.baudrate = int(baudrate)
@@ -27,12 +37,12 @@ class SerialConnectorPrimitive(ConnectorPrimitive):
         self.skip_reset = config.get("skip_reset", False)
         self.serial = None
 
-        # Check if serial port for given target_id changed
-        # If it does we will use new port to open connections and make sure reset plugin
-        # later can reuse opened already serial port
+        # Check if serial port for given target_id changed. If it does we will use new
+        # port to open connections and make sure reset plugin later can reuse opened
+        # already serial port
         #
-        # Note: This listener opens serial port and keeps connection so reset plugin uses
-        # serial port object not serial port name!
+        # Note: This listener opens serial port and keeps connection so reset plugin
+        # uses serial port object not serial port name!
         serial_port = HostTestPluginBase().check_serial_port_ready(
             self.port, target_id=self.target_id, timeout=self.polling_timeout
         )
@@ -53,9 +63,11 @@ class SerialConnectorPrimitive(ConnectorPrimitive):
         )
         while time.time() - startTime < self.polling_timeout:
             try:
-                # TIMEOUT: While creating Serial object timeout is delibrately passed as 0. Because blocking in Serial.read
-                # impacts thread and mutliprocess functioning in Python. Hence, instead in self.read() s delay (sleep()) is
-                # inserted to let serial buffer collect data and avoid spinning on non blocking read().
+                # TIMEOUT: While creating Serial object timeout is delibrately passed as
+                # 0. Because blocking in Serial.read impacts thread and mutliprocess
+                # functioning in Python. Hence, instead in self.read() s delay (sleep())
+                # is inserted to let serial buffer collect data and avoid spinning on
+                # non blocking read().
                 self.serial = Serial(
                     self.port,
                     baudrate=self.baudrate,
@@ -85,7 +97,13 @@ class SerialConnectorPrimitive(ConnectorPrimitive):
             time.sleep(1)
 
     def reset_dev_via_serial(self, delay=1):
-        """! Reset device using selected method, calls one of the reset plugins """
+        """Reset device using selected method.
+
+        Calls one of the reset plugins.
+
+        Args:
+            delay: Time to wait after sending the reset command.
+        """
         reset_type = self.config.get("reset_type", "default")
         if not reset_type:
             reset_type = "default"
@@ -109,9 +127,14 @@ class SerialConnectorPrimitive(ConnectorPrimitive):
         return result
 
     def read(self, count):
-        """! Read data from serial port RX buffer """
-        # TIMEOUT: Since read is called in a loop, wait for self.timeout period before calling serial.read(). See
-        # comment on serial.Serial() call above about timeout.
+        """Read data from the serial port RX buffer.
+
+        Args:
+            count: Number of bytes to read.
+        """
+        # TIMEOUT: Since read is called in a loop, wait for self.timeout period before
+        # calling serial.read(). See comment on serial.Serial() call above about
+        # timeout.
         time.sleep(self.read_timeout)
         c = str()
         try:
@@ -124,7 +147,12 @@ class SerialConnectorPrimitive(ConnectorPrimitive):
         return c
 
     def write(self, payload, log=False):
-        """! Write data to serial port TX buffer """
+        """Write data to serial port TX buffer.
+
+        Args:
+            payload: Bytes to write to the serial port.
+            log: Log the payload.
+        """
         try:
             if self.serial:
                 self.serial.write(payload.encode("utf-8"))
@@ -141,18 +169,23 @@ class SerialConnectorPrimitive(ConnectorPrimitive):
         return False
 
     def flush(self):
+        """Flush the serial IO."""
         if self.serial:
             self.serial.flush()
 
     def connected(self):
+        """Return True if connected to serial port."""
         return bool(self.serial)
 
     def finish(self):
+        """Close the serial port."""
         if self.serial:
             self.serial.close()
 
     def reset(self):
+        """Send serial break to reset the device."""
         self.reset_dev_via_serial(self.forced_reset_timeout)
 
     def __del__(self):
+        """Release resources when garbage collected."""
         self.finish()

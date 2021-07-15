@@ -3,13 +3,11 @@
 # SPDX-License-Identifier: Apache-2.0
 #
 
+"""The htrun package.
 
-"""! @package htrun
-
-Flash, reset and  perform host supervised tests on Mbed enabled platforms.
-Write your own programs (import this package) or use 'htrun'
-command line tool instead.
-
+Flash, reset and perform host supervised tests on Mbed enabled platforms.
+Write your own programs (import this package) or use 'htrun' command line tool
+instead.
 """
 
 import imp
@@ -29,6 +27,7 @@ DEFAULT_BAUD_RATE = 9600
 
 
 def get_plugin_caps(methods=None):
+    """Return the capabilities of a plugin."""
     if not methods:
         methods = ["CopyMethod", "ResetMethod"]
     result = {}
@@ -38,9 +37,12 @@ def get_plugin_caps(methods=None):
 
 
 def init_host_test_cli_params():
-    """! Function creates CLI parser object and returns populated options object.
-    @return Function returns 'options' object returned from OptionParser class
-    @details Options object later can be used to populate host test selector script.
+    """Create CLI parser object and return populated options object.
+
+    Options object can be used to populate host test selector script.
+
+    Returns:
+        'options' object returned from OptionParser class.
     """
     parser = OptionParser()
 

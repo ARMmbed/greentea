@@ -2,6 +2,7 @@
 # Copyright (c) 2021 Arm Limited and Contributors. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
+"""Implements reset method for the ARM_MPS2 platform."""
 
 import os
 import time
@@ -12,10 +13,9 @@ from .host_test_plugins import HostTestPluginBase
 
 
 class HostTestPluginResetMethod_MPS2(HostTestPluginBase):
-    """! Plugin used to reset ARM_MPS2 platform
+    """Plugin used to reset ARM_MPS2 platform.
 
-    @details Supports:
-             reboot.txt   - startup from standby state, reboots when in run mode.
+    Supports reboot.txt startup from standby state, reboots when in run mode.
     """
 
     # Plugin interface
@@ -25,31 +25,34 @@ class HostTestPluginResetMethod_MPS2(HostTestPluginBase):
     required_parameters = ["disk"]
 
     def __init__(self):
-        """ctor"""
+        """Initialise the plugin."""
         HostTestPluginBase.__init__(self)
 
     def touch_file(self, path):
-        """Touch file and set timestamp to items"""
+        """Touch file and set timestamp to items."""
         with open(path, "a"):
             os.utime(path, None)
 
     def setup(self, *args, **kwargs):
         """Prepare / configure plugin to work.
+
         This method can receive plugin specific parameters by kwargs and
         ignore other parameters which may affect other plugins.
         """
         return True
 
     def execute(self, capability, *args, **kwargs):
-        """! Executes capability by name
+        """Reboot a device.
 
-        @param capability Capability name
-        @param args Additional arguments
-        @param kwargs Additional arguments
+        The "capability" name must be 'reboot.txt' or this method will just fail.
 
-        @details Each capability e.g. may directly just call some command line program or execute building pythonic function
+        Args:
+            capability: Capability name.
+            args: Additional arguments.
+            kwargs: Additional arguments.
 
-        @return Capability call return value
+        Returns:
+            True if the reset succeeded, otherwise False.
         """
         result = False
         if not kwargs["disk"]:
@@ -78,5 +81,5 @@ class HostTestPluginResetMethod_MPS2(HostTestPluginBase):
 
 
 def load_plugin():
-    """Returns plugin available in this module"""
+    """Return plugin available in this module."""
     return HostTestPluginResetMethod_MPS2()

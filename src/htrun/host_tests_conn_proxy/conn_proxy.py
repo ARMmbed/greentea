@@ -2,6 +2,7 @@
 # Copyright (c) 2021 Arm Limited and Contributors. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
+"""Create and manage connection to the DUT."""
 
 import re
 import sys
@@ -21,16 +22,31 @@ else:
 
 
 class KiViBufferWalker:
-    """! Simple auxiliary class used to walk through a buffer and search for KV tokens """
+    """A collection-like object holding KV pairs in an internal buffer.
+
+    Despite the name, this object is actually a buffer/collection of KV pairs, and not
+    an object to just parse them from another buffer.
+    """
 
     def __init__(self):
+        """Initialise the object."""
         self.KIVI_REGEX = r"\{\{([\w\d_-]+);([^\}]+)\}\}"
         self.buff = str()
         self.kvl = []
         self.re_kv = re.compile(self.KIVI_REGEX)
 
     def append(self, payload):
-        """! Append stream buffer with payload and process. Returns non-KV strings"""
+        """Append a KV pair to the buffer.
+
+        Scrapes the first KV pair found in 'payload' and appends it to the internal
+        buffer.
+
+        Args:
+            payload: Text to scrape a KV pair from.
+
+        Returns:
+            Non-KV strings in payload.
+        """
         logger = HtrunLogger("CONN")
         try:
             self.buff += payload.decode("utf-8")
@@ -64,23 +80,28 @@ class KiViBufferWalker:
         return discarded
 
     def search(self):
-        """! Check if there is a KV value in buffer """
+        """Check if there is a KV pair in the buffer."""
         return len(self.kvl) > 0
 
     def pop_kv(self):
+        """Pop a KV pair from the buffer."""
         if len(self.kvl):
             return self.kvl.pop(0)
         return None, None, time()
 
 
 def conn_primitive_factory(conn_resource, config, event_queue, logger):
-    """! Factory producing connectors based on type and config
-    @param conn_resource Name of connection primitive (e.g. 'serial' for
-           local serial port connection or 'grm' for global resource manager)
-    @param event_queue Even queue of Key-Value protocol
-    @param config Global configuration for connection process
-    @param logger Host Test logger instance
-    @return Object of type <ConnectorPrimitive> or None if type of connection primitive unknown (conn_resource)
+    """Construct a ConnectorPrimitive subclass for the given name and config.
+
+    Args:
+        conn_resource: Name of connection primitive (e.g. 'serial' for
+           local serial port connection or 'grm' for global resource manager).
+        event_queue: Event queue of Key-Value protocol messages.
+        config: Global configuration map describing the connection target.
+        logger: Host Test logger instance.
+
+    Returns:
+        A ConnectorPrimitive, or None if conn_resource is not recognised.
     """
     polling_timeout = int(config.get("polling_timeout", 60))
     logger.prn_inf(
@@ -118,6 +139,14 @@ def conn_primitive_factory(conn_resource, config, event_queue, logger):
 
 
 def conn_process(event_queue, dut_event_queue, config):
+    """Start the connection process to the DUT.
+
+    Args:
+        event_queue: KV messages read by the host.
+        dut_event_queue: KV messages sent to the DUT.
+        config: Map of configuration settings describing the test env and the DUT.
+    """
+
     def __notify_conn_lost():
         error_msg = connector.error()
         connector.finish()
@@ -182,15 +211,16 @@ def conn_process(event_queue, dut_event_queue, config):
         __notify_conn_lost()
         return 0
 
-    # Sync packet management allows us to manipulate the way htrun sends __sync packet(s)
-    # With current settings we can force on htrun to send __sync packets in this manner:
+    # Sync packet management allows us to manipulate the way htrun sends __sync
+    # packet(s) With current settings we can force on htrun to send __sync packets in
+    # this manner:
     #
     # * --sync=0        - No sync packets will be sent to target platform
     # * --sync=-10      - __sync packets will be sent unless we will reach
-    #                     timeout or proper response is sent from target platform
-    # * --sync=N        - Send up to N __sync packets to target platform. Response
-    #                     is sent unless we get response from target platform or
-    #                     timeout occur
+    # timeout or proper response is sent from target platform
+    # * --sync=N        - Send up to N __sync packets to target platform.
+    # Response is sent unless we get response from target platform or timeout
+    # occur
 
     if sync_behavior > 0:
         # Sending up to 'n' __sync packets
@@ -255,7 +285,8 @@ def conn_process(event_queue, dut_event_queue, config):
                 __notify_conn_lost()
                 break
 
-        # Since read is done every 0.2 sec, with maximum baud rate we can receive 2304 bytes in one read in worst case.
+        # Since read is done every 0.2 sec, with maximum baud rate we can receive 2304
+        # bytes in one read in worst case.
         data = connector.read(2304)
         if data:
             # Stream data stream KV parsing
@@ -278,8 +309,8 @@ def conn_process(event_queue, dut_event_queue, config):
                             event_queue.put((key, value, time()))
                             idx = sync_uuid_list.index(value)
                             logger.prn_inf(
-                                "found SYNC in stream: {{%s;%s}} it is #%d sent, queued..."
-                                % (key, value, idx)
+                                "found SYNC in stream: {{%s;%s}} it is #%d sent, "
+                                "queued..." % (key, value, idx)
                             )
                         else:
                             logger.prn_err(
@@ -287,7 +318,8 @@ def conn_process(event_queue, dut_event_queue, config):
                                 % (key, value)
                             )
                             logger.prn_inf(
-                                "Resetting the part and sync timeout to clear out the buffer..."
+                                "Resetting the part and sync timeout to clear out the"
+                                " buffer..."
                             )
                             connector.reset()
                             loop_timer = time()
@@ -313,8 +345,8 @@ def conn_process(event_queue, dut_event_queue, config):
                         sync_uuid_list.append(sync_uuid)
                         sync_behavior -= 1
                         loop_timer = time()
-                        # Sync behavior will be zero and if last sync fails we should report connection
-                        # lost
+                        # Sync behavior will be zero and if last sync fails we should
+                        # report connection lost
                         if sync_behavior == 0:
                             last_sync = True
                     else:
