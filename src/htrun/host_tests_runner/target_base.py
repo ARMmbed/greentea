@@ -172,10 +172,10 @@ class TargetBase:
                         "mount_point" in mbed_target
                         and mbed_target["mount_point"] is not None
                     ):
-                        if not initial_remount_count is None:
+                        if initial_remount_count is not None:
                             new_remount_count = get_remount_count(disk)
                             if (
-                                not new_remount_count is None
+                                new_remount_count is not None
                                 and new_remount_count == initial_remount_count
                             ):
                                 sleep(0.5)

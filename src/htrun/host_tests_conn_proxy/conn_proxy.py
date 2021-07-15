@@ -270,7 +270,7 @@ def conn_process(event_queue, dut_event_queue, config):
             pass  # Check if target sent something
         else:
             # Return if state machine in host_test_default has finished to end process
-            if key == "__host_test_finished" and value == True:
+            if key == "__host_test_finished" and value is True:
                 logger.prn_inf(
                     "received special event '%s' value='%s', finishing" % (key, value)
                 )
@@ -352,7 +352,7 @@ def conn_process(event_queue, dut_event_queue, config):
                     else:
                         __notify_conn_lost()
                         break
-            elif last_sync == True:
+            elif last_sync is True:
                 # SYNC lost connection event : Device not responding, send sync failed
                 __notify_sync_failed()
                 break

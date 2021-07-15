@@ -616,9 +616,9 @@ class DefaultTestSelector(DefaultTestSelectorBase):
             # Execute test if flashing was successful or skipped
             test_result = self.run_test()
 
-            if test_result == True:
+            if test_result is True:
                 result = self.RESULT_SUCCESS
-            elif test_result == False:
+            elif test_result is False:
                 result = self.RESULT_FAILURE
             elif test_result is None:
                 result = self.RESULT_ERROR
