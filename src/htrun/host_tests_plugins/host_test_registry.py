@@ -135,7 +135,6 @@ class HostTestRegistry:
 
     def get_dict(self):
         """Return a dictionary of registered plugins."""
-        column_names = ["name", "type", "capabilities", "stable"]
         result = {}
         for plugin_name in sorted(self.PLUGINS.keys()):
             name = self.PLUGINS[plugin_name].name
