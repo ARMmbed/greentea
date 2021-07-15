@@ -65,8 +65,6 @@ class HostTestPluginCopyMethod_Target(HostTestPluginBase):
             self.print_plugin_error("Error: destination disk not specified")
             return False
 
-        # This optional parameter can be used if TargetID is provided (-t switch)
-        target_id = kwargs.get("target_id", None)
         pooling_timeout = kwargs.get("polling_timeout", 60)
 
         result = False
