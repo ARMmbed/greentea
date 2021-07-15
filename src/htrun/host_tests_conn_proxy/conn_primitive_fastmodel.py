@@ -149,18 +149,15 @@ class FastmodelConnectorPrimitive(ConnectorPrimitive):
         Returns:
             The data from the FastModel if the read was successful, otherwise False.
         """
-        date = str()
-        if self.__resource_allocated():
-            try:
-                data = self.resource.read()
-            except self.fm_agent_module.SimulatorError as e:
-                self.logger.prn_err(
-                    "FastmodelConnectorPrimitive.read() failed: %s" % str(e)
-                )
-            else:
-                return data
-        else:
+        if not self.__resource_allocated():
             return False
+
+        try:
+            return self.resource.read()
+        except self.fm_agent_module.SimulatorError as e:
+            self.logger.prn_err(
+                "FastmodelConnectorPrimitive.read() failed: %s" % str(e)
+            )
 
     def write(self, payload, log=False):
         """Send text to the FastModel.
