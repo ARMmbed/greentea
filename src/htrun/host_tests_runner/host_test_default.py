@@ -26,7 +26,6 @@ from ..host_tests.dev_null_auto import DevNullTest
 from .host_test import DefaultTestSelectorBase
 from ..host_tests_logger import HtrunLogger
 from ..host_tests_conn_proxy import conn_process
-from ..host_tests_toolbox.host_functional import handle_send_break_cmd
 
 if sys.version_info > (3, 0):
     from queue import Empty as QueueEmpty

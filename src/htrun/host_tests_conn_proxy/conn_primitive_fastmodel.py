@@ -4,8 +4,6 @@
 #
 """Connect to fast models."""
 
-import telnetlib
-import socket
 from .conn_primitive import ConnectorPrimitive, ConnectorPrimitiveException
 
 

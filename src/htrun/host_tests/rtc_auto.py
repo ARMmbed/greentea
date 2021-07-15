@@ -5,7 +5,7 @@
 """RTC auto test."""
 
 import re
-from time import time, strftime, gmtime
+from time import strftime, gmtime
 from .. import BaseHostTest
 
 

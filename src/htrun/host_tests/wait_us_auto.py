@@ -4,7 +4,6 @@
 #
 """Test reads single characters from stdio and measures time between occurrences."""
 
-from time import time
 from .. import BaseHostTest
 
 
