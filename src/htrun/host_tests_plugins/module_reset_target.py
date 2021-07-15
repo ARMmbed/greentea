@@ -22,7 +22,7 @@ class HostTestPluginResetMethod_Target(HostTestPluginBase):
     def __init__(self):
         """Initialise plugin."""
         HostTestPluginBase.__init__(self)
-        self.re_float = re.compile("^\d+\.\d+")
+        self.re_float = re.compile(r"^\d+\.\d+")
         pyserial_version = pkg_resources.require("pyserial")[0].version
         self.pyserial_version = self.get_pyserial_version(pyserial_version)
         self.is_pyserial_v3 = float(self.pyserial_version) >= 3.0

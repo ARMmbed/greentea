@@ -12,7 +12,7 @@ from .. import BaseHostTest
 class RTCTest(BaseHostTest):
     """Test RTC."""
 
-    PATTERN_RTC_VALUE = "\[(\d+)\] \[(\d+-\d+-\d+ \d+:\d+:\d+ [AaPpMm]{2})\]"
+    PATTERN_RTC_VALUE = r"\[(\d+)\] \[(\d+-\d+-\d+ \d+:\d+:\d+ [AaPpMm]{2})\]"
     re_detect_rtc_value = re.compile(PATTERN_RTC_VALUE)
 
     __result = None

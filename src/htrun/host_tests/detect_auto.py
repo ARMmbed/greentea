@@ -11,7 +11,7 @@ from .. import BaseHostTest
 class DetectPlatformTest(BaseHostTest):
     """Test to auto detect the platform."""
 
-    PATTERN_MICRO_NAME = "Target '(\w+)'"
+    PATTERN_MICRO_NAME = r"Target '(\w+)'"
     re_detect_micro_name = re.compile(PATTERN_MICRO_NAME)
 
     def result(self):
