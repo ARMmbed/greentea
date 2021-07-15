@@ -87,7 +87,7 @@ class TargetBase:
                         json_test_configuration_path, e.errno, e.strerror
                     )
                 )
-            except:
+            except Exception as e:
                 self.logger.prn_err("Test configuration JSON Unexpected error:", str(e))
                 raise
 
@@ -190,7 +190,7 @@ class TargetBase:
                                 ]
                             )
                             common_items = bad_files.intersection(items)
-                        except OSError as e:
+                        except OSError:
                             print("Failed to enumerate disk files, retrying")
                             continue
 
