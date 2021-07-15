@@ -58,13 +58,13 @@ class HostTestPluginResetMethod_Target(HostTestPluginBase):
         result = True
         try:
             serial.sendBreak()
-        except:
+        except Exception:
             # In Linux a termios.error is raised in sendBreak and in setBreak.
             # The following setBreak() is needed to release the reset signal on the
             # target mcu.
             try:
                 serial.setBreak(False)
-            except:
+            except Exception:
                 result = False
         return result
 
@@ -77,7 +77,7 @@ class HostTestPluginResetMethod_Target(HostTestPluginBase):
         result = True
         try:
             serial.send_break()
-        except:
+        except Exception:
             # In Linux a termios.error is raised in sendBreak and in setBreak.
             # The following break_condition = False is needed to release the reset
             # signal on the target mcu.
