@@ -11,4 +11,4 @@ provide specialised flashing and reset implementations.
 
 from pkg_resources import get_distribution
 
-__version__ = get_distribution("mbed-greentea").version
+__version__ = get_distribution("greentea-host").version
