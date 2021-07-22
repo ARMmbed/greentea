@@ -82,6 +82,7 @@ class GreenTeaSimpleLockLogger(object):
         Args:
             text: String to be logged.
             print_text: Force log to be printed on screen.
+
         Returns:
             String with message.
         """

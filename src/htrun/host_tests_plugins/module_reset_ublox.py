@@ -2,13 +2,14 @@
 # Copyright (c) 2021 Arm Limited and Contributors. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
+"""Reset ublox devices using the jlink.exe tool."""
 
 from .host_test_plugins import HostTestPluginBase
 
 
 class HostTestPluginResetMethod_ublox(HostTestPluginBase):
+    """Plugin interface adapter for jlink.exe."""
 
-    # Plugin interface
     name = "HostTestPluginResetMethod_ublox"
     type = "ResetMethod"
     capabilities = ["ublox"]
@@ -16,7 +17,7 @@ class HostTestPluginResetMethod_ublox(HostTestPluginBase):
     stable = False
 
     def is_os_supported(self, os_name=None):
-        """! In this implementation this plugin only is supporeted under Windows machines"""
+        """Plugin is only supported on Windows."""
         # If no OS name provided use host OS name
         if not os_name:
             os_name = self.host_os_support()
@@ -27,21 +28,27 @@ class HostTestPluginResetMethod_ublox(HostTestPluginBase):
         return False
 
     def setup(self, *args, **kwargs):
-        """! Configure plugin, this function should be called before plugin execute() method is used."""
-        # Note you need to have jlink.exe on your system path!
+        """Configure plugin.
+
+        This function should be called before plugin execute() method is used.
+
+        Note: you need to have jlink.exe on your system path!
+        """
         self.JLINK = "jlink.exe"
         return True
 
     def execute(self, capability, *args, **kwargs):
-        """! Executes capability by name
+        """Reset a ublox device using jlink.exe.
 
-        @param capability Capability name
-        @param args Additional arguments
-        @param kwargs Additional arguments
+        The "capability" name must be "ublox" or this method will just fail.
 
-        @details Each capability e.g. may directly just call some command line program or execute building pythonic function
+        Args:
+            capability: Capability name.
+            args: Additional arguments.
+            kwargs: Additional arguments.
 
-        @return Capability call return value
+        Returns:
+            True if the reset was successful, otherwise False.
         """
         result = False
         if self.check_parameters(capability, *args, **kwargs) is True:
@@ -54,5 +61,5 @@ class HostTestPluginResetMethod_ublox(HostTestPluginBase):
 
 
 def load_plugin():
-    """Returns plugin available in this module"""
+    """Return plugin available in this module."""
     return HostTestPluginResetMethod_ublox()

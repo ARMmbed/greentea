@@ -2,7 +2,7 @@
 # Copyright (c) 2021 Arm Limited and Contributors. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
-
+"""Logger."""
 
 import sys
 import logging
@@ -10,9 +10,10 @@ from functools import partial
 
 
 class HtrunLogger(object):
-    """! Yet another logger flavour """
+    """Yet another logger flavour."""
 
     def __init__(self, name):
+        """Initialise logger to stdout."""
         logging.basicConfig(
             stream=sys.stdout,
             format="[%(created).2f][%(name)s]%(message)s",

@@ -2,14 +2,15 @@
 # Copyright (c) 2021 Arm Limited and Contributors. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
+"""Copy firmware images to silab devices using the eACommander.exe tool."""
 
 import os
 from .host_test_plugins import HostTestPluginBase
 
 
 class HostTestPluginCopyMethod_Silabs(HostTestPluginBase):
+    """Plugin interface adapter for eACommander.exe."""
 
-    # Plugin interface
     name = "HostTestPluginCopyMethod_Silabs"
     type = "CopyMethod"
     capabilities = ["eACommander", "eACommander-usb"]
@@ -17,24 +18,29 @@ class HostTestPluginCopyMethod_Silabs(HostTestPluginBase):
     stable = True
 
     def __init__(self):
-        """ctor"""
+        """Initialise plugin."""
         HostTestPluginBase.__init__(self)
 
     def setup(self, *args, **kwargs):
-        """Configure plugin, this function should be called before plugin execute() method is used."""
+        """Configure plugin.
+
+        This function should be called before plugin execute() method is used.
+        """
         self.EACOMMANDER_CMD = "eACommander.exe"
         return True
 
     def execute(self, capability, *args, **kwargs):
-        """! Executes capability by name
+        """Copy a firmware image to a silab device using eACommander.exe.
 
-        @param capability Capability name
-        @param args Additional arguments
-        @param kwargs Additional arguments
+        The "capability" name must be eACommander or this method will just fail.
 
-        @details Each capability e.g. may directly just call some command line program or execute building pythonic function
+        Args:
+            capability: Capability name.
+            args: Additional arguments.
+            kwargs: Additional arguments.
 
-        @return Capability call return value
+        Returns:
+         True if the copy was successful, otherwise False.
         """
         result = False
         if self.check_parameters(capability, *args, **kwargs) is True:
@@ -65,5 +71,5 @@ class HostTestPluginCopyMethod_Silabs(HostTestPluginBase):
 
 
 def load_plugin():
-    """Returns plugin available in this module"""
+    """Return plugin available in this module."""
     return HostTestPluginCopyMethod_Silabs()

@@ -2,13 +2,14 @@
 # Copyright (c) 2021 Arm Limited and Contributors. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
-
+"""Test device echo."""
 
 import uuid
 from .. import BaseHostTest
 
 
 class EchoTest(BaseHostTest):
+    """EchoTest."""
 
     __result = None
     echo_count = 0
@@ -35,12 +36,15 @@ class EchoTest(BaseHostTest):
         self.__send_echo_uuid()
 
     def setup(self):
+        """Set up the test."""
         self.register_callback("echo", self._callback_echo)
         self.register_callback("echo_count", self._callback_echo_count)
 
     def result(self):
+        """Report test result."""
         self.__result = self.uuid_sent == self.uuid_recv
         return self.__result
 
     def teardown(self):
+        """Tear down test resources."""
         pass

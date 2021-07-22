@@ -2,6 +2,7 @@
 # Copyright (c) 2021 Arm Limited and Contributors. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
+"""Flash a firmware image to a device using PyOCD."""
 
 import os
 from .host_test_plugins import HostTestPluginBase
@@ -16,7 +17,8 @@ except ImportError:
 
 
 class HostTestPluginCopyMethod_pyOCD(HostTestPluginBase):
-    # Plugin interface
+    """Plugin interface adaptor for pyOCD."""
+
     name = "HostTestPluginCopyMethod_pyOCD"
     type = "CopyMethod"
     stable = True
@@ -24,19 +26,28 @@ class HostTestPluginCopyMethod_pyOCD(HostTestPluginBase):
     required_parameters = ["image_path", "target_id"]
 
     def __init__(self):
-        """ctor"""
+        """Initialise plugin."""
         HostTestPluginBase.__init__(self)
 
     def setup(self, *args, **kwargs):
-        """Configure plugin, this function should be called before plugin execute() method is used."""
+        """Configure plugin.
+
+        This function should be called before plugin execute() method is used.
+        """
         return True
 
     def execute(self, capability, *args, **kwargs):
-        """! Executes capability by name
-        @param capability Capability name
-        @param args Additional arguments
-        @param kwargs Additional arguments
-        @return Capability call return value
+        """Flash a firmware image to a device using pyOCD.
+
+        In this implementation we don't seem to care what the capability name is.
+
+        Args:
+            capability: Capability name.
+            args: Additional arguments.
+            kwargs: Additional arguments.
+
+        Returns:
+            True if flashing succeeded, otherwise False.
         """
         if not PYOCD_PRESENT:
             self.print_plugin_error(
@@ -78,11 +89,11 @@ class HostTestPluginCopyMethod_pyOCD(HostTestPluginBase):
 
             # Program the file
             programmer = FileProgrammer(session)
-            programmer.program(image_path, format=kwargs['format'])
+            programmer.program(image_path, format=kwargs["format"])
 
         return True
 
 
 def load_plugin():
-    """Returns plugin available in this module"""
+    """Return plugin available in this module."""
     return HostTestPluginCopyMethod_pyOCD()

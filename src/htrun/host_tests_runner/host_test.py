@@ -2,6 +2,7 @@
 # Copyright (c) 2021 Arm Limited and Contributors. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
+"""Classes performing test selection, test execution and reporting of test results."""
 
 from sys import stdout
 from .target_base import TargetBase
@@ -9,12 +10,18 @@ from . import __version__
 
 
 class HostTestResults(object):
-    """! Test results set by host tests """
+    """Test results set by host tests."""
 
     def enum(self, **enums):
+        """Return a new base type.
+
+        Args:
+            enums: Dictionary of namespaces for the type.
+        """
         return type("Enum", (), enums)
 
     def __init__(self):
+        """Initialise the test result type."""
         self.TestResults = self.enum(
             RESULT_SUCCESS="success",
             RESULT_FAILURE="failure",
@@ -60,63 +67,83 @@ class HostTestResults(object):
         ]
 
     def get_test_result_int(self, test_result_str):
-        """! Maps test result string to unique integer """
+        """Map test result string to unique integer.
+
+        Args:
+            test_result_str: Test results as a string.
+        """
         if test_result_str in self.TestResultsList:
             return self.TestResultsList.index(test_result_str)
         return -1
 
     def __getitem__(self, test_result_str):
-        """! Returns numerical result code """
+        """Return integer test result code.
+
+        Args:
+            test_result_str: Test results as a string.
+        """
         return self.get_test_result_int(test_result_str)
 
 
 class Test(HostTestResults):
-    """Base class for host test's test runner"""
+    """Base class for host test's test runner."""
 
     def __init__(self, options):
-        """ctor"""
+        """Initialise the test runner.
+
+        Args:
+            options: Options instance describing the target.
+        """
         HostTestResults.__init__(self)
         self.target = TargetBase(options)
 
     def run(self):
-        """Test runner for host test. This function will start executing
-        test and forward test result via serial port to test suite
-        """
+        """Run a host test."""
         pass
 
     def setup(self):
-        """! Setup and check if configuration for test is correct.
-        @details This function can for example check if serial port is already opened
-        """
+        """Set up and check if configuration for test is correct."""
         pass
 
     def notify(self, msg):
-        """! On screen notification function
-        @param msg Text message sent to stdout directly
+        """Write a message to stdout.
+
+        Flush immediately so the buffered data is immediately written to stdout.
+
+        Args:
+            msg: Text to write to stdout.
         """
         stdout.write(msg)
         stdout.flush()
 
     def print_result(self, result):
-        """! Test result unified printing function
-        @param result Should be a member of HostTestResults.RESULT_* enums
+        """Print test results in "KV" format packets.
+
+        Args:
+            result: A member of HostTestResults.RESULT_* enums.
         """
         self.notify("{{%s}}\n" % result)
         self.notify("{{%s}}\n" % self.RESULT_END)
 
     def finish(self):
-        """dctor for this class, finishes tasks and closes resources"""
+        """Finishes tasks and closes resources."""
         pass
 
     def get_hello_string(self):
-        """Hello string used as first print"""
+        """Hello string used as first print."""
         return "host test executor ver. " + __version__
 
 
 class DefaultTestSelectorBase(Test):
-    """! Test class with serial port initialization
-    @details This is a base for other test selectors, initializes
+    """Test class with serial port initialization.
+
+    This is a base for other test selectors.
     """
 
     def __init__(self, options):
+        """Initialise test selector.
+
+        Args:
+            options: Options instance describing the target.
+        """
         Test.__init__(self, options=options)

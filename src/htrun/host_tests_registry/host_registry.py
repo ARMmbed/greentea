@@ -2,6 +2,7 @@
 # Copyright (c) 2021 Arm Limited and Contributors. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
+"""Registry of available host tests."""
 
 try:
     from imp import load_source
@@ -10,6 +11,12 @@ except ImportError:
     import sys
 
     def load_source(module_name, file_path):
+        """Dynamically import a plugin module.
+
+        Args:
+           module_name: Name of the module to load.
+           file_path: Path to the module.
+        """
         spec = importlib.util.spec_from_file_location(module_name, file_path)
         module = importlib.util.module_from_spec(spec)
         spec.loader.exec_module(module)
@@ -25,48 +32,55 @@ from ..host_tests.base_host_test import BaseHostTest
 
 
 class HostRegistry:
-    """Class stores registry with host tests and objects representing them"""
+    """Class stores registry with host tests and objects representing them."""
 
     HOST_TESTS = {}  # Map between host_test_name -> host_test_object
 
     def register_host_test(self, ht_name, ht_object):
-        """! Registers host test object by name
+        """Register host test object by name.
 
-        @param ht_name Host test unique name
-        @param ht_object Host test class object
+        Args:
+            ht_name: Host test unique name.
+            ht_object: Host test class object.
         """
         if ht_name not in self.HOST_TESTS:
             self.HOST_TESTS[ht_name] = ht_object
 
     def unregister_host_test(self, ht_name):
-        """! Unregisters host test object by name
+        """Unregister host test object by name.
 
-        @param ht_name Host test unique name
+        Args:
+            ht_name: Host test unique name.
         """
         if ht_name in self.HOST_TESTS:
             del self.HOST_TESTS[ht_name]
 
     def get_host_test(self, ht_name):
-        """! Fetches host test object by name
+        """Fetch host test object by name.
 
-        @param ht_name Host test unique name
+        Args:
+            ht_name: Host test unique name.
 
-        @return Host test callable object or None if object is not found
+        Returns:
+            Host test callable object or None if object is not found.
         """
         return self.HOST_TESTS[ht_name] if ht_name in self.HOST_TESTS else None
 
     def is_host_test(self, ht_name):
-        """! Checks (by name) if host test object is registered already
+        """Check (by name) if host test object is registered already.
 
-        @param ht_name Host test unique name
+        Args:
+            ht_name: Host test unique name.
 
-        @return True if ht_name is registered (available), else False
+        Returns:
+            True if ht_name is registered (available), else False.
         """
         return ht_name in self.HOST_TESTS and self.HOST_TESTS[ht_name] is not None
 
     def table(self, verbose=False):
-        """! Prints list of registered host test classes (by name)
-        @Detail For devel & debug purposes
+        """Print list of registered host test classes (by name).
+
+        For dev & debug purposes.
         """
         from prettytable import PrettyTable, HEADER
 
@@ -85,8 +99,13 @@ class HostRegistry:
         return pt.get_string()
 
     def register_from_path(self, path, verbose=False):
-        """Enumerates and registers locally stored host tests
+        """Enumerate and register locally stored host tests.
+
         Host test are derived from htrun.BaseHostTest classes
+
+        Args:
+            path: Path to the host tests directory.
+            verbose: Enable verbose logging.
         """
         if path:
             path = path.strip('"')
@@ -107,7 +126,7 @@ class HostRegistry:
             mod = load_source(module_name, abspath(join(path, module_file)))
         except Exception as e:
             print(
-                "HOST: Error! While loading local host test module '%s'"
+                "HOST: Error while loading local host test module '%s'"
                 % join(path, module_file)
             )
             print("HOST: %s" % str(e))

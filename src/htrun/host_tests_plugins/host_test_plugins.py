@@ -2,7 +2,7 @@
 # Copyright (c) 2021 Arm Limited and Contributors. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
-
+"""Base class for plugins."""
 import os
 import sys
 import platform
@@ -17,7 +17,7 @@ from ..host_tests_logger import HtrunLogger
 
 
 class HostTestPluginBase:
-    """! Base class for all plugins used with host tests"""
+    """Base class for all plugins used with host tests."""
 
     ###########################################################################
     # Interface:
@@ -36,7 +36,7 @@ class HostTestPluginBase:
     stable = False  # Determine if plugin is stable and can be used
 
     def __init__(self):
-        """ctor"""
+        """Initialise the object."""
         # Setting Host Test Logger instance
         ht_loggers = {
             "BasePlugin": HtrunLogger("PLGN"),
@@ -50,27 +50,40 @@ class HostTestPluginBase:
     ###########################################################################
 
     def setup(self, *args, **kwargs):
-        """Configure plugin, this function should be called before plugin execute() method is used."""
+        """Configure plugin.
+
+        This function should be called before plugin execute() method is used.
+        """
         return False
 
     def execute(self, capability, *args, **kwargs):
-        """! Executes capability by name
-        @param capability Capability name
-        @param args Additional arguments
-        @param kwargs Additional arguments
-        @details Each capability e.g. may directly just call some command line program or execute building pythonic function
-        @return Capability call return value
+        """Execute plugin 'capability' by name.
+
+        Each capability may directly just call some command line program or execute a
+        function.
+
+        Args:
+            capability: Capability name.
+            args: Additional arguments.
+            kwargs: Additional arguments.
+
+        Returns:
+            Capability call return value.
         """
         return False
 
     def is_os_supported(self, os_name=None):
-        """!
-        @return Returns true if plugin works (supportes) under certain OS
-        @os_name String describing OS.
-                 See self.host_os_support() and self.host_os_info()
-        @details In some cases a plugin will not work under particular OS
-                 mainly because command / software used to implement plugin
-                 functionality is not available e.g. on MacOS or Linux.
+        """Check if the OS is supported by this plugin.
+
+        In some cases a plugin will not work under a particular OS. Usually because the
+        command line tool used to implement the plugin functionality is not available.
+
+        Args:
+            os_name: String describing OS. See self.host_os_support() and
+                self.host_os_info()
+
+        Returns:
+            True if plugin works under certain OS.
         """
         return True
 
@@ -78,23 +91,26 @@ class HostTestPluginBase:
     # Interface helper methods - overload only if you need to have custom behaviour
     ###########################################################################
     def print_plugin_error(self, text):
-        """! Function prints error in console and exits always with False
-        @param text Text to print
+        """Print error messages to the console.
+
+        Args:
+            text: Text to print.
         """
         self.plugin_logger.prn_err(text)
         return False
 
     def print_plugin_info(self, text, NL=True):
-        """! Function prints notification in console and exits always with True
-        @param text Text to print
-        @param NL Deprecated! Newline will be added behind text if this flag is True
-        """
+        """Print notifications to the console.
 
+        Args:
+            text: Text to print.
+            NL: (Deprecated) Newline will be added behind text if this flag is True.
+        """
         self.plugin_logger.prn_inf(text)
         return True
 
     def print_plugin_char(self, char):
-        """Function prints char on stdout"""
+        """Print a char to stdout."""
         stdout.write(char)
         stdout.flush()
         return True
@@ -107,18 +123,21 @@ class HostTestPluginBase:
         target_id=None,
         timeout=60,
     ):
-        """! Waits until destination_disk is ready and can be accessed by e.g. copy commands
-        @return True if mount point was ready in given time, False otherwise
-        @param destination_disk Mount point (disk) which will be checked for readiness
-        @param init_delay - Initial delay time before first access check
-        @param loop_delay - polling delay for access check
-        @param timeout Mount point pooling timeout in seconds
-        """
+        """Wait until destination_disk is ready and can be accessed.
 
+        Args:
+            destination_disk: Mount point (disk) which will be checked for readiness.
+            init_delay: Initial delay time before first access check.
+            loop_delay: Polling delay for access check.
+            timeout: Polling timeout in seconds.
+
+        Returns:
+            True if mount point was ready in given time, otherwise False.
+        """
         if target_id:
             # Wait for mount point to appear with mbed-ls
             # and if it does check if mount point for target_id changed
-            # If mount point changed, use new mount point and check if its ready (os.access)
+            # If mount point changed, use new mount point and check if its ready.
             new_destination_disk = destination_disk
 
             # Sometimes OSes take a long time to mount devices (up to one minute).
@@ -158,7 +177,8 @@ class HostTestPluginBase:
                 destination_disk = new_destination_disk
 
         result = True
-        # Check if mount point we've promoted to be valid one (by optional target_id check above)
+        # Check if mount point we've promoted to be valid one (by optional target_id
+        # check above)
         # Let's wait for 30 * loop_delay + init_delay max
         if not access(destination_disk, F_OK):
             self.print_plugin_info(
@@ -180,12 +200,17 @@ class HostTestPluginBase:
         return (result, destination_disk)
 
     def check_serial_port_ready(self, serial_port, target_id=None, timeout=60):
-        """! Function checks (using mbed-ls) and updates serial port name information for DUT with specified target_id.
-        If no target_id is specified function returns old serial port name.
-        @param serial_port Current serial port name
-        @param target_id Target ID of a device under test which serial port will be checked and updated if needed
-        @param timeout Serial port pooling timeout in seconds
-        @return Tuple with result (always True) and serial port read from mbed-ls
+        """Check and update serial port name information for DUT.
+
+        If no target_id is specified return the old serial port name.
+
+        Args:
+            serial_port: Current serial port name.
+            target_id: Target ID of a device under test.
+            timeout: Serial port pooling timeout in seconds.
+
+        Returns:
+            Tuple with result (always True) and serial port read from mbed-ls.
         """
         # If serial port changed (check using mbed-ls), use new serial port
         new_serial_port = None
@@ -200,7 +225,8 @@ class HostTestPluginBase:
             timeout_step = 0.5
             timeout = int(timeout / timeout_step)
             for i in range(timeout):
-                # mbed_lstools.main.create() should be done inside the loop. Otherwise it will loop on same data.
+                # mbed_lstools.main.create() should be done inside the loop. Otherwise
+                # it will loop on same data.
                 mbeds = create()
                 mbed_list = mbeds.list_mbeds()  # list of mbeds present
                 # get first item in list with a matching target_id, if present
@@ -216,7 +242,7 @@ class HostTestPluginBase:
                     ):
                         new_serial_port = mbed_target["serial_port"]
                         if new_serial_port != serial_port:
-                            # Serial port changed, update to new serial port from mbed-ls
+                            # Serial port changed, update to new serial port
                             self.print_plugin_info(
                                 "Serial port for tid='%s' changed from '%s' to '%s'..."
                                 % (target_id, serial_port, new_serial_port)
@@ -229,11 +255,17 @@ class HostTestPluginBase:
         return new_serial_port
 
     def check_parameters(self, capability, *args, **kwargs):
-        """! This function should be ran each time we call execute() to check if none of the required parameters is missing
-        @param capability Capability name
-        @param args Additional parameters
-        @param kwargs Additional parameters
-        @return Returns True if all parameters are passed to plugin, else return False
+        """Check if required parameters are missing.
+
+        This function should be called each time we call execute().
+
+        Args:
+            capability: Capability name.
+            args: Additional parameters.
+            kwargs: Additional parameters.
+
+        Returns:
+            True if all required parameters are passed to plugin, otherwise False.
         """
         missing_parameters = []
         for parameter in self.required_parameters:
@@ -247,12 +279,18 @@ class HostTestPluginBase:
         return True
 
     def run_command(self, cmd, shell=True, stdin=None):
-        """! Runs command from command line.
-        @param cmd Command to execute
-        @param shell True if shell command should be executed (eg. ls, ps)
-        @param stdin A custom stdin for the process running the command (defaults to None)
-        @details Function prints 'cmd' return code if execution failed
-        @return True if command successfully executed
+        """Run a shell command as a subprocess.
+
+        Prints 'cmd' return code if execution failed.
+
+        Args:
+            cmd: Command to execute.
+            shell: True if shell command should be executed (eg. ls, ps).
+            stdin: A custom stdin for the process running the command (defaults
+            to None).
+
+        Returns:
+            True if command successfully executed, otherwise False.
         """
         result = True
         try:
@@ -267,8 +305,10 @@ class HostTestPluginBase:
         return result
 
     def host_os_info(self):
-        """! Returns information about host OS
-        @return Returns tuple with information about OS and host platform
+        """Return information about host OS.
+
+        Returns:
+            Tuple with information about OS and host platform.
         """
         result = (
             os.name,
@@ -280,9 +320,12 @@ class HostTestPluginBase:
         return result
 
     def host_os_support(self):
-        """! Function used to determine host OS
-        @return Returns None if host OS is unknown, else string with name
-        @details This function should be ported for new OS support
+        """Determine host OS.
+
+        This function should be ported for new OS support.
+
+        Returns:
+            None if host OS is unknown, else string with name.
         """
         result = None
         os_info = self.host_os_info()

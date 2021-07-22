@@ -2,12 +2,14 @@
 # Copyright (c) 2021 Arm Limited and Contributors. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
+"""Implements a plugin to flash ST devices using ST-LINK-CLI."""
 
 import os
 from .host_test_plugins import HostTestPluginBase
 
 
 class HostTestPluginCopyMethod_Stlink(HostTestPluginBase):
+    """Plugin interface adaptor for the ST-LINK-CLI."""
 
     # Plugin interface
     name = "HostTestPluginCopyMethod_Stlink"
@@ -16,11 +18,11 @@ class HostTestPluginCopyMethod_Stlink(HostTestPluginBase):
     required_parameters = ["image_path"]
 
     def __init__(self):
-        """ctor"""
+        """Initialise the object."""
         HostTestPluginBase.__init__(self)
 
     def is_os_supported(self, os_name=None):
-        """! In this implementation this plugin only is supporeted under Windows machines"""
+        """Check if the OS is supported."""
         # If no OS name provided use host OS name
         if not os_name:
             os_name = self.host_os_support()
@@ -31,32 +33,38 @@ class HostTestPluginCopyMethod_Stlink(HostTestPluginBase):
         return False
 
     def setup(self, *args, **kwargs):
-        """! Configure plugin, this function should be called before plugin execute() method is used."""
+        """Configure plugin.
+
+        This function should be called before plugin execute() method is used.
+        """
         self.ST_LINK_CLI = "ST-LINK_CLI.exe"
         return True
 
     def execute(self, capability, *args, **kwargs):
-        """! Executes capability by name
+        """Copy a firmware image to a deice using the ST-LINK-CLI.
 
-        @param capability Capability name
-        @param args Additional arguments
-        @param kwargs Additional arguments
+        If the "capability" name is not 'stlink' this method will just fail.
 
-        @details Each capability e.g. may directly just call some command line program or execute building pythonic function
+        Args:
+            capability: Capability name.
+            args: Additional arguments.
+            kwargs: Additional arguments.
 
-        @return Capability call return value
+        Returns:
+            True if the copy succeeded, otherwise False.
         """
         result = False
         if self.check_parameters(capability, *args, **kwargs) is True:
             image_path = os.path.normpath(kwargs["image_path"])
             if capability == "stlink":
                 # Example:
-                # ST-LINK_CLI.exe -p "C:\Work\mbed\build\test\DISCO_F429ZI\GCC_ARM\MBED_A1\basic.bin"
+                # ST-LINK_CLI.exe -p \
+                # "C:\Work\mbed\build\test\DISCO_F429ZI\GCC_ARM\MBED_A1\basic.bin"
                 cmd = [self.ST_LINK_CLI, "-p", image_path, "0x08000000", "-V"]
                 result = self.run_command(cmd)
         return result
 
 
 def load_plugin():
-    """Returns plugin available in this module"""
+    """Return plugin available in this module."""
     return HostTestPluginCopyMethod_Stlink()

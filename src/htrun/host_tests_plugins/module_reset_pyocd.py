@@ -2,6 +2,7 @@
 # Copyright (c) 2021 Arm Limited and Contributors. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
+"""Use PyOCD to reset a target."""
 
 from .host_test_plugins import HostTestPluginBase
 
@@ -14,8 +15,8 @@ except ImportError:
 
 
 class HostTestPluginResetMethod_pyOCD(HostTestPluginBase):
+    """Plugin interface."""
 
-    # Plugin interface
     name = "HostTestPluginResetMethod_pyOCD"
     type = "ResetMethod"
     stable = True
@@ -23,25 +24,26 @@ class HostTestPluginResetMethod_pyOCD(HostTestPluginBase):
     required_parameters = ["target_id"]
 
     def __init__(self):
-        """! ctor
-        @details We can check module version by referring to version attribute
-        import pkg_resources
-        print pkg_resources.require("htrun")[0].version
-        '2.7'
-        """
+        """Initialise plugin."""
         HostTestPluginBase.__init__(self)
 
     def setup(self, *args, **kwargs):
-        """! Configure plugin, this function should be called before plugin execute() method is used."""
+        """Configure plugin.
+
+        This is a no-op for this plugin.
+        """
         return True
 
     def execute(self, capability, *args, **kwargs):
-        """! Executes capability by name
-        @param capability Capability name
-        @param args Additional arguments
-        @param kwargs Additional arguments
-        @details Each capability e.g. may directly just call some command line program or execute building pythonic function
-        @return Capability call return value
+        """Reset a target using pyOCD.
+
+        The "capability" name must be "pyocd". If it isn't this method will just fail.
+
+        Args:
+            capability: Capability name.
+
+        Returns:
+            True if the reset was successful, otherwise False.
         """
         if not PYOCD_PRESENT:
             self.print_plugin_error(
@@ -69,5 +71,5 @@ class HostTestPluginResetMethod_pyOCD(HostTestPluginBase):
 
 
 def load_plugin():
-    """! Returns plugin available in this module"""
+    """Return plugin available in this module."""
     return HostTestPluginResetMethod_pyOCD()

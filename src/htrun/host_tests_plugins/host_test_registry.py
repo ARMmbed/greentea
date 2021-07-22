@@ -2,34 +2,34 @@
 # Copyright (c) 2021 Arm Limited and Contributors. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
+"""Registry of available host test plugins."""
 
 
 class HostTestRegistry:
-    """Simple class used to register and store
-    host test plugins for further usage
-    """
+    """Register and store host test plugins for further usage."""
 
     # Here we actually store all the plugins
     PLUGINS = {}  # 'Plugin Name' : Plugin Object
 
     def print_error(self, text):
-        """! Prints error directly on console
+        """Print an error message to the console.
 
-        @param text Error message text message
+        Args:
+            text: Error message reason.
         """
         print("Plugin load failed. Reason: %s" % text)
 
     def register_plugin(self, plugin):
-        """! Registers and stores plugin inside registry for further use.
+        """Store a plugin in the registry.
 
-        @param plugin Plugin name
+        This method also calls the plugin's setup() method to configure the plugin.
 
-        @return True if plugin setup was successful and plugin can be registered, else False
+        Args:
+            plugin: Plugin instance.
 
-        @details Method also calls plugin's setup() function to configure plugin if needed.
-                 Note: Different groups of plugins may demand different extra parameter. Plugins
-                 should be at least for one type of plugin configured with the same parameters
-                 because we do not know which of them will actually use particular parameter.
+        Returns:
+            True if plugin setup was successful and plugin can be registered, else
+            False.
         """
         # TODO:
         # - check for unique caps for specified type
@@ -44,12 +44,16 @@ class HostTestRegistry:
         return False
 
     def call_plugin(self, type, capability, *args, **kwargs):
-        """! Execute plugin functionality respectively to its purpose
-        @param type Plugin type
-        @param capability Plugin capability name
-        @param args Additional plugin parameters
-        @param kwargs Additional plugin parameters
-        @return Returns result from plugin's execute() method
+        """Execute the first plugin found with a particular 'type' and 'capability'.
+
+        Args:
+            type: Plugin type.
+            capability: Plugin capability name.
+            args: Additional plugin parameters.
+            kwargs: Additional plugin parameters.
+
+        Returns:
+            True if a plugin was found and execution succeeded, otherwise False.
         """
         for plugin_name in self.PLUGINS:
             plugin = self.PLUGINS[plugin_name]
@@ -58,9 +62,14 @@ class HostTestRegistry:
         return False
 
     def get_plugin_caps(self, type):
-        """! Returns list of all capabilities for plugin family with the same type
-        @param type Plugin type
-        @return Returns list of capabilities for plugin. If there are no capabilities empty list is returned
+        """List all capabilities for plugins with the specified type.
+
+        Args:
+            type: Plugin type.
+
+        Returns:
+            List of capabilities found. If there are no capabilities an empty
+            list is returned.
         """
         result = []
         for plugin_name in self.PLUGINS:
@@ -70,16 +79,26 @@ class HostTestRegistry:
         return sorted(result)
 
     def load_plugin(self, name):
-        """! Used to load module from system (by import)
-        @param name name of the module to import
-        @return Returns result of __import__ operation
+        """Import a plugin module.
+
+        Args:
+            name: Name of the module to import.
+
+        Returns:
+            Imported module.
+
+        Raises:
+            ImportError: The module with the given name was not found.
         """
         mod = __import__("module_%s" % name)
         return mod
 
     def get_string(self):
-        """! User friendly printing method to show hooked plugins
-        @return Returns string formatted with PrettyTable
+        """User friendly printing method to show hooked plugins.
+
+        Returns:
+            PrettyTable formatted string describing the contents of the plugin
+            registry.
         """
         from prettytable import PrettyTable, HEADER
 
@@ -115,7 +134,7 @@ class HostTestRegistry:
         return pt.get_string()
 
     def get_dict(self):
-        column_names = ["name", "type", "capabilities", "stable"]
+        """Return a dictionary of registered plugins."""
         result = {}
         for plugin_name in sorted(self.PLUGINS.keys()):
             name = self.PLUGINS[plugin_name].name
@@ -135,4 +154,5 @@ class HostTestRegistry:
         return result
 
     def __str__(self):
+        """Return str representation of object."""
         return self.get_string()

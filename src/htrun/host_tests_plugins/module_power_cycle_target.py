@@ -2,6 +2,7 @@
 # Copyright (c) 2021 Arm Limited and Contributors. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
+"""Power cycle devices using the 'Mbed TAS RM REST API'."""
 
 import os
 import json
@@ -11,8 +12,8 @@ from .host_test_plugins import HostTestPluginBase
 
 
 class HostTestPluginPowerCycleResetMethod(HostTestPluginBase):
+    """Plugin interface adaptor for Mbed TAS RM REST API."""
 
-    # Plugin interface
     name = "HostTestPluginPowerCycleResetMethod"
     type = "ResetMethod"
     stable = True
@@ -20,21 +21,28 @@ class HostTestPluginPowerCycleResetMethod(HostTestPluginBase):
     required_parameters = ["target_id", "device_info"]
 
     def __init__(self):
-        """ctor"""
+        """Initialise plugin."""
         HostTestPluginBase.__init__(self)
 
     def setup(self, *args, **kwargs):
-        """! Configure plugin, this function should be called before plugin execute() method is used."""
+        """Configure plugin.
+
+        This function should be called before plugin execute() method is used.
+        """
         return True
 
     def execute(self, capability, *args, **kwargs):
-        """! Executes capability by name
+        """Power cycle a device using the TAS RM API.
 
-        @param capability Capability name
-        @param args Additional arguments
-        @param kwargs Additional arguments
-        @details Each capability e.g. may directly just call some command line program or execute building pythonic function
-        @return Capability call return value
+        If the "capability" name is not "power_cycle" this method will just fail.
+
+        Args:
+            capability: Capability name.
+            args: Additional arguments.
+            kwargs: Additional arguments.
+
+        Returns:
+            True if the power cycle succeeded, otherwise False.
         """
         if "target_id" not in kwargs or not kwargs["target_id"]:
             self.print_plugin_error("Error: This plugin requires unique target_id")
@@ -42,7 +50,8 @@ class HostTestPluginPowerCycleResetMethod(HostTestPluginBase):
 
         if "device_info" not in kwargs or type(kwargs["device_info"]) is not dict:
             self.print_plugin_error(
-                "Error: This plugin requires dict parameter 'device_info' passed by the caller."
+                "Error: This plugin requires dict parameter 'device_info' passed by "
+                "the caller."
             )
             return False
 
@@ -58,10 +67,7 @@ class HostTestPluginPowerCycleResetMethod(HostTestPluginBase):
         return result
 
     def __get_mbed_tas_rm_addr(self):
-        """
-        Get IP and Port of mbed tas rm service.
-        :return:
-        """
+        """Get IP and Port of mbed tas rm service."""
         try:
             ip = os.environ["MBED_TAS_RM_IP"]
             port = os.environ["MBED_TAS_RM_PORT"]
@@ -76,16 +82,7 @@ class HostTestPluginPowerCycleResetMethod(HostTestPluginBase):
         return None
 
     def __hw_reset(self, ip, port, target_id, device_info):
-        """
-        Reset target device using TAS RM API
-
-        :param ip:
-        :param port:
-        :param target_id:
-        :param device_info:
-        :return:
-        """
-
+        """Reset target device using TAS RM API."""
         switch_off_req = {
             "name": "switchResource",
             "sub_requests": [
@@ -170,11 +167,6 @@ class HostTestPluginPowerCycleResetMethod(HostTestPluginBase):
 
     @staticmethod
     def __run_request(ip, port, request):
-        """
-
-        :param request:
-        :return:
-        """
         headers = {"Content-type": "application/json", "Accept": "text/plain"}
         get_resp = requests.get(
             "http://%s:%s/" % (ip, port), data=json.dumps(request), headers=headers
@@ -187,5 +179,5 @@ class HostTestPluginPowerCycleResetMethod(HostTestPluginBase):
 
 
 def load_plugin():
-    """! Returns plugin available in this module"""
+    """Return plugin available in this module."""
     return HostTestPluginPowerCycleResetMethod()

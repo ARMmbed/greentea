@@ -2,29 +2,42 @@
 # Copyright (c) 2021 Arm Limited and Contributors. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
-
+"""Module defines ConnectorPrimitive base class for device connection and comms."""
 from ..host_tests_logger import HtrunLogger
 
 
 class ConnectorPrimitiveException(Exception):
-    """
-    Exception in connector primitive module.
-    """
+    """Exception in connector primitive module."""
 
     pass
 
 
 class ConnectorPrimitive(object):
+    """Base class for communicating with DUT."""
+
     def __init__(self, name):
+        """Initialise object.
+
+        Args:
+            name: Name to display in the log.
+        """
         self.LAST_ERROR = None
         self.logger = HtrunLogger(name)
         self.polling_timeout = 60
 
     def write_kv(self, key, value):
-        """! Forms and sends Key-Value protocol message.
-        @details On how to parse K-V sent from DUT see KiViBufferWalker::KIVI_REGEX
-                 On how DUT sends K-V please see greentea_write_postamble() function in greentea-client
-        @return Returns buffer with K-V message sent to DUT on success, None on failure
+        """Write a Key-Value protocol message.
+
+        A Key-Value protocol message is in the form '{{key;value}}'. The greentea tests
+        running on the DUT recognise messages in this format and act according to the
+        given commands.
+
+        Args:
+            key: Key part of the Key-Value protocol message.
+            value: Value part of the Key-Value message.
+
+        Returns:
+            Buffer containing the K-V message on success, None on failure.
         """
         # All Key-Value messages ends with newline character
         kv_buff = "{{%s;%s}}" % (key, value) + "\n"
@@ -36,40 +49,52 @@ class ConnectorPrimitive(object):
             return None
 
     def read(self, count):
-        """! Read data from DUT
-        @param count Number of bytes to read
-        @return Bytes read
+        """Read data from DUT.
+
+        Args:
+            count: Number of bytes to read.
+
+        Returns:
+            Bytes read.
         """
         raise NotImplementedError
 
     def write(self, payload, log=False):
-        """! Read data from DUT
-        @param payload Buffer with data to send
-        @param log Set to True if you want to enable logging for this function
-        @return Payload (what was actually sent - if possible to establish that)
+        """Write data to the DUT.
+
+        Args:
+            payload: Buffer with data to send.
+            log: Set to True to enable logging for this function.
+
+        Returns:
+            Payload (what was actually sent - if possible to establish that).
         """
         raise NotImplementedError
 
     def flush(self):
-        """! Flush read/write channels of DUT """
+        """Flush read/write channels of the DUT."""
         raise NotImplementedError
 
     def reset(self):
-        """! Reset the dut"""
+        """Reset the DUT."""
         raise NotImplementedError
 
     def connected(self):
-        """! Check if there is a connection to DUT
-        @return True if there is conenction to DUT (read/write/flush API works)
+        """Check if there is a connection to the DUT.
+
+        Returns:
+            True if there is connection to the DUT (read/write/flush API works).
         """
         raise NotImplementedError
 
     def error(self):
-        """! Returns LAST_ERROR value
-        @return Value of self.LAST_ERROR
+        """LAST_ERROR value.
+
+        Returns:
+            Value of self.LAST_ERROR
         """
         return self.LAST_ERROR
 
     def finish(self):
-        """! Handle DUT dtor like (close resource) operations here"""
+        """Close the connection to the DUT and perform any clean up operations."""
         raise NotImplementedError

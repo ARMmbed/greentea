@@ -2,15 +2,13 @@
 # Copyright (c) 2021 Arm Limited and Contributors. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
+"""Test reads single characters from stdio and measures time between occurrences."""
 
-from time import time
 from .. import BaseHostTest
 
 
 class WaitusTest(BaseHostTest):
-    """This test is reading single characters from stdio
-    and measures time between their occurrences.
-    """
+    """Test ticker timing."""
 
     __result = None
     DEVIATION = 0.10  # +/-10%
@@ -20,15 +18,18 @@ class WaitusTest(BaseHostTest):
         self.notify_complete()
 
     def _callback_tick(self, key, value, timestamp):
-        """ {{tick;%d}}} """
+        """{{tick;%d}}}."""
         self.log("tick! " + str(timestamp))
         self.ticks.append((key, value, timestamp))
 
     def setup(self):
+        """Set up the test case."""
         self.register_callback("exit", self._callback_exit)
         self.register_callback("tick", self._callback_tick)
 
     def result(self):
+        """Report test result."""
+
         def sub_timestamps(t1, t2):
             delta = t1 - t2
             deviation = abs(delta - 1.0)
@@ -48,4 +49,5 @@ class WaitusTest(BaseHostTest):
         return self.__result
 
     def teardown(self):
+        """Tear down test."""
         pass

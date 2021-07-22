@@ -2,6 +2,7 @@
 # Copyright (c) 2021 Arm Limited and Contributors. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
+"""MPS2 specific flashing / binary setup functions."""
 
 import os
 from shutil import copy
@@ -9,7 +10,7 @@ from .host_test_plugins import HostTestPluginBase
 
 
 class HostTestPluginCopyMethod_MPS2(HostTestPluginBase):
-    # MPS2 specific flashing / binary setup funcitons
+    """Plugin interface adapter for a shell 'copy' command."""
 
     name = "HostTestPluginCopyMethod_MPS2"
     type = "CopyMethod"
@@ -18,19 +19,21 @@ class HostTestPluginCopyMethod_MPS2(HostTestPluginBase):
     required_parameters = ["image_path", "destination_disk"]
 
     def __init__(self):
-        """ctor"""
+        """Initialise plugin."""
         HostTestPluginBase.__init__(self)
 
     def mps2_copy(self, image_path, destination_disk):
-        """! mps2 copy method for "mbed enabled" devices.
-             This copies the file on the MPS2 keeping the same extension but
-             renaming it "mbed.extension"
-        @param image_path Path to file to be copied
-        @param destination_disk Path to destination (mbed mount point)
+        """mps2 copy method for "mbed enabled" devices.
 
-        @details this uses shutil copy to copy the file.
+        Copies the file to the MPS2, using shutil.copy. Prepends the file
+        extension with 'mbed'.
 
-        @return Returns True if copy (flashing) was successful
+        Args:
+            image_path: Path to file to be copied.
+            destination_disk: Path to destination (mbed mount point).
+
+        Returns;
+            True if copy (flashing) was successful, otherwise False.
         """
         result = True
         # Keep the same extension in the test spec and on the MPS2
@@ -51,15 +54,20 @@ class HostTestPluginCopyMethod_MPS2(HostTestPluginBase):
         return result
 
     def setup(self, *args, **kwargs):
-        """Configure plugin, this function should be called before plugin execute() method is used."""
+        """Configure plugin.
+
+        This function should be called before plugin execute() method is used.
+        """
         return True
 
     def execute(self, capability, *args, **kwargs):
-        """! Executes capability by name.
-        @details Each capability may directly just call some command line program or execute building pythonic function
-        @return Returns True if 'capability' operation was successful
-        """
+        """Copy a firmware image to a device using the mps2_copy method.
 
+        If the "capability" name is not 'mps2' this method will just fail.
+
+        Returns:
+            True if copy operation succeeded, otherwise False.
+        """
         if not kwargs["image_path"]:
             self.print_plugin_error("Error: image path not specified")
             return False
@@ -81,7 +89,8 @@ class HostTestPluginCopyMethod_MPS2(HostTestPluginBase):
                     destination_disk = os.path.normpath(kwargs["destination_disk"])
                     # Wait for mount point to be ready
                     # if mount point changed according to target_id use new mount point
-                    # available in result (_, destination_disk) of check_mount_point_ready
+                    # available in result (_, destination_disk) of
+                    # check_mount_point_ready
                     result, destination_disk = self.check_mount_point_ready(
                         destination_disk, target_id=target_id, timeout=pooling_timeout
                     )  # Blocking
@@ -91,5 +100,5 @@ class HostTestPluginCopyMethod_MPS2(HostTestPluginBase):
 
 
 def load_plugin():
-    """Returns plugin available in this module"""
+    """Return plugin available in this module."""
     return HostTestPluginCopyMethod_MPS2()

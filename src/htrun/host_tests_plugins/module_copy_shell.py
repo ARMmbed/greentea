@@ -2,13 +2,15 @@
 # Copyright (c) 2021 Arm Limited and Contributors. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
-
+"""Wrapper around cp/xcopy/copy."""
 import os
 from os.path import join, basename
 from .host_test_plugins import HostTestPluginBase
 
 
 class HostTestPluginCopyMethod_Shell(HostTestPluginBase):
+    """Plugin interface adaptor for shell copy commands."""
+
     # Plugin interface
     name = "HostTestPluginCopyMethod_Shell"
     type = "CopyMethod"
@@ -17,21 +19,29 @@ class HostTestPluginCopyMethod_Shell(HostTestPluginBase):
     required_parameters = ["image_path", "destination_disk"]
 
     def __init__(self):
-        """ctor"""
+        """Initialise the plugin."""
         HostTestPluginBase.__init__(self)
 
     def setup(self, *args, **kwargs):
-        """Configure plugin, this function should be called before plugin execute() method is used."""
+        """Configure plugin.
+
+        This function should be called before plugin execute() method is used.
+        """
         return True
 
     def execute(self, capability, *args, **kwargs):
-        """! Executes capability by name
+        """Copy an image to a destination disk using a shell copy command.
 
-        @param capability Capability name
-        @param args Additional arguments
-        @param kwargs Additional arguments
-        @details Each capability e.g. may directly just call some command line program or execute building pythonic function
-        @return Capability call return value
+        "capability" is used to select which command to invoke, valid
+        capabilities are "shell", "cp", "copy" and "xcopy".
+
+        Args:
+            capability: Capability name.
+            args: Additional arguments.
+            kwargs: Additional arguments.
+
+        Returns:
+            True if the copy succeeded, otherwise False.
         """
         if not kwargs["image_path"]:
             self.print_plugin_error("Error: image path not specified")
@@ -83,5 +93,5 @@ class HostTestPluginCopyMethod_Shell(HostTestPluginBase):
 
 
 def load_plugin():
-    """Returns plugin available in this module"""
+    """Return plugin available in this module."""
     return HostTestPluginCopyMethod_Shell()
