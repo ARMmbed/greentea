@@ -1,6 +1,6 @@
 mbed-ls>=1.8.6
 PySerial>=3.0,<4.0
 setuptools-scm>=1.17.0,<2
-PrettyTable<=1.0.1
+prettytable<3.0,>=2.0
 six>=1.0,<2.0
 colorama>=0.3,<0.5
