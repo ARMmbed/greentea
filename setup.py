@@ -2,15 +2,15 @@
 # Copyright (c) 2021 Arm Limited and Contributors. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
-"""PyPI Package definition for Greentea CLI and host-tests runner (htrun)."""
+"""PyPI Package definition for greentea-host (htrun)."""
 import os
 from io import open
 from distutils.core import setup
 from setuptools import find_packages
 
 DESCRIPTION = (
-    "The Greentea CLI and host-tests runner (htrun) is a collection of tools "
-    "that enable automated testing on Mbed enabled platforms."
+    "greentea-host (htrun) is a command line tool "
+    "that enables automated testing on embedded platforms."
 )
 OWNER_NAMES = "Mbed team"
 OWNER_EMAILS = "support@mbed.com"
@@ -39,7 +39,7 @@ with open(os.path.join(repository_dir, "test_requirements.txt")) as fh:
 
 python_requires = ">=3.5.*,<4"
 setup(
-    name="mbed-greentea",
+    name="greentea-host",
     description=DESCRIPTION,
     long_description=read("README.md"),
     long_description_content_type="text/markdown",
@@ -53,7 +53,7 @@ setup(
     license="Apache-2.0",
     test_suite="test",
     entry_points={
-        "console_scripts": ["gt=greentea.greentea_cli:main", "htrun=htrun.htrun:main"],
+        "console_scripts": ["htrun=htrun.htrun:main"],
     },
     classifiers=(
         "Development Status :: 5 - Production/Stable",
