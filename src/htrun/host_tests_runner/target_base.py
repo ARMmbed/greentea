@@ -286,6 +286,7 @@ class TargetBase:
             destination_disk=disk,
             target_id=self.target_id,
             pooling_timeout=self.polling_timeout,
+            format=self.options.format,
         )
         return result
 
@@ -301,6 +302,7 @@ class TargetBase:
             "power_cycle",
             target_id=self.target_id,
             device_info=device_info,
+            format=self.options.format,
         )
         if result:
             self.port = device_info["serial_port"]

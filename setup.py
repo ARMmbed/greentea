@@ -73,4 +73,5 @@ setup(
     python_requires=python_requires,
     install_requires=requirements,
     tests_require=test_requirements,
+    extras_require={"pyocd": ["pyocd>=0.31.0"]},
 )
