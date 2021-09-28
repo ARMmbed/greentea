@@ -1,0 +1,31 @@
+name: Publish greentea-host to PyPI
+on:
+  push:
+    tags:
+      - v[0-9]+* # Only publish releases for version tags
+
+jobs:
+  build-and-publish:
+    runs-on: ubuntu-latest
+    name: Build and publish Python distributions to PyPI
+
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        fetch-depth: 0 # Fetch history so setuptools-scm can calculate the version correctly
+
+    - name: Set up Python
+      uses: actions/setup-python@v2
+      with:
+        python-version: 3.9
+
+    - name: Install pypa/build
+      run: python -m pip install --user build
+
+    - name: Build a binary wheel and a source tarball
+      run: python -m build --sdist --wheel --outdir dist/ .
+
+    - name: Publish distribution to PyPI
+      uses: pypa/gh-action-pypi-publish@master
+      with:
+        password: ${{ secrets.PYPI_API_TOKEN }}
