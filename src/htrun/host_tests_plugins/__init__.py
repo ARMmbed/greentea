@@ -23,6 +23,7 @@ from . import module_reset_pyocd
 from . import module_copy_silabs
 from . import module_reset_silabs
 from . import module_copy_stlink
+from . import module_copy_stprogrammer
 from . import module_reset_stlink
 from . import module_copy_ublox
 from . import module_reset_ublox
@@ -49,6 +50,7 @@ HOST_TEST_PLUGIN_REGISTRY.register_plugin(module_reset_mps2.load_plugin())
 HOST_TEST_PLUGIN_REGISTRY.register_plugin(module_copy_silabs.load_plugin())
 HOST_TEST_PLUGIN_REGISTRY.register_plugin(module_reset_silabs.load_plugin())
 HOST_TEST_PLUGIN_REGISTRY.register_plugin(module_copy_stlink.load_plugin())
+HOST_TEST_PLUGIN_REGISTRY.register_plugin(module_copy_stprogrammer.load_plugin())
 HOST_TEST_PLUGIN_REGISTRY.register_plugin(module_reset_stlink.load_plugin())
 HOST_TEST_PLUGIN_REGISTRY.register_plugin(module_power_cycle_target.load_plugin())
 HOST_TEST_PLUGIN_REGISTRY.register_plugin(module_reset_pyocd.load_plugin())
