@@ -131,11 +131,15 @@ List available reset and flashing plugins:
 $ htrun --plugins
 ```
 
-Flash binary file `/path/to/file/binary.bin` using plugin `stlink`. Use serial port `COM4` with baudrate `115200` to communicate with DUT:
+Note that some plugin could need some manual installation for extra application before.
+
+Ex: Flash binary file `/path/to/file/binary.bin` using STM32CubeProgrammer tool. Use serial port `COM4` with baudrate `115200` to communicate with DUT:
 
 ```
-htrun -c stlink -f /path/to/file/binary.bin -p COM4:115200
+htrun -c stprog -f /path/to/file/binary.bin -p COM4:115200
 ```
+
+In this example, `STM32_Programmer_CLI` [application](https://www.st.com/en/development-tools/stm32cubeprog.html) has to be in the environment path.
 
 # Installation
 
