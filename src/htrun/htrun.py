@@ -1,5 +1,5 @@
 #
-# Copyright (c) 2021 Arm Limited and Contributors. All rights reserved.
+# Copyright (c) 2021-2022 Arm Limited and Contributors. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
 """Greentea Host Tests Runner."""
@@ -23,7 +23,7 @@ def main():
     if cli_params.version:  # --version
         import pkg_resources  # part of setuptools
 
-        version = pkg_resources.require("htrun")[0].version
+        version = pkg_resources.require("greentea-host")[0].version
         print(version)
     elif cli_params.send_break_cmd:  # -b with -p PORT (and optional -r RESET_TYPE)
         handle_send_break_cmd(
